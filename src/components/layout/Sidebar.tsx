@@ -15,7 +15,7 @@ const Sidebar = () => {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", adminOnly: false },
-    { name: "Metrics", icon: BarChart3, path: "/metrics", adminOnly: false },
+    { name: "Metrics", icon: BarChart3, path: "/metrics", adminOnly: true },
     { name: "Settings", icon: Settings, path: "/settings", adminOnly: false },
   ];
 

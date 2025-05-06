@@ -1,6 +1,8 @@
-
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import { useData } from "../contexts/DataContext";
+import { useAuth } from "../contexts/AuthContext";
 import { 
   Card, 
   CardContent,
@@ -21,12 +23,28 @@ import {
   Tooltip,
   Legend,
   BarChart,
-  Bar
+  Bar,
+  AreaChart, 
+  Area
 } from "recharts";
 
 const Metrics = () => {
   const { sales, customers, metrics } = useData();
+  const { isAdmin } = useAuth();
+  const navigate = useNavigate();
   
+  useEffect(() => {
+    // Redirect to home if not admin
+    if (!isAdmin) {
+      navigate("/");
+    }
+  }, [isAdmin, navigate]);
+  
+  // If not admin, don't render the page content
+  if (!isAdmin) {
+    return null;
+  }
+
   // Calculate sales by status
   const salesByStatus = [
     { 
@@ -73,56 +91,179 @@ const Metrics = () => {
   // Colors for the pie chart
   const COLORS = ['#4ade80', '#0ea5e9', '#f87171'];
 
+  // Weekly income data
+  const weeklyIncomeData = [
+    { day: 'Sun', value: 1850 },
+    { day: 'Mon', value: 2100 },
+    { day: 'Tue', value: 1900 },
+    { day: 'Wed', value: 1600, today: true },
+    { day: 'Thu', value: 2200 },
+    { day: 'Fri', value: 1800 },
+    { day: 'Sat', value: 2000 }
+  ];
+
+  // Social source data
+  const socialSourceData = { 
+    website: 2300,
+    ecommerce: 3304,
+    instagram: 443,
+    travelSales: 18378
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">Metrics & Analytics</h1>
         
-        {/* Top stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Admin-specific metrics section */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Total Sales</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">Income ventas</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metrics.totalSales}</div>
-              <div className="text-xs text-green-600 flex items-center mt-1">
-                <span className="mr-1">+12.5%</span> vs last month
-              </div>
+              <div className="text-2xl font-bold">$210'600.000</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">nr ventas hechas</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">${metrics.totalRevenue.toLocaleString()}</div>
-              <div className="text-xs text-green-600 flex items-center mt-1">
-                <span className="mr-1">+8.3%</span> vs last month
-              </div>
+              <div className="text-2xl font-bold">12</div>
             </CardContent>
           </Card>
           
           <Card>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Conversion Rate</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">Profit aproximado</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
-                {sales.length > 0 ? 
-                  `${Math.round((sales.filter(s => s.status === 'Success').length / sales.length) * 100)}%` : 
-                  '0%'
-                }
-              </div>
-              <div className="text-xs text-green-600 flex items-center mt-1">
-                <span className="mr-1">+2.1%</span> vs last month
-              </div>
+              <div className="text-2xl font-bold">$60'900.000</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium text-gray-500">Meta de ventas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">60</div>
             </CardContent>
           </Card>
         </div>
         
-        {/* Charts */}
+        {/* Income Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Income</CardTitle>
+            <CardDescription>
+              Total income in week: <span className="text-green-500 font-medium">$10,823.43</span> <span className="text-green-500 text-xs">+2.32%</span>
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="h-72">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={weeklyIncomeData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="day" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} />
+                  <Tooltip 
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        const data = payload[0].payload;
+                        return (
+                          <div className="bg-blue-900 text-white p-2 rounded text-sm">
+                            {data.today && <div className="font-medium">Today</div>}
+                            <div>${data.value}</div>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    fill="#3b82f6" 
+                    radius={[5, 5, 0, 0]}
+                    maxBarSize={30}
+                  >
+                    {weeklyIncomeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.today ? '#0f172a' : '#3b82f6'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Social Source Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Social Source</CardTitle>
+            <CardDescription>Total traffic in a week</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Website</p>
+                  <p className="text-xl font-semibold">{socialSourceData.website}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">E-Commerce</p>
+                  <p className="text-xl font-semibold">{socialSourceData.ecommerce}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500 mb-1">Instagram</p>
+                  <p className="text-xl font-semibold">{socialSourceData.instagram}</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-center">
+                <div className="relative h-48 w-48">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { name: 'Website', value: socialSourceData.website },
+                          { name: 'E-Commerce', value: socialSourceData.ecommerce },
+                          { name: 'Instagram', value: socialSourceData.instagram },
+                          { name: 'Travel Sales', value: socialSourceData.travelSales }
+                        ]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        <Cell fill="#4338ca" />
+                        <Cell fill="#0284c7" />
+                        <Cell fill="#7c3aed" />
+                        <Cell fill="#0f766e" />
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                    <p className="text-gray-500 text-xs">Travel Sales</p>
+                    <p className="font-semibold text-lg">${socialSourceData.travelSales.toLocaleString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="mt-6 flex justify-end">
+              <button className="bg-indigo-100 text-indigo-700 text-xs font-medium px-4 py-2 rounded-full">
+                See Details
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+        
+        {/* Original charts - keep them as they provide additional insights */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Sales by Status */}
           <Card className="col-span-1">
