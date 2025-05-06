@@ -49,27 +49,27 @@ const Login = () => {
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-14h2v7h-2zm0 8h2v2h-2z" />
             </svg>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Welcome to TravelCRM</h1>
-          <p className="text-gray-600 mt-2">Sign in to your account</p>
+          <h1 className="text-3xl font-bold text-gray-900">Bienvenido a TravelCRM</h1>
+          <p className="text-gray-600 mt-2">Inicia sesión en tu cuenta</p>
         </div>
         
         <Card>
           <CardHeader>
-            <CardTitle>Login</CardTitle>
+            <CardTitle>Iniciar Sesión</CardTitle>
             <CardDescription>
-              Enter your email and password to access your dashboard
+              Ingresa tu correo y contraseña para acceder a tu panel
             </CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <label htmlFor="email" className="text-sm font-medium">
-                  Email
+                  Correo Electrónico
                 </label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="Ingresa tu correo"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -78,16 +78,16 @@ const Login = () => {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="text-sm font-medium">
-                    Password
+                    Contraseña
                   </label>
                   <a href="#" className="text-xs text-brand-purple hover:underline">
-                    Forgot password?
+                    ¿Olvidaste tu contraseña?
                   </a>
                 </div>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="Enter your password"
+                  placeholder="Ingresa tu contraseña"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -97,10 +97,10 @@ const Login = () => {
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700 flex gap-2">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <div>
-                  <p className="font-medium">Available credentials:</p>
-                  <p>- Administrator: mariana@example.com / mariana123</p>
-                  <p>- Manager: seller@vive.com / luis123</p>
-                  <p>- Sales Agent: sara@example.com / sara123</p>
+                  <p className="font-medium">Credenciales disponibles:</p>
+                  <p>- Administrador: mariana@example.com / mariana123</p>
+                  <p>- Encargado: seller@vive.com / luis123</p>
+                  <p>- Agente de Ventas: sara@example.com / sara123</p>
                   <p>- Demo Admin: example@gmai.com / 12345</p>
                 </div>
               </div>
@@ -111,7 +111,7 @@ const Login = () => {
                 className="w-full bg-brand-purple hover:bg-brand-purple-dark"
                 disabled={isLoading}
               >
-                {isLoading ? "Signing in..." : "Sign in"}
+                {isLoading ? "Iniciando sesión..." : "Iniciar Sesión"}
               </Button>
             </CardFooter>
           </form>
