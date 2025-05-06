@@ -27,29 +27,32 @@ const Sidebar = () => {
   };
 
   return (
-    <div className={`h-full ${collapsed ? 'w-16' : 'w-64'} bg-sidebar border-r border-gray-200 flex flex-col transition-all duration-300`}>
+    <aside className={`h-full ${collapsed ? 'w-20' : 'w-64'} bg-sidebar border-r border-gray-200 flex flex-col transition-all duration-300 fixed left-0 top-0 z-30`}>
+      {/* Header */}
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center">
-          <div className="bg-brand-purple rounded-full p-2">
+          <div className="bg-brand-purple rounded-full p-2 shrink-0">
             <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-14h2v7h-2zm0 8h2v2h-2z" />
             </svg>
           </div>
-          {!collapsed && <span className="font-bold text-xl text-gray-800 ml-3">TravelCRM</span>}
+          {!collapsed && <span className="font-bold text-xl text-gray-800 ml-3 whitespace-nowrap overflow-hidden text-ellipsis">TravelCRM</span>}
         </div>
         <button 
           onClick={toggleSidebar} 
-          className={`flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-transform ${collapsed ? 'rotate-180' : ''}`}
+          className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-gray-100 transition-transform"
+          aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
-          <ChevronLeft className="h-4 w-4" />
+          <ChevronLeft className={`h-5 w-5 transition-transform ${collapsed ? 'rotate-180' : ''}`} />
         </button>
       </div>
 
-      <div className="px-4 mt-6">
+      {/* Navigation */}
+      <div className="px-3 mt-6 flex-1 overflow-y-auto">
         {!collapsed && (
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">MAIN MENU</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider px-1 mb-2">MAIN MENU</p>
         )}
-        <nav className={`mt-3 space-y-1 ${collapsed ? 'px-1' : ''}`}>
+        <nav className="space-y-1">
           {navItems
             .filter(item => !item.adminOnly || isAdmin)
             .map(item => (
@@ -63,31 +66,32 @@ const Sidebar = () => {
                 }`}
                 title={collapsed ? item.name : ""}
               >
-                <item.icon className={`h-5 w-5 ${!collapsed && 'mr-3'}`} />
-                {!collapsed && <span>{item.name}</span>}
+                <item.icon className={`h-5 w-5 flex-shrink-0 ${!collapsed && 'mr-3'}`} />
+                {!collapsed && <span className="truncate">{item.name}</span>}
               </Link>
             ))}
         </nav>
       </div>
 
-      <div className="mt-auto px-4 mb-6">
+      {/* Footer */}
+      <div className="px-3 py-4 border-t border-gray-200">
         {!collapsed && (
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">ACCOUNT</p>
+          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider px-1 mb-2">ACCOUNT</p>
         )}
         <div className={`flex items-center mb-4 ${collapsed ? 'justify-center' : ''}`}>
-          <div className={`h-10 w-10 rounded-full overflow-hidden bg-gray-200 ${!collapsed && 'mr-3'}`}>
+          <div className={`h-10 w-10 rounded-full overflow-hidden bg-gray-200 flex-shrink-0 ${!collapsed && 'mr-3'}`}>
             {user?.avatar ? (
               <img src={user.avatar} alt={user?.name} className="h-full w-full object-cover" />
             ) : (
               <div className="h-full w-full flex items-center justify-center bg-brand-purple text-white">
-                {user?.name.charAt(0).toUpperCase()}
+                {user?.name?.charAt(0).toUpperCase() || "U"}
               </div>
             )}
           </div>
           {!collapsed && (
-            <div>
-              <p className="text-sm font-medium">{user?.name}</p>
-              <p className="text-xs text-gray-500 capitalize">
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{user?.name}</p>
+              <p className="text-xs text-gray-500 capitalize truncate">
                 {user?.role === "administrador" ? "admin" : user?.role}
               </p>
             </div>
@@ -98,11 +102,11 @@ const Sidebar = () => {
           className={`flex ${collapsed ? 'justify-center w-full' : 'w-full'} items-center px-3 py-2.5 rounded-md text-sm font-medium text-red-600 hover:bg-red-50`}
           title={collapsed ? "Logout" : ""}
         >
-          <LogOut className={`h-5 w-5 ${!collapsed && 'mr-3'}`} />
+          <LogOut className={`h-5 w-5 flex-shrink-0 ${!collapsed && 'mr-3'}`} />
           {!collapsed && <span>Logout</span>}
         </button>
       </div>
-    </div>
+    </aside>
   );
 };
 
