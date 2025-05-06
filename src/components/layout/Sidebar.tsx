@@ -11,6 +11,8 @@ const Sidebar = () => {
     return location.pathname === path;
   };
 
+  const isAdmin = user?.role === "admin" || user?.role === "administrador";
+
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", adminOnly: false },
     { name: "Metrics", icon: BarChart3, path: "/metrics", adminOnly: false },
@@ -32,7 +34,7 @@ const Sidebar = () => {
         <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">MAIN MENU</p>
         <nav className="mt-3 space-y-1">
           {navItems
-            .filter(item => !item.adminOnly || user?.role === 'admin')
+            .filter(item => !item.adminOnly || isAdmin)
             .map(item => (
               <Link
                 key={item.name}
@@ -64,7 +66,9 @@ const Sidebar = () => {
           </div>
           <div>
             <p className="text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+            <p className="text-xs text-gray-500 capitalize">
+              {user?.role === "administrador" ? "admin" : user?.role}
+            </p>
           </div>
         </div>
         <button

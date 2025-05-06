@@ -8,17 +8,28 @@ import Header from "./Header";
 interface AppLayoutProps {
   children: ReactNode;
   requireAuth?: boolean;
+  requireAdmin?: boolean;
 }
 
-const AppLayout = ({ children, requireAuth = true }: AppLayoutProps) => {
-  const { isAuthenticated } = useAuth();
+const AppLayout = ({ 
+  children, 
+  requireAuth = true,
+  requireAdmin = false 
+}: AppLayoutProps) => {
+  const { isAuthenticated, isAdmin, setShowErrorModal, setErrorMessage } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (requireAuth && !isAuthenticated) {
       navigate("/login");
     }
-  }, [isAuthenticated, navigate, requireAuth]);
+    
+    if (requireAdmin && !isAdmin && isAuthenticated) {
+      setErrorMessage("This page requires administrator privileges");
+      setShowErrorModal(true);
+      navigate("/");
+    }
+  }, [isAuthenticated, isAdmin, navigate, requireAuth, requireAdmin, setShowErrorModal, setErrorMessage]);
 
   if (requireAuth && !isAuthenticated) {
     return null;
