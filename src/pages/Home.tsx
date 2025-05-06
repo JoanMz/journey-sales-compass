@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useData, Sale } from "../contexts/DataContext";
 import AppLayout from "../components/layout/AppLayout";
@@ -26,9 +26,9 @@ import {
   SelectValue,
 } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Plus, Check, Clock, X, Users, CreditCard, ShoppingCart } from "lucide-react";
 import ManagerDashboard from "../components/dashboard/ManagerDashboard";
+import AdminDashboard from "../components/dashboard/AdminDashboard";
 
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
@@ -112,41 +112,7 @@ const Home = () => {
   // Role-specific dashboard components
   const RoleSpecificDashboard = () => {
     if (isAdmin) {
-      return (
-        <Card className="bg-blue-50 border-blue-200 mb-6">
-          <CardHeader className="pb-2 border-b border-blue-200">
-            <CardTitle className="text-blue-700">Administrator Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-blue-700 mb-3">
-              Welcome to the administrator dashboard. Here you can access all system features and manage user permissions.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
-                <Users className="h-10 w-10 text-blue-500 mr-3" />
-                <div>
-                  <div className="font-semibold text-blue-700">User Management</div>
-                  <div className="text-sm text-blue-600">Manage system accounts</div>
-                </div>
-              </div>
-              <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
-                <CreditCard className="h-10 w-10 text-blue-500 mr-3" />
-                <div>
-                  <div className="font-semibold text-blue-700">Billing</div>
-                  <div className="text-sm text-blue-600">Review financial reports</div>
-                </div>
-              </div>
-              <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
-                <ShoppingCart className="h-10 w-10 text-blue-500 mr-3" />
-                <div>
-                  <div className="font-semibold text-blue-700">Product Setup</div>
-                  <div className="text-sm text-blue-600">Configure available packages</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
+      return <AdminDashboard />;
     } else if (isManager) {
       // Return the specialized manager dashboard
       return <ManagerDashboard />;
@@ -282,6 +248,17 @@ const Home = () => {
     );
   }
 
+  // If user is an admin, show only the admin dashboard
+  if (isAdmin) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <RoleSpecificDashboard />
+        </div>
+      </AppLayout>
+    );
+  }
+
   // Regular dashboard for other roles
   return (
     <AppLayout>
@@ -327,45 +304,6 @@ const Home = () => {
             </CardContent>
           </Card>
         </div>
-
-        {/* Weekly timeline chart - Admin only */}
-        {isAdmin && (
-          <Card className="stats-card">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex justify-between items-center">
-                <span>Spending Statistics</span>
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="text-xs">Day</Button>
-                  <Button variant="default" size="sm" className="text-xs bg-brand-purple">Week</Button>
-                  <Button variant="outline" size="sm" className="text-xs">Year</Button>
-                </div>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-sm text-gray-500 mb-4">
-                <div>Income</div>
-                <div className="text-2xl font-bold text-gray-900">$10,823.43</div>
-                <div className="text-xs text-green-600">+2.32% Total income in week</div>
-              </div>
-              <div className="h-60">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="day" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 12 }} />
-                    <Tooltip />
-                    <Bar 
-                      dataKey="value" 
-                      fill="#9b87f5"
-                      radius={[5, 5, 0, 0]} 
-                      maxBarSize={40}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         {/* Sales Management */}
         <Card className="stats-card">
