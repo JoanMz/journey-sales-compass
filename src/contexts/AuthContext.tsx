@@ -1,3 +1,4 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -33,6 +34,29 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// Cookie utility functions
+const setCookie = (name: string, value: string, days: number = 7) => {
+  const date = new Date();
+  date.setTime(date.getTime() + days * 24 * 60 * 60 * 1000);
+  const expires = "; expires=" + date.toUTCString();
+  document.cookie = name + "=" + encodeURIComponent(value) + expires + "; path=/";
+};
+
+const getCookie = (name: string): string | null => {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
+    while (c.charAt(0) === ' ') c = c.substring(1, c.length);
+    if (c.indexOf(nameEQ) === 0) return decodeURIComponent(c.substring(nameEQ.length, c.length));
+  }
+  return null;
+};
+
+const deleteCookie = (name: string) => {
+  document.cookie = name + '=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+};
+
 // Default users for testing
 const DEFAULT_ADMIN: User = {
   id: "1",
@@ -58,10 +82,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [errorMessage, setErrorMessage] = useState("Authentication failed. Please try again.");
   
   useEffect(() => {
-    // Check if user is already logged in
-    const storedUser = localStorage.getItem("crm_current_user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    // Check if user is already logged in via cookies
+    const userCookie = getCookie("crm_current_user");
+    if (userCookie) {
+      try {
+        setUser(JSON.parse(userCookie));
+      } catch (error) {
+        console.error("Error parsing user cookie:", error);
+        // Clear invalid cookies
+        deleteCookie("crm_current_user");
+        deleteCookie("crm_access_token");
+        deleteCookie("crm_refresh_token");
+      }
     }
   }, []);
 
@@ -78,19 +110,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         };
         
         setUser(loggedInUser);
-        localStorage.setItem("crm_current_user", JSON.stringify(loggedInUser));
-        localStorage.setItem("crm_access_token", "demo_token");
-        localStorage.setItem("crm_refresh_token", "demo_refresh_token");
+        setCookie("crm_current_user", JSON.stringify(loggedInUser), 7);
+        setCookie("crm_access_token", "demo_token", 7);
+        setCookie("crm_refresh_token", "demo_refresh_token", 14);
         
         toast.success(`Welcome back, ${loggedInUser.name}!`);
         return true;
       }
       
       // If not using demo credentials, try the API
-      // Note: API is currently not accessible due to mixed content, so keeping as fallback
       try {
         const response = await axios.post(
-          `https://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
+          `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
           {},
           {
             headers: {
@@ -112,9 +143,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
           
           setUser(loggedInUser);
-          localStorage.setItem("crm_current_user", JSON.stringify(loggedInUser));
-          localStorage.setItem("crm_access_token", userData.access_token);
-          localStorage.setItem("crm_refresh_token", userData.refresh_token);
+          setCookie("crm_current_user", JSON.stringify(loggedInUser), 7);
+          setCookie("crm_access_token", userData.access_token, 7);
+          setCookie("crm_refresh_token", userData.refresh_token, 14);
           
           toast.success(`Welcome back, ${loggedInUser.name}!`);
           return true;
@@ -135,7 +166,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fallback to default users for demo if API fails
       if (email === "example@gmai.com" && password === "12345") {
         setUser(DEFAULT_ADMIN);
-        localStorage.setItem("crm_current_user", JSON.stringify(DEFAULT_ADMIN));
+        setCookie("crm_current_user", JSON.stringify(DEFAULT_ADMIN), 7);
         toast.success(`Welcome back, ${DEFAULT_ADMIN.name}! (Demo Mode)`);
         return true;
       }
@@ -153,9 +184,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem("crm_current_user");
-    localStorage.removeItem("crm_access_token");
-    localStorage.removeItem("crm_refresh_token");
+    // Remove all auth cookies
+    deleteCookie("crm_current_user");
+    deleteCookie("crm_access_token");
+    deleteCookie("crm_refresh_token");
     toast.success("Logged out successfully");
   };
 
