@@ -29,6 +29,7 @@ type AuthContextType = {
   showErrorModal: boolean;
   setShowErrorModal: (show: boolean) => void;
   errorMessage: string;
+  setErrorMessage: (message: string) => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -138,7 +139,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAdmin: user?.role === "admin" || user?.role === "administrador",
         showErrorModal,
         setShowErrorModal,
-        errorMessage
+        errorMessage,
+        setErrorMessage
       }}
     >
       {children}

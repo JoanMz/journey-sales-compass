@@ -29,7 +29,7 @@ export type User = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "seller";
+  role: "admin" | "seller" | "administrador";
   avatar?: string;
 };
 
@@ -172,7 +172,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (storedUsers) {
       setUsers(JSON.parse(storedUsers));
     } else {
-      const defaultUsers = [
+      const defaultUsers: User[] = [
         { id: "1", name: "Admin User", email: "example@gmai.com", role: "admin" },
         { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
       ];
