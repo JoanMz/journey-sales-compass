@@ -16,7 +16,7 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "seller" | "administrador";
+  role: "admin" | "seller" | "administrador" | "vendedor" | "encargado";
   avatar?: string;
 };
 
@@ -26,6 +26,8 @@ type AuthContextType = {
   logout: () => void;
   isAuthenticated: boolean;
   isAdmin: boolean;
+  isSeller: boolean;
+  isManager: boolean;
   showErrorModal: boolean;
   setShowErrorModal: (show: boolean) => void;
   errorMessage: string;
@@ -70,7 +72,7 @@ const DEFAULT_SELLER: User = {
   id: "2",
   name: "Luis Seller",
   email: "seller@vive.com",
-  role: "seller",
+  role: "encargado",
 };
 
 const DEFAULT_USERS: User[] = [
@@ -128,12 +130,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       // Handling the seller@vive.com login
       if (email === "seller@vive.com" && password === "luis123") {
-        setUser(DEFAULT_SELLER);
-        setCookie("crm_current_user", JSON.stringify(DEFAULT_SELLER), 7);
+        // Update with correct information based on API response
+        const managerUser: User = {
+          id: "7",
+          name: "Luis Barraza",
+          email: "seller@vive.com",
+          role: "encargado",
+        };
+        
+        setUser(managerUser);
+        setCookie("crm_current_user", JSON.stringify(managerUser), 7);
         setCookie("crm_access_token", "demo_seller_token", 7);
         setCookie("crm_refresh_token", "demo_seller_refresh_token", 14);
         
-        toast.success(`Welcome back, ${DEFAULT_SELLER.name}!`);
+        toast.success(`Welcome back, ${managerUser.name}!`);
+        return true;
+      }
+      
+      // Additional user for demo - "Sara" as vendedor
+      if (email === "sara@example.com" && password === "sara123") {
+        const sellerUser: User = {
+          id: "1",
+          name: "Sara",
+          email: "sara@example.com",
+          role: "vendedor",
+        };
+        
+        setUser(sellerUser);
+        setCookie("crm_current_user", JSON.stringify(sellerUser), 7);
+        setCookie("crm_access_token", "demo_sara_token", 7);
+        setCookie("crm_refresh_token", "demo_sara_refresh_token", 14);
+        
+        toast.success(`Welcome back, ${sellerUser.name}!`);
         return true;
       }
       
@@ -152,28 +180,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         const userData = response.data;
         
-        // Check if user is admin/administrador
-        if (userData && (userData.role === "administrador" || userData.role === "admin")) {
-          const loggedInUser: User = {
-            id: userData.user_id.toString(),
-            name: userData.name,
-            email: email,
-            role: userData.role as "admin" | "seller" | "administrador",
-          };
-          
-          setUser(loggedInUser);
-          setCookie("crm_current_user", JSON.stringify(loggedInUser), 7);
-          setCookie("crm_access_token", userData.access_token, 7);
-          setCookie("crm_refresh_token", userData.refresh_token, 14);
-          
-          toast.success(`Welcome back, ${loggedInUser.name}!`);
-          return true;
-        } else {
-          // User is not an admin
-          setErrorMessage("Access denied: Only administrators can access this system");
-          setShowErrorModal(true);
-          return false;
-        }
+        // Updated to accept all roles
+        const loggedInUser: User = {
+          id: userData.user_id.toString(),
+          name: userData.name,
+          email: email,
+          role: userData.role as User['role'], // Cast to our role type
+        };
+        
+        setUser(loggedInUser);
+        setCookie("crm_current_user", JSON.stringify(loggedInUser), 7);
+        setCookie("crm_access_token", userData.access_token, 7);
+        setCookie("crm_refresh_token", userData.refresh_token, 14);
+        
+        toast.success(`Welcome back, ${loggedInUser.name}!`);
+        return true;
       } catch (apiError) {
         console.error("API Login error:", apiError);
         throw apiError; // Re-throw to be caught by outer catch
@@ -218,6 +239,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout, 
         isAuthenticated: !!user,
         isAdmin: user?.role === "admin" || user?.role === "administrador",
+        isSeller: user?.role === "seller" || user?.role === "vendedor",
+        isManager: user?.role === "encargado",
         showErrorModal,
         setShowErrorModal,
         errorMessage,

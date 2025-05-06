@@ -1,10 +1,38 @@
 
 import { Bell, MessageSquare } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 const Header = () => {
+  const { user } = useAuth();
+  
+  // Get the appropriate greeting based on user role
+  const getRoleDisplay = () => {
+    if (!user) return "";
+    
+    switch (user.role) {
+      case "admin":
+      case "administrador":
+        return "Administrator";
+      case "seller":
+      case "vendedor":
+        return "Sales Agent";
+      case "encargado":
+        return "Manager";
+      default:
+        return user.role;
+    }
+  };
+
   return (
     <header className="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between">
-      <h1 className="text-2xl font-semibold text-gray-800">Sales Dashboard</h1>
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold text-gray-800">Sales Dashboard</h1>
+        {user && (
+          <p className="text-sm text-gray-600">
+            Hello {user.name}, you are logged in as <span className="font-medium">{getRoleDisplay()}</span>
+          </p>
+        )}
+      </div>
       <div className="flex items-center space-x-4">
         <button className="relative p-2 rounded-full hover:bg-gray-100">
           <Bell className="h-5 w-5 text-gray-500" />

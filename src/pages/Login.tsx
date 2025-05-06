@@ -85,10 +85,11 @@ const Login = () => {
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700 flex gap-2">
                 <AlertCircle className="h-5 w-5 shrink-0" />
                 <div>
-                  <p className="font-medium">Credenciales disponibles:</p>
-                  <p>- Acceso rápido: mariana@example.com / mariana123</p>
-                  <p>- Demo alternativo: example@gmai.com / 12345</p>
-                  <p>- Vendedor: seller@vive.com / luis123</p>
+                  <p className="font-medium">Available credentials:</p>
+                  <p>- Administrator: mariana@example.com / mariana123</p>
+                  <p>- Manager: seller@vive.com / luis123</p>
+                  <p>- Sales Agent: sara@example.com / sara123</p>
+                  <p>- Demo Admin: example@gmai.com / 12345</p>
                 </div>
               </div>
             </CardContent>

@@ -28,10 +28,10 @@ import {
 } from "../components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Plus, Check, Clock, X } from "lucide-react";
+import { Plus, Check, Clock, X, Users, CreditCard, ShoppingCart } from "lucide-react";
 
 const Home = () => {
-  const { isAdmin, user } = useAuth();
+  const { isAdmin, isSeller, isManager, user } = useAuth();
   const { sales, weeklyData, customers, addSale, updateSaleStatus, metrics } = useData();
   
   const [isAddSaleOpen, setIsAddSaleOpen] = useState(false);
@@ -109,9 +109,113 @@ const Home = () => {
     e.dataTransfer.setData("text/plain", saleId);
   };
 
+  // Role-specific dashboard components
+  const RoleSpecificDashboard = () => {
+    if (isAdmin) {
+      return (
+        <Card className="bg-blue-50 border-blue-200 mb-6">
+          <CardHeader className="pb-2 border-b border-blue-200">
+            <CardTitle className="text-blue-700">Administrator Dashboard</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <p className="text-blue-700 mb-3">
+              Welcome to the administrator dashboard. Here you can access all system features and manage user permissions.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
+                <Users className="h-10 w-10 text-blue-500 mr-3" />
+                <div>
+                  <div className="font-semibold text-blue-700">User Management</div>
+                  <div className="text-sm text-blue-600">Manage system accounts</div>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
+                <CreditCard className="h-10 w-10 text-blue-500 mr-3" />
+                <div>
+                  <div className="font-semibold text-blue-700">Billing</div>
+                  <div className="text-sm text-blue-600">Review financial reports</div>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
+                <ShoppingCart className="h-10 w-10 text-blue-500 mr-3" />
+                <div>
+                  <div className="font-semibold text-blue-700">Product Setup</div>
+                  <div className="text-sm text-blue-600">Configure available packages</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    } else if (isManager) {
+      return (
+        <Card className="bg-purple-50 border-purple-200 mb-6">
+          <CardHeader className="pb-2 border-b border-purple-200">
+            <CardTitle className="text-purple-700">Manager Dashboard</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <p className="text-purple-700 mb-3">
+              Welcome to the manager dashboard. Here you can oversee team performance and review sales metrics.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-md border border-purple-200 flex items-center">
+                <Users className="h-10 w-10 text-purple-500 mr-3" />
+                <div>
+                  <div className="font-semibold text-purple-700">Team Performance</div>
+                  <div className="text-sm text-purple-600">Monitor your team's sales activity</div>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-md border border-purple-200 flex items-center">
+                <CreditCard className="h-10 w-10 text-purple-500 mr-3" />
+                <div>
+                  <div className="font-semibold text-purple-700">Financial Reports</div>
+                  <div className="text-sm text-purple-600">Access team commission reports</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    } else if (isSeller) {
+      return (
+        <Card className="bg-green-50 border-green-200 mb-6">
+          <CardHeader className="pb-2 border-b border-green-200">
+            <CardTitle className="text-green-700">Sales Agent Dashboard</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <p className="text-green-700 mb-3">
+              Welcome to your sales dashboard. Track your performance and manage your customer interactions.
+            </p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="bg-white p-4 rounded-md border border-green-200 flex items-center">
+                <CreditCard className="h-10 w-10 text-green-500 mr-3" />
+                <div>
+                  <div className="font-semibold text-green-700">Your Commission</div>
+                  <div className="text-sm text-green-600">Track your earnings this month</div>
+                </div>
+              </div>
+              <div className="bg-white p-4 rounded-md border border-green-200 flex items-center">
+                <Users className="h-10 w-10 text-green-500 mr-3" />
+                <div>
+                  <div className="font-semibold text-green-700">Customer List</div>
+                  <div className="text-sm text-green-600">Access your customer contacts</div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    } else {
+      return null;
+    }
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Role-specific dashboard section */}
+        <RoleSpecificDashboard />
+
         {/* Stats cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="stats-card">
@@ -151,8 +255,8 @@ const Home = () => {
           </Card>
         </div>
 
-        {/* Weekly timeline chart - Admin only */}
-        {isAdmin && (
+        {/* Weekly timeline chart - Admin and Manager only */}
+        {(isAdmin || isManager) && (
           <Card className="stats-card">
             <CardHeader className="pb-2">
               <CardTitle className="flex justify-between items-center">
