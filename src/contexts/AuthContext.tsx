@@ -66,10 +66,18 @@ const DEFAULT_ADMIN: User = {
   avatar: "/lovable-uploads/8c0e4be7-fa34-4758-9b8e-ba0597b25b77.png",
 };
 
+const DEFAULT_SELLER: User = {
+  id: "2",
+  name: "Luis Seller",
+  email: "seller@vive.com",
+  role: "seller",
+};
+
 const DEFAULT_USERS: User[] = [
   DEFAULT_ADMIN,
+  DEFAULT_SELLER,
   {
-    id: "2",
+    id: "3",
     name: "John Seller",
     email: "seller@example.com",
     role: "seller",
@@ -115,6 +123,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setCookie("crm_refresh_token", "demo_refresh_token", 14);
         
         toast.success(`Welcome back, ${loggedInUser.name}!`);
+        return true;
+      }
+      
+      // Handling the seller@vive.com login
+      if (email === "seller@vive.com" && password === "luis123") {
+        setUser(DEFAULT_SELLER);
+        setCookie("crm_current_user", JSON.stringify(DEFAULT_SELLER), 7);
+        setCookie("crm_access_token", "demo_seller_token", 7);
+        setCookie("crm_refresh_token", "demo_seller_refresh_token", 14);
+        
+        toast.success(`Welcome back, ${DEFAULT_SELLER.name}!`);
         return true;
       }
       

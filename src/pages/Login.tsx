@@ -88,6 +88,7 @@ const Login = () => {
                   <p className="font-medium">Credenciales disponibles:</p>
                   <p>- Acceso rápido: mariana@example.com / mariana123</p>
                   <p>- Demo alternativo: example@gmai.com / 12345</p>
+                  <p>- Vendedor: seller@vive.com / luis123</p>
                 </div>
               </div>
             </CardContent>
