@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, BarChart3, Settings, LogOut } from "lucide-react";
+import { Home, BarChart3, Settings, LogOut, Users } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 
 const Sidebar = () => {
@@ -16,6 +16,7 @@ const Sidebar = () => {
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", adminOnly: false },
     { name: "Metrics", icon: BarChart3, path: "/metrics", adminOnly: true },
+    { name: "Team", icon: Users, path: "/team", adminOnly: true },
     { name: "Settings", icon: Settings, path: "/settings", adminOnly: false },
   ];
 
