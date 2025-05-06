@@ -5,6 +5,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../components/ui/card";
+import { AlertCircle } from "lucide-react";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -80,6 +81,15 @@ const Login = () => {
                   required
                 />
               </div>
+              
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-700 flex gap-2">
+                <AlertCircle className="h-5 w-5 shrink-0" />
+                <div>
+                  <p className="font-medium">Credenciales disponibles:</p>
+                  <p>- Acceso rápido: mariana@example.com / mariana123</p>
+                  <p>- Demo alternativo: example@gmai.com / 12345</p>
+                </div>
+              </div>
             </CardContent>
             <CardFooter>
               <Button 
@@ -92,11 +102,6 @@ const Login = () => {
             </CardFooter>
           </form>
         </Card>
-        
-        <div className="text-center mt-6 text-sm text-gray-600">
-          <p>API Login: mariana@example.com / mariana123</p>
-          <p>Demo credentials: example@gmai.com / 12345</p>
-        </div>
       </div>
     </div>
   );
