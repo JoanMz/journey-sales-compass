@@ -28,16 +28,18 @@ const Sidebar = () => {
 
   return (
     <div className={`h-full ${collapsed ? 'w-16' : 'w-64'} bg-sidebar border-r border-gray-200 flex flex-col transition-all duration-300`}>
-      <div className="p-4 flex items-center gap-3">
-        <div className="bg-brand-purple rounded-full p-2">
-          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-14h2v7h-2zm0 8h2v2h-2z" />
-          </svg>
+      <div className="p-4 flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="bg-brand-purple rounded-full p-2">
+            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-14h2v7h-2zm0 8h2v2h-2z" />
+            </svg>
+          </div>
+          {!collapsed && <span className="font-bold text-xl text-gray-800 ml-3">TravelCRM</span>}
         </div>
-        {!collapsed && <span className="font-bold text-xl text-gray-800">TravelCRM</span>}
         <button 
           onClick={toggleSidebar} 
-          className={`ml-auto flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 ${collapsed ? 'rotate-180' : ''}`}
+          className={`flex items-center justify-center w-6 h-6 rounded-md hover:bg-gray-100 transition-transform ${collapsed ? 'rotate-180' : ''}`}
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -61,8 +63,8 @@ const Sidebar = () => {
                 }`}
                 title={collapsed ? item.name : ""}
               >
-                <item.icon className="h-5 w-5 mr-2" />
-                {!collapsed && item.name}
+                <item.icon className={`h-5 w-5 ${!collapsed && 'mr-3'}`} />
+                {!collapsed && <span>{item.name}</span>}
               </Link>
             ))}
         </nav>
@@ -72,8 +74,8 @@ const Sidebar = () => {
         {!collapsed && (
           <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3">ACCOUNT</p>
         )}
-        <div className="flex items-center mb-4">
-          <div className="h-10 w-10 rounded-full overflow-hidden bg-gray-200 mr-3">
+        <div className={`flex items-center mb-4 ${collapsed ? 'justify-center' : ''}`}>
+          <div className={`h-10 w-10 rounded-full overflow-hidden bg-gray-200 ${!collapsed && 'mr-3'}`}>
             {user?.avatar ? (
               <img src={user.avatar} alt={user?.name} className="h-full w-full object-cover" />
             ) : (
@@ -94,9 +96,10 @@ const Sidebar = () => {
         <button
           onClick={logout}
           className={`flex ${collapsed ? 'justify-center w-full' : 'w-full'} items-center px-3 py-2.5 rounded-md text-sm font-medium text-red-600 hover:bg-red-50`}
+          title={collapsed ? "Logout" : ""}
         >
-          <LogOut className="h-5 w-5 mr-2" />
-          {!collapsed && "Logout"}
+          <LogOut className={`h-5 w-5 ${!collapsed && 'mr-3'}`} />
+          {!collapsed && <span>Logout</span>}
         </button>
       </div>
     </div>
