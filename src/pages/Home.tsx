@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useData, Sale } from "../contexts/DataContext";
@@ -29,6 +28,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Plus, Check, Clock, X, Users, CreditCard, ShoppingCart } from "lucide-react";
+import ManagerDashboard from "../components/dashboard/ManagerDashboard";
 
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
@@ -148,34 +148,8 @@ const Home = () => {
         </Card>
       );
     } else if (isManager) {
-      return (
-        <Card className="bg-purple-50 border-purple-200 mb-6">
-          <CardHeader className="pb-2 border-b border-purple-200">
-            <CardTitle className="text-purple-700">Manager Dashboard</CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4">
-            <p className="text-purple-700 mb-3">
-              Welcome to the manager dashboard. Here you can oversee team performance and review sales metrics.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-white p-4 rounded-md border border-purple-200 flex items-center">
-                <Users className="h-10 w-10 text-purple-500 mr-3" />
-                <div>
-                  <div className="font-semibold text-purple-700">Team Performance</div>
-                  <div className="text-sm text-purple-600">Monitor your team's sales activity</div>
-                </div>
-              </div>
-              <div className="bg-white p-4 rounded-md border border-purple-200 flex items-center">
-                <CreditCard className="h-10 w-10 text-purple-500 mr-3" />
-                <div>
-                  <div className="font-semibold text-purple-700">Financial Reports</div>
-                  <div className="text-sm text-purple-600">Access team commission reports</div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
+      // Return the specialized manager dashboard
+      return <ManagerDashboard />;
     } else if (isSeller) {
       return (
         <Card className="bg-green-50 border-green-200 mb-6">
@@ -210,6 +184,105 @@ const Home = () => {
     }
   };
 
+  // If user is a manager, show only the specialized manager dashboard
+  if (isManager) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <RoleSpecificDashboard />
+        </div>
+        
+        {/* Add Sale Dialog */}
+        <Dialog open={isAddSaleOpen} onOpenChange={setIsAddSaleOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Add New Sale</DialogTitle>
+              <DialogDescription>
+                Add a new sale to your dashboard.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Customer</label>
+                <Input
+                  list="customers"
+                  placeholder="Enter customer name"
+                  value={newSale.customerName}
+                  onChange={(e) => setNewSale({...newSale, customerName: e.target.value})}
+                />
+                <datalist id="customers">
+                  {customers.map((customer) => (
+                    <option key={customer.id} value={customer.name} />
+                  ))}
+                </datalist>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Travel Package</label>
+                <Input
+                  placeholder="Enter package name"
+                  value={newSale.package}
+                  onChange={(e) => setNewSale({...newSale, package: e.target.value})}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Amount ($)</label>
+                  <Input
+                    type="number"
+                    placeholder="Enter amount"
+                    min="0"
+                    value={newSale.amount || ""}
+                    onChange={(e) => setNewSale({...newSale, amount: parseFloat(e.target.value)})}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Date</label>
+                  <Input
+                    type="date"
+                    value={newSale.date}
+                    onChange={(e) => setNewSale({...newSale, date: e.target.value})}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select
+                  value={newSale.status}
+                  onValueChange={(value) => setNewSale({...newSale, status: value as Sale["status"]})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="On Process">On Process</SelectItem>
+                    <SelectItem value="Success">Success</SelectItem>
+                    <SelectItem value="Canceled">Canceled</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setIsAddSaleOpen(false)}>Cancel</Button>
+              <Button 
+                onClick={handleAddSale}
+                className="bg-brand-purple hover:bg-brand-purple-dark"
+              >
+                Add Sale
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </AppLayout>
+    );
+  }
+
+  // Regular dashboard for other roles
   return (
     <AppLayout>
       <div className="space-y-6">
@@ -255,8 +328,8 @@ const Home = () => {
           </Card>
         </div>
 
-        {/* Weekly timeline chart - Admin and Manager only */}
-        {(isAdmin || isManager) && (
+        {/* Weekly timeline chart - Admin only */}
+        {isAdmin && (
           <Card className="stats-card">
             <CardHeader className="pb-2">
               <CardTitle className="flex justify-between items-center">

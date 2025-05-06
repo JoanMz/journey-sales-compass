@@ -17,7 +17,7 @@ const Header = () => {
       case "vendedor":
         return "Sales Agent";
       case "encargado":
-        return "Manager";
+        return "Sales Manager";
       default:
         return user.role;
     }
