@@ -1,8 +1,8 @@
-
 import React from "react";
 import { useData } from "../../contexts/DataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { BarChart, Bar, XAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
+import TopDestinationsCard from "./TopDestinationsCard";
 
 const AdminDashboard = () => {
   const { weeklyData, sales, metrics } = useData();
@@ -97,21 +97,7 @@ const AdminDashboard = () => {
           {/* Top Destinations and Plans */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Top Destinations */}
-            <Card className="bg-white border border-blue-200">
-              <CardHeader className="pb-1">
-                <CardTitle className="text-lg">top destinos</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center justify-center py-4">
-                  <img 
-                    src="/lovable-uploads/967778b6-0aa2-45d0-978a-f822e3ed34d6.png" 
-                    alt="World map with destinations" 
-                    className="max-w-full h-auto rounded-md"
-                    style={{ maxHeight: "150px" }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
+            <TopDestinationsCard />
 
             {/* Top Plans */}
             <Card className="bg-white border border-blue-200">

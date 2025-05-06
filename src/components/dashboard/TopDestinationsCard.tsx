@@ -1,6 +1,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MapPin } from "lucide-react";
+import { 
+  Table, 
+  TableHeader, 
+  TableBody, 
+  TableRow, 
+  TableHead, 
+  TableCell 
+} from "@/components/ui/table";
 
 const TopDestinationsCard = () => {
   // Expanded fictional destination data
@@ -10,13 +18,10 @@ const TopDestinationsCard = () => {
     { name: "Santorini, Greece", percentage: 21, bookings: 162, color: "green", revenue: "$65,280" },
     { name: "Bali, Indonesia", percentage: 18, bookings: 138, color: "orange", revenue: "$49,680" },
     { name: "Tokyo, Japan", percentage: 15, bookings: 114, color: "red", revenue: "$41,040" },
-    { name: "New York, USA", percentage: 12, bookings: 92, color: "yellow", revenue: "$37,720" },
-    { name: "Barcelona, Spain", percentage: 10, bookings: 76, color: "teal", revenue: "$28,880" },
-    { name: "Cape Town, South Africa", percentage: 8, bookings: 61, color: "indigo", revenue: "$24,400" },
   ];
 
   return (
-    <Card>
+    <Card className="bg-white border border-blue-200">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
           <MapPin className="h-5 w-5 text-blue-500" />
@@ -25,56 +30,51 @@ const TopDestinationsCard = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {/* List of top destinations */}
-          <div className="overflow-auto max-h-80 pr-1">
-            <table className="w-full">
-              <thead>
-                <tr className="text-xs text-gray-500 border-b">
-                  <th className="pb-2 text-left font-medium">Destino</th>
-                  <th className="pb-2 text-right font-medium">Bookings</th>
-                  <th className="pb-2 text-right font-medium">Revenue</th>
-                  <th className="pb-2 text-right font-medium">Share</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y">
-                {destinations.map((destination, index) => (
-                  <tr key={index} className="text-sm">
-                    <td className="py-2.5">
-                      <div className="flex items-center">
-                        <span 
-                          className={`h-3 w-3 rounded-full bg-${destination.color}-500 mr-2 flex-shrink-0`}
-                          aria-hidden="true"
-                        ></span>
-                        <span className="font-medium text-gray-800">{destination.name}</span>
-                      </div>
-                    </td>
-                    <td className="py-2.5 text-right text-gray-600">{destination.bookings}</td>
-                    <td className="py-2.5 text-right text-gray-600">{destination.revenue}</td>
-                    <td className="py-2.5 text-right">
-                      <span className={`text-${destination.color}-600 font-medium`}>
-                        {destination.percentage}%
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[180px]">Destino</TableHead>
+                <TableHead className="text-right">Bookings</TableHead>
+                <TableHead className="text-right">Revenue</TableHead>
+                <TableHead className="text-right">Share</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {destinations.map((destination, index) => (
+                <TableRow key={index}>
+                  <TableCell className="font-medium">
+                    <div className="flex items-center">
+                      <span 
+                        className={`h-3 w-3 rounded-full mr-2 flex-shrink-0 bg-${destination.color}-500`}
+                        aria-hidden="true"
+                      ></span>
+                      {destination.name}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">{destination.bookings}</TableCell>
+                  <TableCell className="text-right">{destination.revenue}</TableCell>
+                  <TableCell className="text-right font-medium text-blue-600">
+                    {destination.percentage}%
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
           
-          {/* Summary section - removed colorful boxes */}
+          {/* Summary section */}
           <div className="pt-2 border-t">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500">Total Bookings</span>
-              <span className="font-semibold">1,101</span>
+              <span className="font-semibold">872</span>
             </div>
             <div className="flex justify-between text-sm mt-1">
               <span className="text-gray-500">Total Revenue</span>
-              <span className="font-semibold text-green-600">$432,180</span>
+              <span className="font-semibold text-green-600">$341,180</span>
             </div>
           </div>
           
           {/* View all button */}
-          <button className="w-full text-center text-sm text-purple-600 hover:text-purple-800 pt-1">
+          <button className="w-full text-center text-sm text-blue-600 hover:text-blue-800 pt-1">
             Ver todos los destinos
           </button>
         </div>
