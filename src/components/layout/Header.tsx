@@ -18,8 +18,6 @@ const Header = () => {
         return "Agente de Soporte al Cliente";
       case "encargado":
         return "Supervisor de Equipo de Soporte";
-      case "asesor":
-        return "Asesor de Soporte al Cliente";
       default:
         return user.role;
     }

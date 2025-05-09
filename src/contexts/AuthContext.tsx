@@ -15,7 +15,7 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "seller" | "administrador" | "vendedor" | "encargado" | "asesor";
+  role: "admin" | "seller" | "administrador" | "vendedor" | "encargado" ;
   avatar?: string;
 };
 
@@ -238,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout, 
         isAuthenticated: !!user,
         isAdmin: user?.role === "admin" || user?.role === "administrador",
-        isSeller: user?.role === "seller" || user?.role === "vendedor" || user?.role === "asesor",
+        isSeller: user?.role === "seller" || user?.role === "vendedor" ,
         isManager: user?.role === "encargado",
         showErrorModal,
         setShowErrorModal,

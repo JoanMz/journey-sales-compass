@@ -71,7 +71,7 @@ const Team = () => {
       id: "3",
       name: "Mark Thomson",
       email: "mark.thomson@email.com",
-      position: "ASESOR SENIOR",
+      position: "VENDEDOR SENIOR",
       progress: 66,
     },
     {
@@ -92,7 +92,7 @@ const Team = () => {
       id: "6",
       name: "Anastasia Groetze",
       email: "anastasia.groetze@email.com",
-      position: "ASESOR",
+      position: "VENDEDOR",
       progress: 45,
     }
   ]);
