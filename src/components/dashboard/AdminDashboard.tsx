@@ -1,8 +1,10 @@
+
 import React from "react";
 import { useData } from "../../contexts/DataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { BarChart, Bar, XAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import TopDestinationsCard from "./TopDestinationsCard";
+import CombinedPlansLeaderboardCard from "./CombinedPlansLeaderboardCard";
 
 const AdminDashboard = () => {
   const { weeklyData, sales, metrics } = useData();
@@ -13,12 +15,6 @@ const AdminDashboard = () => {
   const completedSales = sales.filter(sale => sale.status === "Success").length;
   const sellerHighlightCount = 20;
   const sellerHighlight = "Selia";
-  
-  // Top destinations
-  const topDestinations = [
-    { name: "Plan terrestre Santamarta", value: 12 },
-    { name: "Plan Migración España", value: 8 },
-  ];
 
   return (
     <div className="space-y-6">
@@ -94,96 +90,13 @@ const AdminDashboard = () => {
             </div>
           </div>
           
-          {/* Top Destinations and Plans */}
+          {/* Top Destinations and Combined Plans & Leaderboard */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Top Destinations */}
             <TopDestinationsCard />
 
-            {/* Top Plans */}
-            <Card className="bg-white border border-blue-200">
-              <CardHeader className="pb-1">
-                <CardTitle className="text-lg">top planes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ul className="space-y-2">
-                  {topDestinations.map((destination, index) => (
-                    <li key={index} className="p-2 border-b border-gray-100">
-                      <div className="font-medium">{destination.name}</div>
-                    </li>
-                  ))}
-                </ul>
-              </CardContent>
-            </Card>
-          </div>
-          
-          {/* Seller Leaderboard */}
-          <div className="mt-6">
-            <Card className="bg-white border border-blue-200">
-              <CardHeader className="pb-1">
-                <CardTitle className="text-lg flex justify-between">
-                  <span>Seller Leaderboard</span>
-                  <span className="text-sm bg-green-100 text-green-800 px-2 py-1 rounded">PROMOTION ZONE</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="bg-gray-900 rounded-lg p-4 text-white">
-                  <div className="text-center mb-4">
-                    <div className="text-sm">You finished #3 last week</div>
-                    <div className="flex justify-center space-x-4 my-3">
-                      <div className="relative">
-                        <div className="w-8 h-8 rounded-full bg-blue-500 flex items-center justify-center">2</div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-blue-300 rounded-full"></div>
-                      </div>
-                      <div className="relative">
-                        <div className="w-10 h-10 rounded-full bg-red-500 flex items-center justify-center">1</div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-red-300 rounded-full"></div>
-                      </div>
-                      <div className="relative">
-                        <div className="w-6 h-6 rounded-full bg-gray-500 flex items-center justify-center">3</div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <ul className="space-y-2">
-                    <li className="flex justify-between items-center p-1">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">S</div>
-                        <span>Sophie Lozanos</span>
-                      </div>
-                      <span>$45.5K</span>
-                    </li>
-                    <li className="flex justify-between items-center p-1">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">N</div>
-                        <span>Nayeli</span>
-                      </div>
-                      <span>$32K</span>
-                    </li>
-                    <li className="flex justify-between items-center p-1 bg-gray-800 rounded">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-600 flex items-center justify-center mr-2">A</div>
-                        <span>Andrea</span>
-                      </div>
-                      <span>$27K</span>
-                    </li>
-                    <li className="flex justify-between items-center p-1">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">V</div>
-                        <span>Victoria</span>
-                      </div>
-                      <span>$20K</span>
-                    </li>
-                    <li className="flex justify-between items-center p-1">
-                      <div className="flex items-center">
-                        <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center mr-2">M</div>
-                        <span>Mayra</span>
-                      </div>
-                      <span>$19K</span>
-                    </li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Combined Plans & Leaderboard */}
+            <CombinedPlansLeaderboardCard />
           </div>
         </CardContent>
       </Card>
