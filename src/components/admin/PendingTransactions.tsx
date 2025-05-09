@@ -59,7 +59,7 @@ const PendingTransactions = () => {
   const fetchPendingTransactions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pending");
+      const response = await axios.get("https://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pending");
       setPendingTransactions(response.data);
       setError(null);
     } catch (err) {
