@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 import axios from "axios";
@@ -16,7 +15,7 @@ type User = {
   id: string;
   name: string;
   email: string;
-  role: "admin" | "seller" | "administrador" | "vendedor" | "encargado";
+  role: "admin" | "seller" | "administrador" | "vendedor" | "encargado" | "asesor";
   avatar?: string;
 };
 
@@ -239,7 +238,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         logout, 
         isAuthenticated: !!user,
         isAdmin: user?.role === "admin" || user?.role === "administrador",
-        isSeller: user?.role === "seller" || user?.role === "vendedor",
+        isSeller: user?.role === "seller" || user?.role === "vendedor" || user?.role === "asesor",
         isManager: user?.role === "encargado",
         showErrorModal,
         setShowErrorModal,

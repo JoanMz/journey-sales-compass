@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { BarChart, Bar, XAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import TopDestinationsCard from "./TopDestinationsCard";
 import CombinedPlansLeaderboardCard from "./CombinedPlansLeaderboardCard";
+import PendingTransactions from "../admin/PendingTransactions";
 
 const AdminDashboard = () => {
   const { weeklyData, sales, metrics } = useData();
@@ -18,6 +19,9 @@ const AdminDashboard = () => {
 
   return (
     <div className="space-y-6">
+      {/* Pending Transactions Section - Added at the top for visibility */}
+      <PendingTransactions />
+      
       <Card className="bg-blue-50 border-blue-200 mb-6">
         <CardHeader className="pb-2 border-b border-blue-200">
           <CardTitle className="text-blue-700">Sales Metrics Dashboard</CardTitle>

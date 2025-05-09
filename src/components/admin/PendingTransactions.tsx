@@ -47,6 +47,13 @@ const PendingTransactions = () => {
 
   useEffect(() => {
     fetchPendingTransactions();
+    
+    // Set up polling to refresh data every 30 seconds
+    const interval = setInterval(() => {
+      fetchPendingTransactions();
+    }, 30000);
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchPendingTransactions = async () => {
@@ -66,22 +73,24 @@ const PendingTransactions = () => {
 
   const handleApprove = async (id: number) => {
     try {
-      // Aquí normalmente enviarías una solicitud a la API para aprobar la transacción
-      // Estamos simulando la aprobación
+      await axios.patch(`http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status?status=approved`);
       toast.success(`Transacción #${id} aprobada`);
+      // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
     } catch (err) {
+      console.error("Error approving transaction:", err);
       toast.error("Error al aprobar la transacción");
     }
   };
 
   const handleReject = async (id: number) => {
     try {
-      // Aquí normalmente enviarías una solicitud a la API para rechazar la transacción
-      // Estamos simulando el rechazo
+      await axios.patch(`http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status?status=rejected`);
       toast.info(`Transacción #${id} rechazada`);
+      // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
     } catch (err) {
+      console.error("Error rejecting transaction:", err);
       toast.error("Error al rechazar la transacción");
     }
   };
