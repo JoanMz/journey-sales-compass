@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import AppLayout from "../components/layout/AppLayout";
 import { useData } from "../contexts/DataContext";
 import { useAuth } from "../contexts/AuthContext";
+import PendingTransactions from "../components/admin/PendingTransactions";
 import { 
   Card, 
   CardContent,
@@ -113,7 +114,12 @@ const Metrics = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Metrics & Analytics</h1>
+        <h1 className="text-2xl font-bold">Métricas y Analíticas</h1>
+        
+        {/* Pending Transactions Section - Added at the top for visibility */}
+        <div className="mb-6">
+          <PendingTransactions />
+        </div>
         
         {/* Admin-specific metrics section */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

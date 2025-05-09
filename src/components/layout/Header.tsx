@@ -26,7 +26,7 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between">
+    <header className="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between ml-20 transition-all duration-300">
       <div className="space-y-1">
         <h1 className="text-2xl font-semibold text-gray-800">Panel de Servicio al Cliente</h1>
         {user && (

@@ -1,46 +1,18 @@
-
-import { useNavigate } from "react-router-dom";
-import { useEffect, ReactNode, useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import Sidebar from "./Sidebar";
+import { ReactNode } from "react";
 import Header from "./Header";
+import Sidebar from "./Sidebar";
 
 interface AppLayoutProps {
   children: ReactNode;
-  requireAuth?: boolean;
-  requireAdmin?: boolean;
 }
 
-const AppLayout = ({ 
-  children, 
-  requireAuth = true,
-  requireAdmin = false 
-}: AppLayoutProps) => {
-  const { isAuthenticated, isAdmin, setShowErrorModal, setErrorMessage } = useAuth();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (requireAuth && !isAuthenticated) {
-      navigate("/login");
-    }
-    
-    if (requireAdmin && !isAdmin && isAuthenticated) {
-      setErrorMessage("This page requires administrator privileges");
-      setShowErrorModal(true);
-      navigate("/");
-    }
-  }, [isAuthenticated, isAdmin, navigate, requireAuth, requireAdmin, setShowErrorModal, setErrorMessage]);
-
-  if (requireAuth && !isAuthenticated) {
-    return null;
-  }
-
+const AppLayout = ({ children }: AppLayoutProps) => {
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
-      <div className="flex-1 flex flex-col ml-20 md:ml-20 lg:ml-20 xl:ml-20 transition-all duration-300">
+      <div className="flex-1 overflow-x-hidden">
         <Header />
-        <main className="flex-1 overflow-y-auto p-4">
+        <main className="py-6 px-8">
           {children}
         </main>
       </div>
