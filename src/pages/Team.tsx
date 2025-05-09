@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown, MoreHorizontal, Users, Code, MessageSquare } from "lucide-react";
+import { Search, ChevronDown, MoreHorizontal, Users, HeadsetIcon, MessageSquare } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 import { useAuth } from "../contexts/AuthContext";
 import { useData, User } from "../contexts/DataContext";
@@ -30,6 +30,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../components/ui/avatar";
 import { Progress } from "../components/ui/progress";
 import { toast } from "sonner";
+import { Badge } from "../components/ui/badge";
+import { Headset } from "lucide-react";
 
 type TeamMember = {
   id: string;
@@ -49,48 +51,48 @@ const Team = () => {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("All");
 
-  // Customer service development team members data
+  // Customer service team members data
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
       id: "1",
       name: "Henry Paulista",
       email: "henry.paulista@email.com",
-      position: "SENIOR BACKEND DEVELOPER",
+      position: "ADMINISTRADOR",
       progress: 100,
     },
     {
       id: "2",
       name: "Evan Jefferson",
       email: "evan.jefferson@email.com",
-      position: "FRONTEND DEVELOPER",
+      position: "VENDEDOR",
       progress: 82,
     },
     {
       id: "3",
       name: "Mark Thomson",
       email: "mark.thomson@email.com",
-      position: "SENIOR UX DESIGNER",
+      position: "ASESOR SENIOR",
       progress: 66,
     },
     {
       id: "4",
       name: "Alice McKenzie",
       email: "alice.mckenzie@email.com",
-      position: "CUSTOMER SUPPORT LEAD",
+      position: "SUPERVISOR DE VENTAS",
       progress: 100,
     },
     {
       id: "5",
       name: "Jack Ro",
       email: "jack.ro@email.com",
-      position: "QA ENGINEER",
+      position: "VENDEDOR",
       progress: 33,
     },
     {
       id: "6",
       name: "Anastasia Groetze",
       email: "anastasia.groetze@email.com",
-      position: "TECHNICAL WRITER",
+      position: "ASESOR",
       progress: 45,
     }
   ]);
@@ -127,14 +129,14 @@ const Team = () => {
         {/* Main content */}
         <div className="flex-1">
           <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-bold">People</h1>
+            <h1 className="text-2xl font-bold">Equipo de Servicio al Cliente</h1>
           </div>
 
           {/* Tabs */}
           <Tabs defaultValue="all" className="mb-6">
             <TabsList>
-              <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="organization">Organization</TabsTrigger>
+              <TabsTrigger value="all">Todos</TabsTrigger>
+              <TabsTrigger value="organization">Organización</TabsTrigger>
             </TabsList>
           </Tabs>
 
@@ -143,7 +145,7 @@ const Team = () => {
             <div className="relative w-full md:w-1/2">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search by name"
+                placeholder="Buscar por nombre"
                 className="pl-10"
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
@@ -153,25 +155,25 @@ const Team = () => {
             <div className="flex gap-2 items-center">
               <Select value={selectedTeam} onValueChange={setSelectedTeam}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Team" />
+                  <SelectValue placeholder="Equipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Development">Development</SelectItem>
-                  <SelectItem value="Design">Design</SelectItem>
-                  <SelectItem value="Support">Support</SelectItem>
+                  <SelectItem value="All">Todos</SelectItem>
+                  <SelectItem value="Ventas">Ventas</SelectItem>
+                  <SelectItem value="Soporte">Soporte</SelectItem>
+                  <SelectItem value="Administración">Administración</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={sortBy} onValueChange={setSortBy}>
                 <SelectTrigger className="w-40">
-                  <SelectValue placeholder="Sort by" />
+                  <SelectValue placeholder="Ordenar por" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Name">Name</SelectItem>
-                  <SelectItem value="Role">Role</SelectItem>
-                  <SelectItem value="Progress">Progress</SelectItem>
+                  <SelectItem value="All">Todos</SelectItem>
+                  <SelectItem value="Name">Nombre</SelectItem>
+                  <SelectItem value="Role">Rol</SelectItem>
+                  <SelectItem value="Progress">Progreso</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -229,9 +231,9 @@ const Team = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                          <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
+                          <DropdownMenuItem>Editar</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">Eliminar</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -283,9 +285,9 @@ const Team = () => {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Profile</DropdownMenuItem>
-                          <DropdownMenuItem>Edit</DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                          <DropdownMenuItem>Ver Perfil</DropdownMenuItem>
+                          <DropdownMenuItem>Editar</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">Eliminar</DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -302,7 +304,7 @@ const Team = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>
-                  <div className="text-lg font-medium">Customer Service Team</div>
+                  <div className="text-lg font-medium">Equipo de Servicio al Cliente</div>
                 </CardTitle>
                 <Button variant="ghost" size="icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -318,7 +320,7 @@ const Team = () => {
                 <div className="relative w-32 h-32">
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="text-center">
-                      <div className="text-xs text-gray-500">TIME LOG</div>
+                      <div className="text-xs text-gray-500">TIEMPO ACTIVO</div>
                       <div className="text-3xl font-bold">{stats.timeLog}%</div>
                     </div>
                   </div>
@@ -345,9 +347,9 @@ const Team = () => {
                 </div>
               </div>
 
-              {/* Projects Section */}
+              {/* Tickets Section */}
               <div>
-                <h3 className="text-lg font-medium mb-4">Support Tickets</h3>
+                <h3 className="text-lg font-medium mb-4">Tickets de Soporte</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <Card className="bg-gray-50">
                     <CardContent className="p-4">
@@ -357,19 +359,19 @@ const Team = () => {
                   </Card>
                   <Card className="bg-gray-50">
                     <CardContent className="p-4">
-                      <p className="text-xs text-gray-500 mb-1">RESOLVED</p>
+                      <p className="text-xs text-gray-500 mb-1">RESUELTOS</p>
                       <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-gray-50">
                     <CardContent className="p-4">
-                      <p className="text-xs text-gray-500 mb-1">IN PROGRESS</p>
+                      <p className="text-xs text-gray-500 mb-1">EN PROGRESO</p>
                       <p className="text-2xl font-bold text-blue-600">{stats.inProgress}</p>
                     </CardContent>
                   </Card>
                   <Card className="bg-gray-50">
                     <CardContent className="p-4">
-                      <p className="text-xs text-gray-500 mb-1">QUEUED</p>
+                      <p className="text-xs text-gray-500 mb-1">EN ESPERA</p>
                       <p className="text-2xl font-bold text-amber-500">{stats.waiting}</p>
                     </CardContent>
                   </Card>
@@ -380,12 +382,12 @@ const Team = () => {
               <Card className="bg-blue-50">
                 <CardContent className="p-4 flex gap-3">
                   <div className="bg-blue-500 rounded-md p-2 text-white">
-                    <MessageSquare className="h-5 w-5" />
+                    <Headset className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500">SUPPORT CENTER</div>
+                    <div className="text-xs font-medium text-gray-500">CENTRO DE SOPORTE</div>
                     <div className="flex items-center gap-1">
-                      <span className="font-medium">Internal messages</span>
+                      <span className="font-medium">Mensajes internos</span>
                       <ChevronDown className="h-4 w-4" />
                     </div>
                   </div>

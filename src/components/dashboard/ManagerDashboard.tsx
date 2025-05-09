@@ -18,7 +18,7 @@ import {
 } from "recharts";
 import { 
   MessageSquare,
-  Code, 
+  Headset, 
   Users,
   TrendingUp
 } from "lucide-react";
@@ -42,8 +42,8 @@ const ManagerDashboard = () => {
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader className="pb-2 border-b border-blue-200">
           <CardTitle className="text-blue-800 flex items-center gap-2">
-            <Code className="h-6 w-6" />
-            Support Team Board
+            <Headset className="h-6 w-6" />
+            Panel de Equipo de Soporte
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
@@ -68,7 +68,7 @@ const ManagerDashboard = () => {
         {/* Response Time Estimate */}
         <CommissionEstimateCard timeframe={timeframe} setTimeframe={setTimeframe} />
         
-        {/* Developer Score Card */}
+        {/* Support Agent Score Card */}
         <SellerScoreCard />
         
         {/* Top Issue Categories */}
