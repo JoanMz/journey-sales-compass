@@ -59,7 +59,8 @@ const PendingTransactions = () => {
   const fetchPendingTransactions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get("https://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pending");
+      // Use the Vite proxy with a relative URL
+      const response = await axios.get("/api/transactions/filter/pending");
       setPendingTransactions(response.data);
       setError(null);
     } catch (err) {
@@ -73,7 +74,8 @@ const PendingTransactions = () => {
 
   const handleApprove = async (id: number) => {
     try {
-      await axios.patch(`http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status?status=approved`);
+      // Use the Vite proxy with a relative URL
+      await axios.patch(`/api/transactions/${id}/status?status=approved`);
       toast.success(`Transacción #${id} aprobada`);
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
@@ -85,7 +87,8 @@ const PendingTransactions = () => {
 
   const handleReject = async (id: number) => {
     try {
-      await axios.patch(`http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status?status=rejected`);
+      // Use the Vite proxy with a relative URL
+      await axios.patch(`/api/transactions/${id}/status?status=rejected`);
       toast.info(`Transacción #${id} rechazada`);
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
