@@ -3,12 +3,9 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, ReactNode, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
 import Sidebar from "./Sidebar";
-import Header from "./Header";
 
 interface AppLayoutProps {
   children: ReactNode;
-  requireAuth?: boolean;
-  requireAdmin?: boolean;
 }
 
 const AppLayout = ({

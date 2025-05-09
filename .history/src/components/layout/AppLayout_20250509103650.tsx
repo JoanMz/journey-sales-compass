@@ -1,14 +1,10 @@
 
-import { useNavigate } from "react-router-dom";
-import { useEffect, ReactNode, useState } from "react";
-import { useAuth } from "../../contexts/AuthContext";
-import Sidebar from "./Sidebar";
+import { ReactNode, useEffect, useState } from "react";
 import Header from "./Header";
+import Sidebar from "./Sidebar";
 
 interface AppLayoutProps {
   children: ReactNode;
-  requireAuth?: boolean;
-  requireAdmin?: boolean;
 }
 
 const AppLayout = ({
