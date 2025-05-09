@@ -17,11 +17,10 @@ import {
   ResponsiveContainer 
 } from "recharts";
 import { 
-  MapPin,
-  DollarSign, 
-  Award, 
-  TrendingUp,
-  Users
+  MessageSquare,
+  Code, 
+  Users,
+  TrendingUp
 } from "lucide-react";
 import SellerScoreCard from "./SellerScoreCard";
 import TopDestinationsCard from "./TopDestinationsCard";
@@ -32,50 +31,50 @@ import SalesStatusCards from "./SalesStatusCards";
 const ManagerDashboard = () => {
   const [timeframe, setTimeframe] = useState<"day" | "week" | "year">("week");
   
-  const salesNumbers = {
-    totalAmount: "$21,600,000",
-    totalCount: 12
+  const supportNumbers = {
+    totalResolved: "124",
+    totalActive: 36
   };
 
   return (
     <div className="space-y-6">
-      {/* Asesor Dashboard Header */}
-      <Card className="bg-purple-50 border-purple-200">
-        <CardHeader className="pb-2 border-b border-purple-200">
-          <CardTitle className="text-purple-800 flex items-center gap-2">
-            <Users className="h-6 w-6" />
-            Asesor Board
+      {/* Support Team Dashboard Header */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardHeader className="pb-2 border-b border-blue-200">
+          <CardTitle className="text-blue-800 flex items-center gap-2">
+            <Code className="h-6 w-6" />
+            Support Team Board
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
-              <p className="text-sm text-purple-600">Monto de ventas</p>
-              <p className="text-2xl font-bold text-purple-900">{salesNumbers.totalAmount}</p>
+              <p className="text-sm text-blue-600">Tickets resueltos</p>
+              <p className="text-2xl font-bold text-blue-900">{supportNumbers.totalResolved}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-purple-600">Nr ventas hechas</p>
-              <p className="text-2xl font-bold text-purple-900">{salesNumbers.totalCount}</p>
+              <p className="text-sm text-blue-600">Tickets activos</p>
+              <p className="text-2xl font-bold text-blue-900">{supportNumbers.totalActive}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Sales Status Cards - Inquiry, Pending, Done */}
+      {/* Support Status Cards - New, In Progress, Resolved */}
       <SalesStatusCards />
       
       {/* 2x2 Grid with specific components */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Commission Estimate */}
+        {/* Response Time Estimate */}
         <CommissionEstimateCard timeframe={timeframe} setTimeframe={setTimeframe} />
         
-        {/* Seller Score Card */}
+        {/* Developer Score Card */}
         <SellerScoreCard />
         
-        {/* Top Destinations */}
+        {/* Top Issue Categories */}
         <TopDestinationsCard />
         
-        {/* Top Sales of the Week */}
+        {/* Recent Resolved Issues */}
         <TopSalesCard />
       </div>
     </div>

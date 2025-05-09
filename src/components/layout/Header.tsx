@@ -12,12 +12,12 @@ const Header = () => {
     switch (user.role) {
       case "admin":
       case "administrador":
-        return "Administrator";
+        return "Customer Service Team Lead";
       case "seller":
       case "vendedor":
-        return "Sales Agent";
+        return "Customer Support Agent";
       case "encargado":
-        return "Sales Manager";
+        return "Support Team Manager";
       default:
         return user.role;
     }
@@ -26,7 +26,7 @@ const Header = () => {
   return (
     <header className="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold text-gray-800">Sales Dashboard</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Customer Service Dashboard</h1>
         {user && (
           <p className="text-sm text-gray-600">
             Hello {user.name}, you are logged in as <span className="font-medium">{getRoleDisplay()}</span>
@@ -44,7 +44,7 @@ const Header = () => {
         </button>
         <div className="h-10 w-px bg-gray-200 mx-2"></div>
         <div className="flex items-center">
-          <span className="text-sm font-medium mr-2">WhatsApp Integration Active</span>
+          <span className="text-sm font-medium mr-2">Chat Integration Active</span>
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
         </div>
       </div>

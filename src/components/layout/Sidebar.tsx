@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, BarChart3, Settings, LogOut, Users, ChevronLeft } from "lucide-react";
+import { Home, BarChart3, Settings, LogOut, Users, ChevronLeft, MessageSquare, Code } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useState } from "react";
 
@@ -17,7 +17,7 @@ const Sidebar = () => {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", adminOnly: false },
-    { name: "Metrics", icon: BarChart3, path: "/metrics", adminOnly: true },
+    { name: "Support Stats", icon: BarChart3, path: "/metrics", adminOnly: true },
     { name: "Team", icon: Users, path: "/team", adminOnly: true },
     { name: "Settings", icon: Settings, path: "/settings", adminOnly: false },
   ];
@@ -32,11 +32,9 @@ const Sidebar = () => {
       <div className="p-4 flex items-center justify-between">
         <div className="flex items-center">
           <div className="bg-brand-purple rounded-full p-2 shrink-0">
-            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-14h2v7h-2zm0 8h2v2h-2z" />
-            </svg>
+            <Code className="w-6 h-6 text-white" />
           </div>
-          {!collapsed && <span className="font-bold text-xl text-gray-800 ml-3 whitespace-nowrap overflow-hidden text-ellipsis">TravelCRM</span>}
+          {!collapsed && <span className="font-bold text-xl text-gray-800 ml-3 whitespace-nowrap overflow-hidden text-ellipsis">SupportCRM</span>}
         </div>
         <button 
           onClick={toggleSidebar} 
@@ -92,7 +90,7 @@ const Sidebar = () => {
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">{user?.name}</p>
               <p className="text-xs text-gray-500 capitalize truncate">
-                {user?.role === "administrador" ? "admin" : user?.role}
+                {user?.role === "administrador" ? "team lead" : user?.role}
               </p>
             </div>
           )}

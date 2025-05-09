@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, ChevronDown, MoreHorizontal, Users } from "lucide-react";
+import { Search, ChevronDown, MoreHorizontal, Users, Code, MessageSquare } from "lucide-react";
 import AppLayout from "../components/layout/AppLayout";
 import { useAuth } from "../contexts/AuthContext";
 import { useData, User } from "../contexts/DataContext";
@@ -49,48 +49,48 @@ const Team = () => {
   const [view, setView] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("All");
 
-  // Demo team members data based on the image
+  // Customer service development team members data
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
       id: "1",
       name: "Henry Paulista",
       email: "henry.paulista@email.com",
-      position: "SENIOR CREATIVE DIRECTOR",
+      position: "SENIOR BACKEND DEVELOPER",
       progress: 100,
     },
     {
       id: "2",
       name: "Evan Jefferson",
       email: "evan.jefferson@email.com",
-      position: "CREATIVE DIRECTOR",
+      position: "FRONTEND DEVELOPER",
       progress: 82,
     },
     {
       id: "3",
       name: "Mark Thomson",
       email: "mark.thomson@email.com",
-      position: "SENIOR UI DESIGNER",
+      position: "SENIOR UX DESIGNER",
       progress: 66,
     },
     {
       id: "4",
       name: "Alice McKenzie",
       email: "alice.mckenzie@email.com",
-      position: "SENIOR COPYWRITER",
+      position: "CUSTOMER SUPPORT LEAD",
       progress: 100,
     },
     {
       id: "5",
       name: "Jack Ro",
       email: "jack.ro@email.com",
-      position: "ART DIRECTOR",
+      position: "QA ENGINEER",
       progress: 33,
     },
     {
       id: "6",
       name: "Anastasia Groetze",
       email: "anastasia.groetze@email.com",
-      position: "SENIOR UI DESIGNER",
+      position: "TECHNICAL WRITER",
       progress: 45,
     }
   ]);
@@ -157,9 +157,9 @@ const Team = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="All">All</SelectItem>
-                  <SelectItem value="Design Team">Design Team</SelectItem>
-                  <SelectItem value="Marketing">Marketing</SelectItem>
                   <SelectItem value="Development">Development</SelectItem>
+                  <SelectItem value="Design">Design</SelectItem>
+                  <SelectItem value="Support">Support</SelectItem>
                 </SelectContent>
               </Select>
               
@@ -302,7 +302,7 @@ const Team = () => {
             <CardHeader>
               <div className="flex justify-between items-center">
                 <CardTitle>
-                  <div className="text-lg font-medium">Design Team</div>
+                  <div className="text-lg font-medium">Customer Service Team</div>
                 </CardTitle>
                 <Button variant="ghost" size="icon">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -347,7 +347,7 @@ const Team = () => {
 
               {/* Projects Section */}
               <div>
-                <h3 className="text-lg font-medium mb-4">Projects</h3>
+                <h3 className="text-lg font-medium mb-4">Support Tickets</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <Card className="bg-gray-50">
                     <CardContent className="p-4">
@@ -357,7 +357,7 @@ const Team = () => {
                   </Card>
                   <Card className="bg-gray-50">
                     <CardContent className="p-4">
-                      <p className="text-xs text-gray-500 mb-1">COMPLETED</p>
+                      <p className="text-xs text-gray-500 mb-1">RESOLVED</p>
                       <p className="text-2xl font-bold text-green-600">{stats.completed}</p>
                     </CardContent>
                   </Card>
@@ -369,7 +369,7 @@ const Team = () => {
                   </Card>
                   <Card className="bg-gray-50">
                     <CardContent className="p-4">
-                      <p className="text-xs text-gray-500 mb-1">WAITING</p>
+                      <p className="text-xs text-gray-500 mb-1">QUEUED</p>
                       <p className="text-2xl font-bold text-amber-500">{stats.waiting}</p>
                     </CardContent>
                   </Card>
@@ -380,12 +380,10 @@ const Team = () => {
               <Card className="bg-blue-50">
                 <CardContent className="p-4 flex gap-3">
                   <div className="bg-blue-500 rounded-md p-2 text-white">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                    </svg>
+                    <MessageSquare className="h-5 w-5" />
                   </div>
                   <div>
-                    <div className="text-xs font-medium text-gray-500">DECLARATION CENTER</div>
+                    <div className="text-xs font-medium text-gray-500">SUPPORT CENTER</div>
                     <div className="flex items-center gap-1">
                       <span className="font-medium">Internal messages</span>
                       <ChevronDown className="h-4 w-4" />
