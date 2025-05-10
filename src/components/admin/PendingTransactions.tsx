@@ -62,6 +62,7 @@ const PendingTransactions = () => {
       // Use the Vite proxy with a relative URL
       const response = await axios.get("/api/transactions/filter/pendiente");
       
+      console.log(response)
       // Check if response.data is an array, if not, handle accordingly
       let transactions: Transaction[] = [];
       
