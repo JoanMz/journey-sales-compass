@@ -8,6 +8,7 @@ import CombinedPlansLeaderboardCard from "./CombinedPlansLeaderboardCard";
 import PendingTransactions from "../admin/PendingTransactions";
 import KeyMetricsCard from "../bi/KeyMetricsCard";
 import TravelMap from "../bi/TravelMap";
+import TransaccionesClientes from "./TransaccionesClientes";
 import { TrendingUp, Users, CreditCard } from "lucide-react";
 
 // Sample data for the map
@@ -129,6 +130,11 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+          
+          {/* Tabla de Transacciones de Clientes */}
+          <div className="mb-6">
+            <TransaccionesClientes sales={sales} />
           </div>
           
           {/* Gráfico de Ventas Semanales */}
