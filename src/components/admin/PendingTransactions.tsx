@@ -77,13 +77,29 @@ const PendingTransactions = () => {
       // Use the Vite proxy with a relative URL
       await axios.patch(`/api/transactions/${id}/status?status=approved`);
       toast.success(`Transacción #${id} aprobada`);
+      // Call Document generation
+      callDocumentGeneration(id);
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
+
     } catch (err) {
       console.error("Error approving transaction:", err);
       toast.error("Error al aprobar la transacción");
     }
   };
+
+  const callDocumentGeneration = async(id : number) => {
+
+    await axios.post("https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/d5e02b96-c7fa-4358-8120-65fccbee7892",
+      { transaction_id: id},
+      {
+        headers: {
+          accept: 'application/json',
+        },
+        timeout: 5000 // Add timeout to prevent long waits
+      }
+    );
+  }
 
   const handleReject = async (id: number) => {
     try {
