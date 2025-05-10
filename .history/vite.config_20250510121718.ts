@@ -12,8 +12,7 @@ export default defineConfig(({ mode }) => ({
       '/api':{
         target: "https://xc7xrbwd2unlgl2pq5zha6lw2i0hbwzd.lambda-url.us-west-2.on.aws/",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ''),
-        secure: false,
+
       }
     }
   },
