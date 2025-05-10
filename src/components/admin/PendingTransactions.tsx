@@ -92,7 +92,7 @@ const PendingTransactions = () => {
   const handleApprove = async (id: number) => {
     try {
       // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=approved`);
+      await axios.patch(`/api/transactions/${id}/status?status=completado`);
       toast.success(`Transacción #${id} aprobada`);
       // Call Document generation
       callDocumentGeneration(id);
@@ -121,7 +121,7 @@ const PendingTransactions = () => {
   const handleReject = async (id: number) => {
     try {
       // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=rejected`);
+      await axios.patch(`/api/transactions/${id}/status?status=rechazado`);
       toast.info(`Transacción #${id} rechazada`);
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
