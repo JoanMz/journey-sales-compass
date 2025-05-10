@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "../../lib/utils";
-import { get } from "http";
 
 interface Traveler {
   id: number;
@@ -60,27 +59,8 @@ const PendingTransactions = () => {
   const fetchPendingTransactions = async () => {
     try {
       setLoading(true);
-      // Use the Vite proxy with a relative URL
-      const response = await axios.get("https://xc7xrbwd2unlgl2pq5zha6lw2i0hbwzd.lambda-url.us-west-2.on.aws/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": "GET"});
-      
-      console.log(response)
-      // Check if response.data is an array, if not, handle accordingly
-      let transactions: Transaction[] = [];
-      
-      if (Array.isArray(response.data)) {
-        transactions = response.data;
-      } else if (response.data && typeof response.data === 'object') {
-        // If it's an object with a data property that is an array
-        if (Array.isArray(response.data.data)) {
-          transactions = response.data.data;
-        } else {
-          // If it's a single transaction object, wrap it in an array
-          transactions = [response.data].filter(item => item && typeof item === 'object');
-        }
-      }
-      
-      console.log("Fetched transactions:", transactions);
-      setPendingTransactions(transactions);
+      const response = await axios.get("https://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pending");
+      setPendingTransactions(response.data);
       setError(null);
     } catch (err) {
       console.error("Error fetching pending transactions:", err);
@@ -93,37 +73,19 @@ const PendingTransactions = () => {
 
   const handleApprove = async (id: number) => {
     try {
-      // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=completado`);
+      await axios.patch(`http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status?status=approved`);
       toast.success(`Transacción #${id} aprobada`);
-      // Call Document generation
-      callDocumentGeneration(id);
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
-
     } catch (err) {
       console.error("Error approving transaction:", err);
       toast.error("Error al aprobar la transacción");
     }
   };
 
-  const callDocumentGeneration = async(id : number) => {
-
-    await axios.post("https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/d5e02b96-c7fa-4358-8120-65fccbee7892",
-      { transaction_id: id},
-      {
-        headers: {
-          accept: 'application/json',
-        },
-        timeout: 5000 // Add timeout to prevent long waits
-      }
-    );
-  }
-
   const handleReject = async (id: number) => {
     try {
-      // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=rechazado`);
+      await axios.patch(`http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status?status=rejected`);
       toast.info(`Transacción #${id} rechazada`);
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));

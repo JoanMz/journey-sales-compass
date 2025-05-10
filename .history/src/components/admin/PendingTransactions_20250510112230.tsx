@@ -61,7 +61,7 @@ const PendingTransactions = () => {
     try {
       setLoading(true);
       // Use the Vite proxy with a relative URL
-      const response = await axios.get("https://xc7xrbwd2unlgl2pq5zha6lw2i0hbwzd.lambda-url.us-west-2.on.aws/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": "GET"});
+      const response = await axios.get("https://xc7xrbwd2unlgl2pq5zha6lw2i0hbwzd.lambda-url.us-west-2.on.aws/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": GET, });
       
       console.log(response)
       // Check if response.data is an array, if not, handle accordingly

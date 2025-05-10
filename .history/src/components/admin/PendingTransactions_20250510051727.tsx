@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "../../lib/utils";
-import { get } from "http";
 
 interface Traveler {
   id: number;
@@ -61,9 +60,8 @@ const PendingTransactions = () => {
     try {
       setLoading(true);
       // Use the Vite proxy with a relative URL
-      const response = await axios.get("https://xc7xrbwd2unlgl2pq5zha6lw2i0hbwzd.lambda-url.us-west-2.on.aws/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": "GET"});
+      const response = await axios.get("/api/transactions/filter/pendiente");
       
-      console.log(response)
       // Check if response.data is an array, if not, handle accordingly
       let transactions: Transaction[] = [];
       
@@ -94,7 +92,7 @@ const PendingTransactions = () => {
   const handleApprove = async (id: number) => {
     try {
       // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=completado`);
+      await axios.patch(`/api/transactions/${id}/status?status=approved`);
       toast.success(`Transacción #${id} aprobada`);
       // Call Document generation
       callDocumentGeneration(id);
@@ -123,7 +121,7 @@ const PendingTransactions = () => {
   const handleReject = async (id: number) => {
     try {
       // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=rechazado`);
+      await axios.patch(`/api/transactions/${id}/status?status=rejected`);
       toast.info(`Transacción #${id} rechazada`);
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
