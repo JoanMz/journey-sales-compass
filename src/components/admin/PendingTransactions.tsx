@@ -1,11 +1,10 @@
-
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "../../lib/utils";
+import { getTransactions, updateTransactionStatus, generateDocuments } from "../../lib/api";
 
 interface Traveler {
   id: number;
@@ -59,26 +58,24 @@ const PendingTransactions = () => {
   const fetchPendingTransactions = async () => {
     try {
       setLoading(true);
-      // Use the Vite proxy with a relative URL
-      const response = await axios.get("/api/transactions/filter/pendiente");
+      // Use our API service to fetch transactions
+      const data = await getTransactions("pendiente");
       
-      console.log(response)
-      // Check if response.data is an array, if not, handle accordingly
+      // Process the response to ensure we always have a proper array
       let transactions: Transaction[] = [];
       
-      if (Array.isArray(response.data)) {
-        transactions = response.data;
-      } else if (response.data && typeof response.data === 'object') {
+      if (Array.isArray(data)) {
+        transactions = data;
+      } else if (data && typeof data === 'object') {
         // If it's an object with a data property that is an array
-        if (Array.isArray(response.data.data)) {
-          transactions = response.data.data;
+        if (Array.isArray(data.data)) {
+          transactions = data.data;
         } else {
           // If it's a single transaction object, wrap it in an array
-          transactions = [response.data].filter(item => item && typeof item === 'object');
+          transactions = [data].filter(item => item && typeof item === 'object');
         }
       }
       
-      console.log("Fetched transactions:", transactions);
       setPendingTransactions(transactions);
       setError(null);
     } catch (err) {
@@ -92,38 +89,25 @@ const PendingTransactions = () => {
 
   const handleApprove = async (id: number) => {
     try {
-      // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=completado`);
+      await updateTransactionStatus(id, "completado");
       toast.success(`Transacción #${id} aprobada`);
-      // Call Document generation
-      callDocumentGeneration(id);
+      
+      // Call document generation through our API service
+      await generateDocuments(id);
+      
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
-
     } catch (err) {
       console.error("Error approving transaction:", err);
       toast.error("Error al aprobar la transacción");
     }
   };
 
-  const callDocumentGeneration = async(id : number) => {
-
-    await axios.post("https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/d5e02b96-c7fa-4358-8120-65fccbee7892",
-      { transaction_id: id},
-      {
-        headers: {
-          accept: 'application/json',
-        },
-        timeout: 5000 // Add timeout to prevent long waits
-      }
-    );
-  }
-
   const handleReject = async (id: number) => {
     try {
-      // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=rechazado`);
+      await updateTransactionStatus(id, "rechazado");
       toast.info(`Transacción #${id} rechazada`);
+      
       // Remove from pending list
       setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
     } catch (err) {
