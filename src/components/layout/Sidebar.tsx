@@ -1,6 +1,5 @@
-
 import { Link, useLocation } from "react-router-dom";
-import { Home, BarChart3, Settings, LogOut, Users, ChevronLeft, MessageSquare, Code, ChevronRight } from "lucide-react";
+import { Home, BarChart3, Settings, LogOut, Users, ChevronLeft, MessageSquare, Code, ChevronRight, Map } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -19,6 +18,7 @@ const Sidebar = () => {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", adminOnly: false },
+    { name: "Business Intelligence", icon: Map, path: "/business-intelligence", adminOnly: true },
     { name: "Support Stats", icon: BarChart3, path: "/metrics", adminOnly: true },
     { name: "Team", icon: Users, path: "/team", adminOnly: true },
     { name: "Settings", icon: Settings, path: "/settings", adminOnly: false },
