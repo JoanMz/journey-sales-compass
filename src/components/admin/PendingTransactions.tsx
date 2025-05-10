@@ -60,8 +60,25 @@ const PendingTransactions = () => {
     try {
       setLoading(true);
       // Use the Vite proxy with a relative URL
-      const response = await axios.get("/api/transactions/filter/pending");
-      setPendingTransactions(response.data);
+      const response = await axios.get("/api/transactions/filter/pendiente");
+      
+      // Check if response.data is an array, if not, handle accordingly
+      let transactions: Transaction[] = [];
+      
+      if (Array.isArray(response.data)) {
+        transactions = response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // If it's an object with a data property that is an array
+        if (Array.isArray(response.data.data)) {
+          transactions = response.data.data;
+        } else {
+          // If it's a single transaction object, wrap it in an array
+          transactions = [response.data].filter(item => item && typeof item === 'object');
+        }
+      }
+      
+      console.log("Fetched transactions:", transactions);
+      setPendingTransactions(transactions);
       setError(null);
     } catch (err) {
       console.error("Error fetching pending transactions:", err);
