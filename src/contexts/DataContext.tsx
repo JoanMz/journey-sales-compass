@@ -60,18 +60,18 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 // Sample data
 const DEFAULT_CUSTOMERS: Customer[] = [
-  { id: "c1", name: "Daniel ", avatar: "https://i.pravatar.cc/150?img=1", email: "daniel@example.com", phone: "+1234567890" },
-  { id: "c2", name: "Miguel ", avatar: "https://i.pravatar.cc/150?img=2", email: "miguel@example.com" },
-  { id: "c3", name: "Gustavo", avatar: "https://i.pravatar.cc/150?img=3", email: "gustavo@example.com" },
-  { id: "c4", name: "Manuel", avatar: "https://i.pravatar.cc/150?img=4", email: "manuel@example.com" },
-  { id: "c5", name: "Sofia", avatar: "https://i.pravatar.cc/150?img=5", email: "sofia@example.com" },
+  { id: "c1", name: "Daniel Rivera", avatar: "https://i.pravatar.cc/150?img=1", email: "daniel@example.com", phone: "+1234567890" },
+  { id: "c2", name: "Miguel Muñoz", avatar: "https://i.pravatar.cc/150?img=2", email: "miguel@example.com" },
+  { id: "c3", name: "Gustavo Chipantiza ", avatar: "https://i.pravatar.cc/150?img=3", email: "gustavo@example.com" },
+  { id: "c4", name: "Manuel Gruezo", avatar: "https://i.pravatar.cc/150?img=4", email: "manuel@example.com" },
+  { id: "c5", name: "Sofia Salinas", avatar: "https://i.pravatar.cc/150?img=5", email: "sofia@example.com" },
 ];
 
 const DEFAULT_SALES: Sale[] = [
   { 
     id: "s1", 
     customerId: "c1", 
-    customerName: "Johntosan",
+    customerName: "Daniel Rivera",
     customerAvatar: "https://i.pravatar.cc/150?img=1",
     package: "Paris Trip Package", 
     date: "2023-05-22", 
@@ -83,7 +83,7 @@ const DEFAULT_SALES: Sale[] = [
   { 
     id: "s2", 
     customerId: "c2", 
-    customerName: "Kuproy Junkies",
+    customerName: "Miguel Muñoz",
     customerAvatar: "https://i.pravatar.cc/150?img=2",
     package: "Barcelona Tour", 
     date: "2023-05-18", 
@@ -95,7 +95,7 @@ const DEFAULT_SALES: Sale[] = [
   { 
     id: "s3", 
     customerId: "c3", 
-    customerName: "Ankurz",
+    customerName: "Gustavo Chipantiza",
     customerAvatar: "https://i.pravatar.cc/150?img=3",
     package: "Tokyo Adventure", 
     date: "2023-05-18", 
@@ -107,7 +107,7 @@ const DEFAULT_SALES: Sale[] = [
   { 
     id: "s4", 
     customerId: "c4", 
-    customerName: "Deprie Riandi",
+    customerName: "Manuel Gruezo",
     customerAvatar: "https://i.pravatar.cc/150?img=4",
     package: "Bali Vacation", 
     date: "2023-05-17", 
@@ -119,7 +119,7 @@ const DEFAULT_SALES: Sale[] = [
   { 
     id: "s5", 
     customerId: "c5", 
-    customerName: "Howarts",
+    customerName: "Sofia Salinas",
     customerAvatar: "https://i.pravatar.cc/150?img=5",
     package: "London City Tour", 
     date: "2023-05-15", 
