@@ -60,11 +60,11 @@ const DataContext = createContext<DataContextType | undefined>(undefined);
 
 // Sample data
 const DEFAULT_CUSTOMERS: Customer[] = [
-  { id: "c1", name: "Daniel ", avatar: "https://i.pravatar.cc/150?img=1", email: "daniel@example.com", phone: "+1234567890" },
-  { id: "c2", name: "Miguel ", avatar: "https://i.pravatar.cc/150?img=2", email: "miguel@example.com" },
-  { id: "c3", name: "Gustavo", avatar: "https://i.pravatar.cc/150?img=3", email: "gustavo@example.com" },
-  { id: "c4", name: "Manuel", avatar: "https://i.pravatar.cc/150?img=4", email: "manuel@example.com" },
-  { id: "c5", name: "Sofia", avatar: "https://i.pravatar.cc/150?img=5", email: "sofia@example.com" },
+  { id: "c1", name: "Johntosan", avatar: "https://i.pravatar.cc/150?img=1", email: "john@example.com", phone: "+1234567890" },
+  { id: "c2", name: "Kuproy Junkies", avatar: "https://i.pravatar.cc/150?img=2", email: "kuproy@example.com" },
+  { id: "c3", name: "Ankurz", avatar: "https://i.pravatar.cc/150?img=3", email: "ankurz@example.com" },
+  { id: "c4", name: "Deprie Riandi", avatar: "https://i.pravatar.cc/150?img=4", email: "deprie@example.com" },
+  { id: "c5", name: "Howarts", avatar: "https://i.pravatar.cc/150?img=5", email: "howarts@example.com" },
 ];
 
 const DEFAULT_SALES: Sale[] = [
