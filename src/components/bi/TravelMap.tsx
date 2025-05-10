@@ -1,12 +1,11 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Temporary token input for demo purposes
-// In production, this should be stored securely
-const DEFAULT_TOKEN = ""; // Add your token here or leave empty to prompt user
+// Fixed Mapbox token as provided
+const MAPBOX_TOKEN = "pk.eyJ1Ijoic29maWFzc3IiLCJhIjoiY21haHczdG1uMGUxZDJsczN2ODQzdDlkMiJ9.lqp3AeDLZ5E9564_7BbN6g";
 
 interface TravelMapProps {
   destinations?: Array<{
@@ -26,14 +25,12 @@ interface TravelMapProps {
 const TravelMap = ({ destinations = [], origins = [] }: TravelMapProps) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken, setMapboxToken] = useState(DEFAULT_TOKEN);
-  const [tokenInput, setTokenInput] = useState("");
   
   useEffect(() => {
-    if (!mapContainer.current || !mapboxToken) return;
+    if (!mapContainer.current) return;
     
-    // Initialize map
-    mapboxgl.accessToken = mapboxToken;
+    // Initialize map with fixed token
+    mapboxgl.accessToken = MAPBOX_TOKEN;
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
@@ -197,48 +194,7 @@ const TravelMap = ({ destinations = [], origins = [] }: TravelMapProps) => {
     return () => {
       map.current?.remove();
     };
-  }, [mapboxToken, destinations, origins]);
-
-  const handleTokenSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (tokenInput.trim()) {
-      setMapboxToken(tokenInput.trim());
-    }
-  };
-
-  if (!mapboxToken) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Mapa de Viajes</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center p-6">
-            <p className="mb-4">Por favor ingresa tu token público de Mapbox para visualizar el mapa.</p>
-            <form onSubmit={handleTokenSubmit} className="flex gap-2">
-              <input 
-                type="text" 
-                value={tokenInput} 
-                onChange={(e) => setTokenInput(e.target.value)} 
-                placeholder="pk.eyJ1IjoieW91..." 
-                className="flex-1 px-3 py-2 border rounded-md"
-                required
-              />
-              <button 
-                type="submit" 
-                className="px-4 py-2 bg-blue-500 text-white rounded-md"
-              >
-                Cargar Mapa
-              </button>
-            </form>
-            <p className="mt-2 text-sm text-gray-500">
-              Puedes encontrar tu token público de Mapbox en tu <a href="https://account.mapbox.com/access-tokens/" target="_blank" rel="noopener noreferrer" className="text-blue-500">cuenta de Mapbox</a>.
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  }, [destinations, origins]);
 
   return (
     <Card>
