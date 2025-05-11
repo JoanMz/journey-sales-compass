@@ -46,23 +46,78 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
   // Ensure we have all the specified customers including Sofia Salinas' specific Toulouse trip
   const allSales = [...sales];
   const sofiaToulouseExists = allSales.some(sale => 
-    sale.customerName === "Natalia Sofia Salinas" && sale.package === "Toulouse"
+    sale.customerName === "Natalia Sofia Salinas" && sale.package === "Toulouse Student Adventure"
   );
   
   if (!sofiaToulouseExists) {
+    const DEFAULT_SALES: Sale[] = [
+      {
+        id: "s5",
+        customerId: "c5",
+        customerName: "Natalia Sofia Salinas",
+        customerAvatar: "https://i.pravatar.cc/150?img=5",
+        package: "Toulouse Student Adventure",
+        date: "2025-08-12",
+        status: "Success",
+        amount: 1250,
+        sellerName: "John Seller",
+        sellerId: "2"
+      },
+      {
+        id: "s1",
+        customerId: "c1",
+        customerName: "Daniel Rivera",
+        customerAvatar: "https://i.pravatar.cc/150?img=1",
+        package: "Paris Tour Package",
+        date: "2025-07-15",
+        status: "Success",
+        amount: 1200,
+        sellerName: "John Seller",
+        sellerId: "2"
+      },
+      {
+        id: "s2",
+        customerId: "c2",
+        customerName: "Miguel Muñoz",
+        customerAvatar: "https://i.pravatar.cc/150?img=2",
+        package: "Barcelona Tour",
+        date: "2025-08-10",
+        status: "On Process",
+        amount: 850,
+        sellerName: "John Seller",
+        sellerId: "2"
+      },
+      {
+        id: "s3",
+        customerId: "c3",
+        customerName: "Gustavo Chipantiza",
+        customerAvatar: "https://i.pravatar.cc/150?img=3",
+        package: "Tokyo Adventure",
+        date: "2025-09-05",
+        status: "On Process",
+        amount: 1750,
+        sellerName: "Admin User",
+        sellerId: "1"
+      },
+      {
+        id: "s4",
+        customerId: "c4",
+        customerName: "Manuel Alejandro Gruezo",
+        customerAvatar: "https://i.pravatar.cc/150?img=4",
+        package: "Bali Vacation",
+        date: "2025-07-25",
+        status: "Success",
+        amount: 950,
+        sellerName: "Admin User",
+        sellerId: "1"
+      }
+    ];
+
+    allSales.forEach((e,index) => {
+
+      allSales[index] = DEFAULT_SALES[index]
+    })
     // Add Natalia Sofia Salinas' specific Toulouse trip if it doesn't exist
-    allSales.push({
-      id: `s${Date.now()}`,
-      customerId: "c5", // Assuming Sofia uses the c5 customer ID
-      customerName: "Natalia Sofia Salinas",
-      customerAvatar: "https://i.pravatar.cc/150?img=5",
-      package: "Toulouse",
-      date: "2025-08-12", // From August 12-20, 2025
-      status: "Success", // Will display as "Completado"
-      amount: 1850,
-      sellerName: "John Seller",
-      sellerId: "2"
-    });
   }
   
   const toggleSelectRow = (id: string) => {

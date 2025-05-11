@@ -66,7 +66,7 @@ const DEFAULT_CUSTOMERS: Customer[] = [
   { id: "c5", name: "Sofia Salinas", avatar: "https://i.pravatar.cc/150?img=5", email: "sofia@example.com" },
 ];
 
-const DEFAULT_SALES: Sale[] = [
+ const DEFAULT_SALES: Sale[] = [
   { 
     id: "s1", 
     customerId: "c1", 
@@ -104,18 +104,18 @@ const DEFAULT_SALES: Sale[] = [
     sellerId: "1"
   },
   { 
-    id: "s4", 
-    customerId: "c4", 
+    id: "s4",
+    customerId: "c4",
     customerName: "Manuel Alejandro Gruezo",
     customerAvatar: "https://i.pravatar.cc/150?img=4",
-    package: "Bali Vacation", 
-    date: "2025-07-25", 
-    status: "Success", 
+    package: "Bali Vacation",
+    date: "2025-07-25",
+    status: "Success",
     amount: 950,
     sellerName: "Admin User",
     sellerId: "1"
   },
-  { 
+  {
     id: "s5", 
     customerId: "c5", 
     customerName: "Sofia Salinas",
