@@ -30,53 +30,48 @@ import KeyMetricsCard from "../components/bi/KeyMetricsCard";
 import SeasonalTrendsChart from "../components/bi/SeasonalTrendsChart";
 import ConversionRateCard from "../components/bi/ConversionRateCard";
 
-// Sample data for the dashboard
+// Updated sample data for the dashboard with Colombia as center and new destinations
 const destinations = [
-  { name: "Cancún", lat: 21.1619, lng: -86.8515, popularity: 85 },
-  { name: "Ciudad de México", lat: 19.4326, lng: -99.1332, popularity: 72 },
-  { name: "Guanajuato", lat: 21.0190, lng: -101.2574, popularity: 65 },
-  { name: "Los Cabos", lat: 22.8905, lng: -109.9167, popularity: 80 },
-  { name: "Puerto Vallarta", lat: 20.6534, lng: -105.2253, popularity: 75 },
-  { name: "Riviera Maya", lat: 20.6274, lng: -87.0799, popularity: 90 },
-  { name: "Oaxaca", lat: 17.0732, lng: -96.7266, popularity: 60 },
-  { name: "Acapulco", lat: 16.8531, lng: -99.8237, popularity: 55 },
-  { name: "San Miguel de Allende", lat: 20.9144, lng: -100.7452, popularity: 70 },
-  { name: "Mérida", lat: 20.9670, lng: -89.6237, popularity: 58 }
+  { name: "París", lat: 48.8566, lng: 2.3522, popularity: 85 },
+  { name: "Tokio", lat: 35.6762, lng: 139.6503, popularity: 72 },
+  { name: "Cairo", lat: 30.0444, lng: 31.2357, popularity: 65 },
+  { name: "Barcelona", lat: 41.3851, lng: 2.1734, popularity: 80 },
+  { name: "Bali", lat: -8.3405, lng: 115.0920, popularity: 75 },
+  { name: "Bogotá", lat: 4.7110, lng: -74.0721, popularity: 90 },
+  { name: "Medellín", lat: 6.2442, lng: -75.5812, popularity: 60 },
+  { name: "Cali", lat: 3.4516, lng: -76.5320, popularity: 55 },
+  { name: "Cartagena", lat: 10.3997, lng: -75.5144, popularity: 70 }
 ];
 
 const origins = [
-  { name: "Nueva York", lat: 40.7128, lng: -74.0060, count: 120 },
-  { name: "Los Ángeles", lat: 34.0522, lng: -118.2437, count: 95 },
-  { name: "Chicago", lat: 41.8781, lng: -87.6298, count: 75 },
-  { name: "Madrid", lat: 40.4168, lng: -3.7038, count: 60 },
-  { name: "Londres", lat: 51.5074, lng: -0.1278, count: 85 },
-  { name: "Toronto", lat: 43.6532, lng: -79.3832, count: 70 },
-  { name: "Buenos Aires", lat: -34.6037, lng: -58.3816, count: 45 },
-  { name: "São Paulo", lat: -23.5505, lng: -46.6333, count: 40 },
-  { name: "Bogotá", lat: 4.7110, lng: -74.0721, count: 35 },
-  { name: "Santiago", lat: -33.4489, lng: -70.6693, count: 30 }
+  { name: "Bogotá", lat: 4.7110, lng: -74.0721, count: 120 },
+  { name: "Medellín", lat: 6.2442, lng: -75.5812, count: 95 },
+  { name: "Cali", lat: 3.4516, lng: -76.5320, count: 75 },
+  { name: "Cartagena", lat: 10.3997, lng: -75.5144, count: 60 },
+  { name: "Barranquilla", lat: 10.9639, lng: -74.7964, count: 85 },
+  { name: "Bucaramanga", lat: 7.1254, lng: -73.1198, count: 70 }
 ];
 
 const destinationsChartData = [
-  { name: "Cancún", visits: 15240, revenue: 4250000 },
-  { name: "Riviera Maya", visits: 12800, revenue: 3800000 },
-  { name: "Ciudad de México", visits: 10500, revenue: 2200000 },
-  { name: "Los Cabos", visits: 9800, revenue: 3100000 },
-  { name: "Puerto Vallarta", visits: 8750, revenue: 2650000 },
-  { name: "San Miguel de Allende", visits: 7600, revenue: 1950000 },
-  { name: "Oaxaca", visits: 6900, revenue: 1700000 },
-  { name: "Guanajuato", visits: 5800, revenue: 1450000 },
-  { name: "Mérida", visits: 5200, revenue: 1250000 },
-  { name: "Acapulco", visits: 4800, revenue: 1150000 }
+  { name: "París, Francia", visits: 15240, revenue: 4250000 },
+  { name: "Barcelona, España", visits: 12800, revenue: 3800000 },
+  { name: "Tokio, Japón", visits: 10500, revenue: 2200000 },
+  { name: "Cairo, Egipto", visits: 9800, revenue: 3100000 },
+  { name: "Bali, Indonesia", visits: 8750, revenue: 2650000 },
+  { name: "Cartagena, Colombia", visits: 7600, revenue: 1950000 },
+  { name: "Bogotá, Colombia", visits: 6900, revenue: 1700000 },
+  { name: "Medellín, Colombia", visits: 5800, revenue: 1450000 },
+  { name: "Cali, Colombia", visits: 5200, revenue: 1250000 },
+  { name: "Lima, Perú", visits: 4800, revenue: 1150000 }
 ];
 
 const packagesData = [
-  { name: "Todo Incluido Playa", sales: 4850, revenue: 2900000 },
+  { name: "Student Adventure", sales: 4850, revenue: 2900000 },
   { name: "Experiencia Cultural", sales: 3200, revenue: 1600000 },
   { name: "Aventura Ecoturística", sales: 2400, revenue: 1450000 },
-  { name: "Ciudades Coloniales", sales: 1850, revenue: 980000 },
-  { name: "Viaje Gastronómico", sales: 1450, revenue: 870000 },
-  { name: "Ruta del Tequila", sales: 950, revenue: 570000 }
+  { name: "París Tour Package", sales: 1850, revenue: 980000 },
+  { name: "Barcelona Tour", sales: 1450, revenue: 870000 },
+  { name: "Tokio Adventure", sales: 950, revenue: 570000 }
 ];
 
 const keyMetricsData = [

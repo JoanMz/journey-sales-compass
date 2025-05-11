@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
@@ -58,12 +57,12 @@ type DataContextType = {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Sample data
+// Sample data with updated customer names
 const DEFAULT_CUSTOMERS: Customer[] = [
   { id: "c1", name: "Daniel Rivera", avatar: "https://i.pravatar.cc/150?img=1", email: "daniel@example.com", phone: "+1234567890" },
   { id: "c2", name: "Miguel Muñoz", avatar: "https://i.pravatar.cc/150?img=2", email: "miguel@example.com" },
-  { id: "c3", name: "Gustavo Chipantiza ", avatar: "https://i.pravatar.cc/150?img=3", email: "gustavo@example.com" },
-  { id: "c4", name: "Manuel Gruezo", avatar: "https://i.pravatar.cc/150?img=4", email: "manuel@example.com" },
+  { id: "c3", name: "Gustavo Chipantiza", avatar: "https://i.pravatar.cc/150?img=3", email: "gustavo@example.com" },
+  { id: "c4", name: "Manuel Alejandro Gruezo", avatar: "https://i.pravatar.cc/150?img=4", email: "manuel@example.com" },
   { id: "c5", name: "Sofia Salinas", avatar: "https://i.pravatar.cc/150?img=5", email: "sofia@example.com" },
 ];
 
@@ -73,8 +72,8 @@ const DEFAULT_SALES: Sale[] = [
     customerId: "c1", 
     customerName: "Daniel Rivera",
     customerAvatar: "https://i.pravatar.cc/150?img=1",
-    package: "Paris Trip Package", 
-    date: "2023-05-22", 
+    package: "Paris Tour Package", 
+    date: "2025-07-15", 
     status: "Success", 
     amount: 1200,
     sellerName: "John Seller",
@@ -86,7 +85,7 @@ const DEFAULT_SALES: Sale[] = [
     customerName: "Miguel Muñoz",
     customerAvatar: "https://i.pravatar.cc/150?img=2",
     package: "Barcelona Tour", 
-    date: "2023-05-18", 
+    date: "2025-08-10", 
     status: "On Process", 
     amount: 850,
     sellerName: "John Seller",
@@ -98,7 +97,7 @@ const DEFAULT_SALES: Sale[] = [
     customerName: "Gustavo Chipantiza",
     customerAvatar: "https://i.pravatar.cc/150?img=3",
     package: "Tokyo Adventure", 
-    date: "2023-05-18", 
+    date: "2025-09-05", 
     status: "On Process", 
     amount: 1750,
     sellerName: "Admin User",
@@ -107,10 +106,10 @@ const DEFAULT_SALES: Sale[] = [
   { 
     id: "s4", 
     customerId: "c4", 
-    customerName: "Manuel Gruezo",
+    customerName: "Manuel Alejandro Gruezo",
     customerAvatar: "https://i.pravatar.cc/150?img=4",
     package: "Bali Vacation", 
-    date: "2023-05-17", 
+    date: "2025-07-25", 
     status: "Success", 
     amount: 950,
     sellerName: "Admin User",
@@ -121,10 +120,10 @@ const DEFAULT_SALES: Sale[] = [
     customerId: "c5", 
     customerName: "Sofia Salinas",
     customerAvatar: "https://i.pravatar.cc/150?img=5",
-    package: "London City Tour", 
-    date: "2023-05-15", 
-    status: "Canceled", 
-    amount: 650,
+    package: "Student Adventure", 
+    date: "2025-08-12", 
+    status: "On Process", 
+    amount: 1250,
     sellerName: "John Seller",
     sellerId: "2"
   },
@@ -173,7 +172,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUsers(JSON.parse(storedUsers));
     } else {
       const defaultUsers: User[] = [
-        { id: "1", name: "Admin User", email: "example@gmai.com", role: "admin" },
+        { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
         { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
       ];
       localStorage.setItem("crm_users", JSON.stringify(defaultUsers));

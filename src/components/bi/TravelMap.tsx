@@ -36,8 +36,8 @@ const TravelMap = ({ destinations = [], origins = [] }: TravelMapProps) => {
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/light-v11',
       projection: 'globe',
-      zoom: 1.5,
-      center: [0, 20],
+      zoom: 1.8,
+      center: [-74.0721, 4.7110], // Centered on Colombia (Bogotá)
       pitch: 45,
     });
 

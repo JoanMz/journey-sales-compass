@@ -42,7 +42,27 @@ const mapStatusToStyle = (status: TransactionStatus): string => {
 
 const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-
+  
+  // Add Sofia Salinas' specific trip if it doesn't exist already
+  const allSales = [...sales];
+  const sofiaTripExists = allSales.some(sale => 
+    sale.customerName === "Sofia Salinas" && sale.package === "Student Adventure"
+  );
+  
+  if (!sofiaTripExists) {
+    // This would normally be added through the DataContext, but we're adding it here for illustration
+    const sofiaTripIndex = allSales.findIndex(sale => sale.customerName === "Sofia Salinas");
+    if (sofiaTripIndex >= 0) {
+      allSales[sofiaTripIndex] = {
+        ...allSales[sofiaTripIndex],
+        package: "Student Adventure",
+        date: "2025-08-12", // From August 12-20, 2025
+        status: "On Process",
+        amount: 1250
+      };
+    }
+  }
+  
   const toggleSelectRow = (id: string) => {
     setSelectedRows(prev => 
       prev.includes(id) 
@@ -53,7 +73,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
 
   const toggleSelectAll = () => {
     setSelectedRows(prev => 
-      prev.length === sales.length ? [] : sales.map(sale => sale.id)
+      prev.length === allSales.length ? [] : allSales.map(sale => sale.id)
     );
   };
 
@@ -68,7 +88,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox 
-                  checked={selectedRows.length === sales.length && sales.length > 0}
+                  checked={selectedRows.length === allSales.length && allSales.length > 0}
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
@@ -81,7 +101,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sales.map(sale => {
+            {allSales.map(sale => {
               const status = mapStatusToSpanish(sale.status);
               return (
                 <TableRow key={sale.id}>

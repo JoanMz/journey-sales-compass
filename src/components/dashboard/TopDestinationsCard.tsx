@@ -11,13 +11,13 @@ import {
 } from "@/components/ui/table";
 
 const TopDestinationsCard = () => {
-  // Expanded fictional destination data
+  // Updated destination data with requested destinations
   const destinations = [
-    { name: "Cancún, Mexico", percentage: 32, bookings: 245, color: "blue", revenue: "$98,750" },
-    { name: "Paris, France", percentage: 28, bookings: 213, color: "purple", revenue: "$86,430" },
-    { name: "Santorini, Greece", percentage: 21, bookings: 162, color: "green", revenue: "$65,280" },
+    { name: "París, Francia", percentage: 32, bookings: 245, color: "blue", revenue: "$98,750" },
+    { name: "Barcelona, España", percentage: 28, bookings: 213, color: "purple", revenue: "$86,430" },
+    { name: "Tokio, Japón", percentage: 21, bookings: 162, color: "green", revenue: "$65,280" },
     { name: "Bali, Indonesia", percentage: 18, bookings: 138, color: "orange", revenue: "$49,680" },
-    { name: "Tokyo, Japan", percentage: 15, bookings: 114, color: "red", revenue: "$41,040" },
+    { name: "Cairo, Egipto", percentage: 15, bookings: 114, color: "red", revenue: "$41,040" },
   ];
 
   return (

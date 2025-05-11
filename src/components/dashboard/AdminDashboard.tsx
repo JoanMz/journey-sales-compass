@@ -11,25 +11,26 @@ import TravelMap from "../bi/TravelMap";
 import TransaccionesClientes from "./TransaccionesClientes";
 import { TrendingUp, Users, CreditCard } from "lucide-react";
 
-// Sample data for the map
+// Updated sample data for the map with Colombia as focus
 const destinations = [
-  { name: "Cancún", lat: 21.1619, lng: -86.8515, popularity: 85 },
-  { name: "Ciudad de México", lat: 19.4326, lng: -99.1332, popularity: 72 },
-  { name: "Guanajuato", lat: 21.0190, lng: -101.2574, popularity: 65 },
-  { name: "Los Cabos", lat: 22.8905, lng: -109.9167, popularity: 80 },
-  { name: "Puerto Vallarta", lat: 20.6534, lng: -105.2253, popularity: 75 },
-  { name: "Riviera Maya", lat: 20.6274, lng: -87.0799, popularity: 90 },
-  { name: "Oaxaca", lat: 17.0732, lng: -96.7266, popularity: 60 },
-  { name: "Acapulco", lat: 16.8531, lng: -99.8237, popularity: 55 }
+  { name: "París", lat: 48.8566, lng: 2.3522, popularity: 85 },
+  { name: "Tokio", lat: 35.6762, lng: 139.6503, popularity: 72 },
+  { name: "Cairo", lat: 30.0444, lng: 31.2357, popularity: 65 },
+  { name: "Barcelona", lat: 41.3851, lng: 2.1734, popularity: 80 },
+  { name: "Bali", lat: -8.3405, lng: 115.0920, popularity: 75 },
+  { name: "Bogotá", lat: 4.7110, lng: -74.0721, popularity: 90 },
+  { name: "Medellín", lat: 6.2442, lng: -75.5812, popularity: 60 },
+  { name: "Cali", lat: 3.4516, lng: -76.5320, popularity: 55 },
+  { name: "Cartagena", lat: 10.3997, lng: -75.5144, popularity: 70 }
 ];
 
 const origins = [
-  { name: "Nueva York", lat: 40.7128, lng: -74.0060, count: 120 },
-  { name: "Los Ángeles", lat: 34.0522, lng: -118.2437, count: 95 },
-  { name: "Chicago", lat: 41.8781, lng: -87.6298, count: 75 },
-  { name: "Madrid", lat: 40.4168, lng: -3.7038, count: 60 },
-  { name: "Londres", lat: 51.5074, lng: -0.1278, count: 85 },
-  { name: "Toronto", lat: 43.6532, lng: -79.3832, count: 70 }
+  { name: "Bogotá", lat: 4.7110, lng: -74.0721, count: 120 },
+  { name: "Medellín", lat: 6.2442, lng: -75.5812, count: 95 },
+  { name: "Cali", lat: 3.4516, lng: -76.5320, count: 75 },
+  { name: "Cartagena", lat: 10.3997, lng: -75.5144, count: 60 },
+  { name: "Barranquilla", lat: 10.9639, lng: -74.7964, count: 85 },
+  { name: "Bucaramanga", lat: 7.1254, lng: -73.1198, count: 70 }
 ];
 
 const AdminDashboard = () => {
