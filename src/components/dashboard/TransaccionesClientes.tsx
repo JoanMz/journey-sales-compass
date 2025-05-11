@@ -43,24 +43,26 @@ const mapStatusToStyle = (status: TransactionStatus): string => {
 const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
   
-  // Add Sofia Salinas' specific trip if it doesn't exist already
+  // Ensure we have all the specified customers including Sofia Salinas' specific Toulouse trip
   const allSales = [...sales];
-  const sofiaTripExists = allSales.some(sale => 
-    sale.customerName === "Sofia Salinas" && sale.package === "Student Adventure"
+  const sofiaToulouseExists = allSales.some(sale => 
+    sale.customerName === "Natalia Sofia Salinas" && sale.package === "Toulouse"
   );
   
-  if (!sofiaTripExists) {
-    // This would normally be added through the DataContext, but we're adding it here for illustration
-    const sofiaTripIndex = allSales.findIndex(sale => sale.customerName === "Sofia Salinas");
-    if (sofiaTripIndex >= 0) {
-      allSales[sofiaTripIndex] = {
-        ...allSales[sofiaTripIndex],
-        package: "Student Adventure",
-        date: "2025-08-12", // From August 12-20, 2025
-        status: "On Process",
-        amount: 1250
-      };
-    }
+  if (!sofiaToulouseExists) {
+    // Add Natalia Sofia Salinas' specific Toulouse trip if it doesn't exist
+    allSales.push({
+      id: `s${Date.now()}`,
+      customerId: "c5", // Assuming Sofia uses the c5 customer ID
+      customerName: "Natalia Sofia Salinas",
+      customerAvatar: "https://i.pravatar.cc/150?img=5",
+      package: "Toulouse",
+      date: "2025-08-12", // From August 12-20, 2025
+      status: "Success", // Will display as "Completado"
+      amount: 1850,
+      sellerName: "John Seller",
+      sellerId: "2"
+    });
   }
   
   const toggleSelectRow = (id: string) => {
@@ -123,7 +125,12 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
                     </div>
                   </TableCell>
                   <TableCell>{sale.package}</TableCell>
-                  <TableCell>{new Date(sale.date).toLocaleDateString('es-ES')}</TableCell>
+                  <TableCell>
+                    {sale.package === "Toulouse" ? 
+                      "12-20 Aug, 2025" : 
+                      new Date(sale.date).toLocaleDateString('es-ES')
+                    }
+                  </TableCell>
                   <TableCell>{formatCurrency(sale.amount)}</TableCell>
                   <TableCell>
                     <Badge className={mapStatusToStyle(status)}>
