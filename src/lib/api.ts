@@ -39,6 +39,30 @@ export const getTransactions = async (status: string) => {
   }
 };
 
+export const getAllTransactions = async () => {
+  try {
+    const response = await api.get("/transactions");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch all transactions:", error);
+    throw error;
+  }
+};
+
+export const getTransactionsByPeriod = async (period: string) => {
+  try {
+    // Using the existing endpoint and filtering on the frontend
+    const response = await api.get("/transactions");
+    const transactions = response.data;
+    
+    // Filter transactions by period will happen in the component
+    return transactions;
+  } catch (error) {
+    console.error(`Failed to fetch transactions for period ${period}:`, error);
+    throw error;
+  }
+};
+
 export const updateTransactionStatus = async (id: number, status: string) => {
   try {
     const response = await api.patch(`/transactions/${id}/status?status=${status}`);
