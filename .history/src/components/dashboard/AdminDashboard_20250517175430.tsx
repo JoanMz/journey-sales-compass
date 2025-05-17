@@ -16,7 +16,7 @@ const AdminDashboard = () => {
       <AdminFinancialMetrics />
       
       {/* Commission Details - Collapsible */}
-      {/* <CommissionDetails /> */}
+      <CommissionDetails />
       
       {/* Pending Transactions - High Priority */}
       <PendingTransactions />
