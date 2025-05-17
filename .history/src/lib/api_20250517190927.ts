@@ -42,7 +42,7 @@ export const getTransactions = async (status: string) => {
 export const getAllTransactions = async () => {
   try {
     const response = await axios.post("/api/", {
-      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/approved",
+      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions",
       method: "GET"
     });
     return response.data;
@@ -56,7 +56,7 @@ export const getTransactionsByPeriod = async (period: string) => {
   try {
     // Using the existing endpoint and filtering on the frontend
     const response = await axios.post("/api/", {
-      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/approved",
+      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions",
       method: "GET"
     });
     const transactions = response.data;

@@ -15,7 +15,6 @@ import { Sale } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { getAllTransactions } from "@/lib/api";
-import { toast } from "sonner";
 import { Transaction } from "@/types/transactions";
 import axios from "axios";
 
@@ -32,7 +31,6 @@ const mapStatusToSpanish = (status: string): TransactionStatus => {
     case "rechazado": return "Rechazado";
     case "On Process": return "Pendiente";
     case "Success": return "Completado";
-    case "approved": return "Completado";
     case "Canceled": return "Rechazado";
     default: return "Pendiente";
   }
@@ -58,13 +56,34 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
       try {
         setLoading(true);
         // Use the Vite proxy with a relative URL
-        const data = await getAllTransactions();
-        setApiTransactions(Array.isArray(data) ? data : []);
+        const response = await axios.post("/api/", { "url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente", "method": "GET" });
+
+        // Check if response.data is an array, if not, handle accordingly
+        let transactions: Transaction[] = [];
+
+        if (Array.isArray(response.data)) {
+          transactions = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+          // If it's an object with a data property that is an array
+          if (Array.isArray(response.data.data)) {
+            transactions = response.data.data;
+          } else {
+            // If it's a single transaction object, wrap it in an array
+            transactions = [response.data].filter(item => item && typeof item === 'object');
+          }
+        }
+
+        // If no transactions were fetched or they're empty, add mock transactions
+        if (!transactions.length) {
+          transactions = getMockTransactions();
+        }
+
+        setApiTransactions(transactions);
         setError(null);
       } catch (err) {
-        console.error("Error fetching  transactions:", err);
-        setError("Error al cargar transacciones");
-        toast.error("No se pudieron cargar las transacciones");
+        console.error("Error fetching pending transactions:", err);
+        setError("Error al cargar transacciones pendientes");
+        toast.error("No se pudieron cargar las transacciones pendientes");
 
         // Add mock transactions in case of error
         setApiTransactions(getMockTransactions());
@@ -92,7 +111,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 950,
         amount: 1250,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "pendiente",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -122,7 +141,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         quoted_flight: "Bogotá - París",
         agency_cost: 1000,
         amount: 1200,
-        transaction_type: "Nacional",
+        transaction_type: "Internacional",
         status: "pendiente",
         seller_id: 102,
         seller_name: "John Seller",
@@ -154,7 +173,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 800,
         amount: 850,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "pendiente",
         seller_id: 101,
         seller_name: "Admin User",
         receipt: "",

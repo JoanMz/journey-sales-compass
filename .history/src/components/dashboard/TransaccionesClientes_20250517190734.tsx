@@ -58,8 +58,29 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
       try {
         setLoading(true);
         // Use the Vite proxy with a relative URL
-        const data = await getAllTransactions();
-        setApiTransactions(Array.isArray(data) ? data : []);
+      const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/approved","method": "GET"});
+
+        // Check if response.data is an array, if not, handle accordingly
+        let transactions: Transaction[] = [];
+
+        if (Array.isArray(response.data)) {
+          transactions = response.data;
+        } else if (response.data && typeof response.data === 'object') {
+          // If it's an object with a data property that is an array
+          if (Array.isArray(response.data.data)) {
+            transactions = response.data.data;
+          } else {
+            // If it's a single transaction object, wrap it in an array
+            transactions = [response.data].filter(item => item && typeof item === 'object');
+          }
+        }
+
+        // If no transactions were fetched or they're empty, add mock transactions
+        if (!transactions.length) {
+          transactions = getMockTransactions();
+        }
+
+        setApiTransactions(transactions);
         setError(null);
       } catch (err) {
         console.error("Error fetching  transactions:", err);

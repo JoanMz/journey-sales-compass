@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
+import { 
   Table,
   TableBody,
   TableCell,
@@ -15,9 +15,7 @@ import { Sale } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { getAllTransactions } from "@/lib/api";
-import { toast } from "sonner";
 import { Transaction } from "@/types/transactions";
-import axios from "axios";
 
 type TransactionStatus = "Pendiente" | "Completado" | "Rechazado";
 
@@ -32,7 +30,6 @@ const mapStatusToSpanish = (status: string): TransactionStatus => {
     case "rechazado": return "Rechazado";
     case "On Process": return "Pendiente";
     case "Success": return "Completado";
-    case "approved": return "Completado";
     case "Canceled": return "Rechazado";
     default: return "Pendiente";
   }
@@ -52,31 +49,52 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
   const [apiTransactions, setApiTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  
   useEffect(() => {
     const fetchTransactions = async () => {
-      try {
-        setLoading(true);
-        // Use the Vite proxy with a relative URL
-        const data = await getAllTransactions();
-        setApiTransactions(Array.isArray(data) ? data : []);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching  transactions:", err);
-        setError("Error al cargar transacciones");
-        toast.error("No se pudieron cargar las transacciones");
+try {
+      setLoading(true);
+      // Use the Vite proxy with a relative URL
+      const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": "GET"});
 
-        // Add mock transactions in case of error
-        setApiTransactions(getMockTransactions());
-      } finally {
-        setLoading(false);
+      // Check if response.data is an array, if not, handle accordingly
+      let transactions: Transaction[] = [];
+
+      if (Array.isArray(response.data)) {
+        transactions = response.data;
+      } else if (response.data && typeof response.data === 'object') {
+        // If it's an object with a data property that is an array
+        if (Array.isArray(response.data.data)) {
+          transactions = response.data.data;
+        } else {
+          // If it's a single transaction object, wrap it in an array
+          transactions = [response.data].filter(item => item && typeof item === 'object');
+        }
       }
-    };
 
+      // If no transactions were fetched or they're empty, add mock transactions
+      if (!transactions.length) {
+        transactions = getMockTransactions();
+      }
+
+      setPendingTransactions(transactions);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching pending transactions:", err);
+      setError("Error al cargar transacciones pendientes");
+      toast.error("No se pudieron cargar las transacciones pendientes");
+
+      // Add mock transactions in case of error
+      setPendingTransactions(getMockTransactions());
+    } finally {
+      setLoading(false);
+    }
+    };
+    
     fetchTransactions();
   }, []);
 
-  const getMockTransactions = (): Transaction[] => {
+   const getMockTransactions = (): Transaction[] => {
     return [
       {
         id: 1001,
@@ -92,7 +110,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 950,
         amount: 1250,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "pendiente",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -122,7 +140,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         quoted_flight: "Bogotá - París",
         agency_cost: 1000,
         amount: 1200,
-        transaction_type: "Nacional",
+        transaction_type: "Internacional",
         status: "pendiente",
         seller_id: 102,
         seller_name: "John Seller",
@@ -154,7 +172,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 800,
         amount: 850,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "pendiente",
         seller_id: 101,
         seller_name: "Admin User",
         receipt: "",
@@ -173,7 +191,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
       }
     ];
   };
-
+  
   // Convert API transactions to Sale format for consistency
   const convertedTransactions: Sale[] = apiTransactions.map(transaction => ({
     id: transaction.id.toString(),
@@ -182,26 +200,26 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
     customerAvatar: "",
     package: transaction.package,
     date: transaction.start_date,
-    status: mapStatusToSpanish(transaction.status) === "Completado" ? "Success" :
-      mapStatusToSpanish(transaction.status) === "Rechazado" ? "Canceled" : "On Process",
+    status: mapStatusToSpanish(transaction.status) === "Completado" ? "Success" : 
+            mapStatusToSpanish(transaction.status) === "Rechazado" ? "Canceled" : "On Process",
     amount: transaction.amount,
     sellerName: transaction.seller_name,
     sellerId: transaction.seller_id.toString()
   }));
-
+  
   // Use API data if available, otherwise use props data
   const allSales = convertedTransactions.length > 0 ? convertedTransactions : sales;
-
+  
   const toggleSelectRow = (id: string) => {
-    setSelectedRows(prev =>
-      prev.includes(id)
-        ? prev.filter(rowId => rowId !== id)
+    setSelectedRows(prev => 
+      prev.includes(id) 
+        ? prev.filter(rowId => rowId !== id) 
         : [...prev, id]
     );
   };
 
   const toggleSelectAll = () => {
-    setSelectedRows(prev =>
+    setSelectedRows(prev => 
       prev.length === allSales.length ? [] : allSales.map(sale => sale.id)
     );
   };
@@ -220,7 +238,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">
-              <Checkbox
+              <Checkbox 
                 checked={selectedRows.length === allSales.length && allSales.length > 0}
                 onCheckedChange={toggleSelectAll}
               />
@@ -239,7 +257,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
             return (
               <TableRow key={sale.id}>
                 <TableCell>
-                  <Checkbox
+                  <Checkbox 
                     checked={selectedRows.includes(sale.id)}
                     onCheckedChange={() => toggleSelectRow(sale.id)}
                   />
