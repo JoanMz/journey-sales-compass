@@ -1,7 +1,14 @@
+
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, DollarSign, Users } from "lucide-react";
+import { 
+  TrendingUp, 
+  DollarSign, 
+  Users, 
+  ShoppingBag 
+} from "lucide-react";
 import TimePeriodFilter, { TimePeriod } from "./TimePeriodFilter";
+import SellerFilter from "./SellerFilter";
 import { getAllTransactions } from "@/lib/api";
 import { calculateTotalRevenue, calculateTotalProfit, calculateTotalCommission, filterTransactionsByPeriod } from "@/lib/financialUtils";
 import { Transaction } from "@/types/transactions";
@@ -11,7 +18,9 @@ const AdminFinancialMetrics: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("month");
+  const [selectedSellerId, setSelectedSellerId] = useState<number | null>(null);
   
   useEffect(() => {
     const fetchData = async () => {
@@ -32,6 +41,18 @@ const AdminFinancialMetrics: React.FC = () => {
     
     fetchData();
   }, []);
+  
+  // Apply filters whenever transactions, time period or selected seller changes
+  useEffect(() => {
+    let result = filterTransactionsByPeriod(transactions, timePeriod);
+    
+    // Filter by seller if one is selected
+    if (selectedSellerId !== null) {
+      result = result.filter(t => t.seller_id === selectedSellerId);
+    }
+    
+    setFilteredTransactions(result);
+  }, [transactions, timePeriod, selectedSellerId]);
   
   // Mock data for testing or when API fails
   const getMockTransactions = (): Transaction[] => {
@@ -112,21 +133,33 @@ const AdminFinancialMetrics: React.FC = () => {
     ];
   };
   
-  const filteredTransactions = filterTransactionsByPeriod(transactions, timePeriod);
+  // Calculate key metrics
   const totalRevenue = calculateTotalRevenue(filteredTransactions);
   const totalProfit = calculateTotalProfit(totalRevenue);
   const totalCommission = calculateTotalCommission(filteredTransactions);
+  const totalSales = filteredTransactions.length;
   
   const handlePeriodChange = (period: TimePeriod) => {
     setTimePeriod(period);
   };
   
+  const handleSellerChange = (sellerId: number | null) => {
+    setSelectedSellerId(sellerId);
+  };
+  
   return (
     <Card className="bg-white border-blue-200 mb-6">
       <CardHeader className="pb-2 border-b border-blue-200">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-blue-700">Métricas Financieras</CardTitle>
-          <TimePeriodFilter currentPeriod={timePeriod} onPeriodChange={handlePeriodChange} />
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <CardTitle className="text-blue-700">Métricas de Ventas</CardTitle>
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <SellerFilter
+              transactions={transactions}
+              selectedSellerId={selectedSellerId}
+              onSellerChange={handleSellerChange}
+            />
+            <TimePeriodFilter currentPeriod={timePeriod} onPeriodChange={handlePeriodChange} />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-6">
@@ -137,7 +170,7 @@ const AdminFinancialMetrics: React.FC = () => {
         ) : error ? (
           <div className="text-center text-red-500 py-4">{error}</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
@@ -151,6 +184,7 @@ const AdminFinancialMetrics: React.FC = () => {
                   {timePeriod === "fortnight" && "Últimos 15 días"}
                   {timePeriod === "month" && "Último mes"}
                   {timePeriod === "all" && "Histórico completo"}
+                  {selectedSellerId !== null && ", Vendedor seleccionado"}
                 </p>
               </CardContent>
             </Card>
@@ -158,7 +192,7 @@ const AdminFinancialMetrics: React.FC = () => {
             <Card className="bg-gradient-to-br from-green-50 to-green-100 border border-green-200">
               <CardContent className="p-6">
                 <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-green-800">Ganancia Estimada (15%)</h3>
+                  <h3 className="text-lg font-semibold text-green-800">Ganancia (15%)</h3>
                   <div className="p-2 bg-green-500 text-white rounded-md">
                     <DollarSign size={20} />
                   </div>
@@ -168,6 +202,7 @@ const AdminFinancialMetrics: React.FC = () => {
                   {timePeriod === "fortnight" && "Últimos 15 días"}
                   {timePeriod === "month" && "Último mes"}
                   {timePeriod === "all" && "Histórico completo"}
+                  {selectedSellerId !== null && ", Vendedor seleccionado"}
                 </p>
               </CardContent>
             </Card>
@@ -185,6 +220,25 @@ const AdminFinancialMetrics: React.FC = () => {
                   {timePeriod === "fortnight" && "Últimos 15 días"}
                   {timePeriod === "month" && "Último mes"}
                   {timePeriod === "all" && "Histórico completo"}
+                  {selectedSellerId !== null && ", Vendedor seleccionado"}
+                </p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-amber-50 to-amber-100 border border-amber-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-amber-800">Total Ventas</h3>
+                  <div className="p-2 bg-amber-500 text-white rounded-md">
+                    <ShoppingBag size={20} />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-amber-900">{totalSales}</div>
+                <p className="text-sm text-amber-600 mt-2">
+                  {timePeriod === "fortnight" && "Últimos 15 días"}
+                  {timePeriod === "month" && "Último mes"}
+                  {timePeriod === "all" && "Histórico completo"}
+                  {selectedSellerId !== null && ", Vendedor seleccionado"}
                 </p>
               </CardContent>
             </Card>

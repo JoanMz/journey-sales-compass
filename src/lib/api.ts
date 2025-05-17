@@ -1,12 +1,9 @@
 
 import axios from "axios";
 
-// Base URL for API calls through our Edge Function
-const API_BASE_URL = "/api/proxy";
-
 // Create API service with consistent error handling
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: "/api",
   timeout: 10000,
   headers: {
     "Content-Type": "application/json",
@@ -28,10 +25,13 @@ api.interceptors.response.use(
   }
 );
 
-// Transaction API functions
+// Transaction API functions with the new approach
 export const getTransactions = async (status: string) => {
   try {
-    const response = await api.get(`/transactions/filter/${status}`);
+    const response = await axios.post("/api/", {
+      url: `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/${status}`,
+      method: "GET"
+    });
     return response.data;
   } catch (error) {
     console.error(`Failed to fetch ${status} transactions:`, error);
@@ -41,7 +41,10 @@ export const getTransactions = async (status: string) => {
 
 export const getAllTransactions = async () => {
   try {
-    const response = await api.get("/transactions");
+    const response = await axios.post("/api/", {
+      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/",
+      method: "GET"
+    });
     return response.data;
   } catch (error) {
     console.error("Failed to fetch all transactions:", error);
@@ -52,7 +55,10 @@ export const getAllTransactions = async () => {
 export const getTransactionsByPeriod = async (period: string) => {
   try {
     // Using the existing endpoint and filtering on the frontend
-    const response = await api.get("/transactions");
+    const response = await axios.post("/api/", {
+      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/",
+      method: "GET"
+    });
     const transactions = response.data;
     
     // Filter transactions by period will happen in the component
@@ -65,7 +71,11 @@ export const getTransactionsByPeriod = async (period: string) => {
 
 export const updateTransactionStatus = async (id: number, status: string) => {
   try {
-    const response = await api.patch(`/transactions/${id}/status?status=${status}`);
+    const response = await axios.post("/api/", {
+      url: `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status`,
+      method: "PATCH",
+      data: { status }
+    });
     return response.data;
   } catch (error) {
     console.error(`Failed to update transaction ${id} status:`, error);
@@ -75,8 +85,10 @@ export const updateTransactionStatus = async (id: number, status: string) => {
 
 export const generateDocuments = async (transactionId: number) => {
   try {
-    const response = await api.post(`/generate-documents`, { 
-      transaction_id: transactionId 
+    const response = await axios.post("/api/", {
+      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/generate-documents",
+      method: "POST",
+      data: { transaction_id: transactionId }
     });
     return response.data;
   } catch (error) {

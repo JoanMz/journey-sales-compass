@@ -1,37 +1,34 @@
 
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 
-// Your original API base URL
-const API_BASE_URL = "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000";
-
 serve(async (req) => {
   try {
     // Parse the request body
-    const { path, method, body, params } = await req.json();
+    const { url, method, data } = await req.json();
     
-    // Construct the full URL
-    let url = `${API_BASE_URL}${path}`;
-    
-    // Add any query parameters
-    if (params) {
-      const searchParams = new URLSearchParams();
-      Object.entries(params).forEach(([key, value]) => {
-        searchParams.append(key, String(value));
-      });
-      url += `?${searchParams.toString()}`;
+    if (!url) {
+      return new Response(
+        JSON.stringify({
+          error: "URL is required",
+        }),
+        {
+          headers: { "Content-Type": "application/json" },
+          status: 400,
+        }
+      );
     }
     
     // Prepare fetch options
     const fetchOptions: RequestInit = {
-      method: method,
+      method: method || "GET",
       headers: {
         "Content-Type": "application/json",
       },
     };
     
-    // Add body for non-GET requests
-    if (method !== "GET" && body) {
-      fetchOptions.body = JSON.stringify(body);
+    // Add body for non-GET requests if data is provided
+    if (method !== "GET" && data) {
+      fetchOptions.body = JSON.stringify(data);
     }
     
     console.log(`Proxying request to: ${url}`);
@@ -50,14 +47,10 @@ serve(async (req) => {
     
     // Return the proxied response
     return new Response(
-      JSON.stringify({
-        data: responseData,
-        status: response.status,
-        statusText: response.statusText,
-      }),
+      JSON.stringify(responseData),
       {
         headers: { "Content-Type": "application/json" },
-        status: 200,
+        status: response.status,
       }
     );
   } catch (error) {

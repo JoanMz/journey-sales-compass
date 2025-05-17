@@ -17,10 +17,10 @@ import {
   ResponsiveContainer 
 } from "recharts";
 import { 
-  MessageSquare,
-  Headset, 
+  TrendingUp,
+  ShoppingBag, 
   Users,
-  TrendingUp
+  DollarSign
 } from "lucide-react";
 import SellerScoreCard from "./SellerScoreCard";
 import TopDestinationsCard from "./TopDestinationsCard";
@@ -31,50 +31,50 @@ import SalesStatusCards from "./SalesStatusCards";
 const ManagerDashboard = () => {
   const [timeframe, setTimeframe] = useState<"day" | "week" | "year">("week");
   
-  const supportNumbers = {
-    totalResolved: "124",
-    totalActive: 36
+  const salesMetrics = {
+    totalSales: "124",
+    activeSales: 36
   };
 
   return (
     <div className="space-y-6">
-      {/* Support Team Dashboard Header */}
+      {/* Sales Team Dashboard Header */}
       <Card className="bg-blue-50 border-blue-200">
         <CardHeader className="pb-2 border-b border-blue-200">
           <CardTitle className="text-blue-800 flex items-center gap-2">
-            <Headset className="h-6 w-6" />
-            Panel de Equipo de Soporte
+            <TrendingUp className="h-6 w-6" />
+            Panel de Equipo de Ventas
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-1">
-              <p className="text-sm text-blue-600">Tickets resueltos</p>
-              <p className="text-2xl font-bold text-blue-900">{supportNumbers.totalResolved}</p>
+              <p className="text-sm text-blue-600">Ventas completadas</p>
+              <p className="text-2xl font-bold text-blue-900">{salesMetrics.totalSales}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-sm text-blue-600">Tickets activos</p>
-              <p className="text-2xl font-bold text-blue-900">{supportNumbers.totalActive}</p>
+              <p className="text-sm text-blue-600">Ventas en proceso</p>
+              <p className="text-2xl font-bold text-blue-900">{salesMetrics.activeSales}</p>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Support Status Cards - New, In Progress, Resolved */}
+      {/* Sales Status Cards - New, In Progress, Completed */}
       <SalesStatusCards />
       
       {/* 2x2 Grid with specific components */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Response Time Estimate */}
+        {/* Commission Estimate */}
         <CommissionEstimateCard timeframe={timeframe} setTimeframe={setTimeframe} />
         
-        {/* Support Agent Score Card */}
+        {/* Sales Agents Performance */}
         <SellerScoreCard />
         
-        {/* Top Issue Categories */}
+        {/* Top Destinations */}
         <TopDestinationsCard />
         
-        {/* Recent Resolved Issues */}
+        {/* Recent Top Sales */}
         <TopSalesCard />
       </div>
     </div>
