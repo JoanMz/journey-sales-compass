@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { Check, X } from "lucide-react";
@@ -6,38 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "../../lib/utils";
-
-interface Traveler {
-  id: number;
-  name: string;
-  dni: string;
-  age: number;
-  phone: string;
-  dni_image: string;
-}
-
-interface Transaction {
-  id: number;
-  client_name: string;
-  client_email: string;
-  client_phone: string;
-  client_dni: string;
-  client_address: string;
-  invoice_image: string;
-  id_image: string;
-  package: string;
-  quoted_flight: string;
-  agency_cost: number;
-  amount: number;
-  transaction_type: string;
-  status: string;
-  seller_id: number;
-  seller_name: string;
-  receipt: string;
-  start_date: string;
-  end_date: string;
-  travelers: Traveler[];
-}
+import { Transaction, Traveler } from "@/types/transactions";
 
 const PendingTransactions = () => {
   const [pendingTransactions, setPendingTransactions] = useState<Transaction[]>([]);

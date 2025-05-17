@@ -17,7 +17,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { getAllTransactions } from "@/lib/api";
-import { Transaction } from "../admin/PendingTransactions";
+import { Transaction } from "@/types/transactions";
 import { calculateCommissionByVendor } from "@/lib/financialUtils";
 import { formatCurrency } from "@/lib/utils";
 

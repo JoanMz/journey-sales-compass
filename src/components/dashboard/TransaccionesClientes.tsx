@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { 
   Table,
@@ -16,7 +15,7 @@ import { Sale } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { getAllTransactions } from "@/lib/api";
-import { Transaction } from "../admin/PendingTransactions";
+import { Transaction } from "@/types/transactions";
 
 type TransactionStatus = "Pendiente" | "Completado" | "Rechazado";
 

@@ -1,11 +1,10 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, DollarSign, Users } from "lucide-react";
 import TimePeriodFilter, { TimePeriod } from "./TimePeriodFilter";
 import { getAllTransactions } from "@/lib/api";
 import { calculateTotalRevenue, calculateTotalProfit, calculateTotalCommission, filterTransactionsByPeriod } from "@/lib/financialUtils";
-import { Transaction } from "../admin/PendingTransactions";
+import { Transaction } from "@/types/transactions";
 import { formatCurrency } from "@/lib/utils";
 
 const AdminFinancialMetrics: React.FC = () => {

@@ -1,5 +1,5 @@
 
-import { Transaction } from "../components/admin/PendingTransactions";
+import { Transaction } from "../types/transactions";
 
 export const calculateTotalRevenue = (transactions: Transaction[]): number => {
   return transactions.reduce((total, transaction) => total + transaction.amount, 0);
