@@ -1,20 +1,12 @@
 
-import React, { useEffect, useState } from "react";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import React, { useState, useEffect } from "react";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Transaction } from "@/types/transactions";
 
 interface SellerFilterProps {
@@ -34,84 +26,51 @@ const SellerFilter: React.FC<SellerFilterProps> = ({
   onSellerChange,
 }) => {
   const [sellers, setSellers] = useState<Seller[]>([]);
-  const [open, setOpen] = useState(false);
 
-  // Extract unique sellers from transactions
   useEffect(() => {
-    if (transactions.length > 0) {
-      const uniqueSellers: Record<number, Seller> = {};
-      
-      transactions.forEach(transaction => {
-        if (!uniqueSellers[transaction.seller_id]) {
-          uniqueSellers[transaction.seller_id] = {
-            id: transaction.seller_id,
-            name: transaction.seller_name
-          };
-        }
-      });
-      
-      setSellers(Object.values(uniqueSellers));
-    }
+    // Extract unique sellers from transactions
+    const uniqueSellers = new Map<number, string>();
+    
+    transactions.forEach((transaction) => {
+      if (transaction.seller_id && transaction.seller_name) {
+        uniqueSellers.set(transaction.seller_id, transaction.seller_name);
+      }
+    });
+    
+    const sellersList = Array.from(uniqueSellers).map(([id, name]) => ({
+      id,
+      name,
+    }));
+    
+    setSellers(sellersList);
   }, [transactions]);
-  
-  const handleReset = () => {
-    onSellerChange(null);
-    setOpen(false);
+
+  const handleSellerChange = (value: string) => {
+    if (value === "all") {
+      onSellerChange(null);
+    } else {
+      onSellerChange(Number(value));
+    }
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            role="combobox"
-            aria-expanded={open}
-            className="w-[200px] justify-between"
-          >
-            {selectedSellerId
-              ? sellers.find((seller) => seller.id === selectedSellerId)?.name || "Seleccionar vendedor"
-              : "Seleccionar vendedor"}
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-[200px] p-0">
-          <Command>
-            <CommandInput placeholder="Buscar vendedor..." />
-            <CommandEmpty>No se encontraron vendedores.</CommandEmpty>
-            <CommandGroup>
-              {sellers.map((seller) => (
-                <CommandItem
-                  key={seller.id}
-                  value={seller.name}
-                  onSelect={() => {
-                    onSellerChange(seller.id);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedSellerId === seller.id ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {seller.name}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </Command>
-          <div className="border-t p-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="w-full text-xs"
-              onClick={handleReset}
-            >
-              Mostrar todos
-            </Button>
-          </div>
-        </PopoverContent>
-      </Popover>
+    <div className="w-full md:w-52">
+      <Select
+        value={selectedSellerId ? selectedSellerId.toString() : "all"}
+        onValueChange={handleSellerChange}
+      >
+        <SelectTrigger className="w-full bg-white border-blue-200 focus:ring-blue-500">
+          <SelectValue placeholder="Todos los vendedores" />
+        </SelectTrigger>
+        <SelectContent className="bg-white">
+          <SelectItem value="all">Todos los vendedores</SelectItem>
+          {sellers.map((seller) => (
+            <SelectItem key={seller.id} value={seller.id.toString()}>
+              {seller.name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 };
