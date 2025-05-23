@@ -28,8 +28,9 @@ const PendingTransactions = () => {
     try {
       setLoading(true);
       // Use the Vite proxy with a relative URL
-      const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": "GET"});
-      
+      //const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": "GET"});
+      const response = await axios.get("medium-server3.vercel.app")
+      console.log(response)
       // Check if response.data is an array, if not, handle accordingly
       let transactions: Transaction[] = [];
       
