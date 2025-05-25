@@ -27,12 +27,11 @@ interface TransaccionesClientesProps {
 
 const mapStatusToSpanish = (status: string): TransactionStatus => {
   switch (status) {
-    case "pendiente": return "Pendiente";
-    case "completado": return "Completado";
-    case "rechazado": return "Rechazado";
+    case "pending": return "Pendiente";
+    case "approved": return "Completado";
+    case "rejected": return "Rechazado";
     case "On Process": return "Pendiente";
     case "Success": return "Completado";
-    case "approved": return "Completado";
     case "Canceled": return "Rechazado";
     default: return "Pendiente";
   }
@@ -92,7 +91,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 950,
         amount: 1250,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -123,7 +122,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 1000,
         amount: 1200,
         transaction_type: "Nacional",
-        status: "pendiente",
+        status: "pending",
         seller_id: 102,
         seller_name: "John Seller",
         receipt: "",
@@ -154,7 +153,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 800,
         amount: 850,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 101,
         seller_name: "Admin User",
         receipt: "",

@@ -18,7 +18,7 @@ export type Sale = {
   customerAvatar?: string;
   package: string;
   date: string;
-  status: "Success" | "On Process" | "Canceled";
+  status: "pending" | "rejected" | "approved";
   amount: number;
   sellerName: string;
   sellerId: string;
@@ -74,7 +74,7 @@ const DEFAULT_CUSTOMERS: Customer[] = [
     customerAvatar: "https://i.pravatar.cc/150?img=1",
     package: "Paris Tour Package", 
     date: "2025-07-15", 
-    status: "Success", 
+    status: "approved",
     amount: 1200,
     sellerName: "John Seller",
     sellerId: "2"
@@ -86,7 +86,7 @@ const DEFAULT_CUSTOMERS: Customer[] = [
     customerAvatar: "https://i.pravatar.cc/150?img=2",
     package: "Barcelona Tour", 
     date: "2025-08-10", 
-    status: "On Process", 
+    status: "pending",
     amount: 850,
     sellerName: "John Seller",
     sellerId: "2"
@@ -98,7 +98,7 @@ const DEFAULT_CUSTOMERS: Customer[] = [
     customerAvatar: "https://i.pravatar.cc/150?img=3",
     package: "Tokyo Adventure", 
     date: "2025-09-05", 
-    status: "On Process", 
+    status: "pending",
     amount: 1750,
     sellerName: "Admin User",
     sellerId: "1"
@@ -110,7 +110,7 @@ const DEFAULT_CUSTOMERS: Customer[] = [
     customerAvatar: "https://i.pravatar.cc/150?img=4",
     package: "Bali Vacation",
     date: "2025-07-25",
-    status: "Success",
+    status: "approved",
     amount: 950,
     sellerName: "Admin User",
     sellerId: "1"
@@ -122,7 +122,7 @@ const DEFAULT_CUSTOMERS: Customer[] = [
     customerAvatar: "https://i.pravatar.cc/150?img=5",
     package: "Student Adventure", 
     date: "2025-08-12", 
-    status: "On Process", 
+    status: "pending",
     amount: 1250,
     sellerName: "John Seller",
     sellerId: "2"
@@ -264,9 +264,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Calculate metrics
   const metrics = {
-    totalSales: sales.filter(sale => sale.status === "Success").length,
+    totalSales: sales.filter(sale => sale.status === "approved").length,
     totalRevenue: sales
-      .filter(sale => sale.status === "Success")
+      .filter(sale => sale.status === "approved")
       .reduce((total, sale) => total + sale.amount, 0),
     totalCustomers: customers.length,
   };
