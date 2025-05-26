@@ -26,11 +26,11 @@ api.interceptors.response.use(
 );
 
 // Transaction API functions with the new approach
-export const getTransactions = async (status: string) => {
+export const getTransactionsByStatus = async (status: string) => {
   try {
-    const response = await axios.post("/api/", {
+    const response = await axios.get("/api/", {
       url: `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/${status}`,
-      method: "GET"
+      method: "GET",
     });
     return response.data;
   } catch (error) {
@@ -41,9 +41,8 @@ export const getTransactions = async (status: string) => {
 
 export const getAllTransactions = async () => {
   try {
-    const response = await axios.post("/api/", {
-      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions",
-      method: "GET"
+    const response = await axios.post("/api", null, {
+      headers: { "X-Target-Path": "/transactions" },
     });
     return response.data;
   } catch (error) {
@@ -52,17 +51,28 @@ export const getAllTransactions = async () => {
   }
 };
 
-export const getTransactionsByPeriod = async (period: string) => {
+export const getTransactionsByPeriod = async (period: "fortnight" | "month" | "all") => {
   try {
-    // Using the existing endpoint and filtering on the frontend
-    const response = await axios.post("/api/", {
-      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/approved",
-      method: "GET"
+    const response = await axios.post("/api", {data: { period }}, {
+      headers: { "X-Target-Path": "/transactions/date-range/" },
     });
-    const transactions = response.data;
-    
-    // Filter transactions by period will happen in the component
-    return transactions;
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch transactions for period ${period}:`, error);
+    throw error;
+  }
+};
+
+export const getMixedFilterTransactions = async (period: "fortnight" | "month" | "all", sellerId? : number, status?: "pending" | "rejected" | "approved"| null  ) => {
+  if (!period) {
+    throw new Error("Period is required");
+  }
+  if(period === "all" && !sellerId && !status) return getAllTransactions();
+  try {
+    const response = await axios.post("/api", {data: { period }, query: { seller_id: sellerId, status: status}}, {
+      headers: { "X-Target-Path": "/transactions/filter-mixed/" },
+    });
+    return response.data;
   } catch (error) {
     console.error(`Failed to fetch transactions for period ${period}:`, error);
     throw error;
@@ -72,9 +82,9 @@ export const getTransactionsByPeriod = async (period: string) => {
 export const updateTransactionStatus = async (id: number, status: string) => {
   try {
     const response = await axios.post("/api/", {
-      url: `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/${id}/status`,
+      url: `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000`,
       method: "PATCH",
-      data: { status }
+      data: { status },
     });
     return response.data;
   } catch (error) {
@@ -85,14 +95,19 @@ export const updateTransactionStatus = async (id: number, status: string) => {
 
 export const generateDocuments = async (transactionId: number) => {
   try {
-    const response = await axios.post("/api/", {
-      url: "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/generate-documents",
-      method: "POST",
-      data: { transaction_id: transactionId }
-    });
+    const response = await axios.post(
+      "/api",
+      { transaction_id: transactionId },
+      {
+        headers: { "X-Target-Path": "/generate-documents" },
+      }
+    );
     return response.data;
   } catch (error) {
-    console.error(`Failed to generate documents for transaction ${transactionId}:`, error);
+    console.error(
+      `Failed to generate documents for transaction ${transactionId}:`,
+      error
+    );
     throw error;
   }
 };

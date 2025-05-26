@@ -11,40 +11,23 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, Trash2, MoreHorizontal } from "lucide-react";
-import { Sale } from "@/contexts/DataContext";
+import { Sale, TransaccionesClientesProps, TransactionStatus } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, mapStatusToSpanish } from "@/lib/utils";
 import { getAllTransactions } from "@/lib/api";
 import { toast } from "sonner";
 import { Transaction } from "@/types/transactions";
-import axios from "axios";
 
-type TransactionStatus = "Pendiente" | "Completado" | "Rechazado";
 
-interface TransaccionesClientesProps {
-  sales: Sale[];
-}
-
-const mapStatusToSpanish = (status: string): TransactionStatus => {
-  switch (status) {
-    case "pending": return "Pendiente";
-    case "approved": return "Completado";
-    case "rejected": return "Rechazado";
-    case "On Process": return "Pendiente";
-    case "Success": return "Completado";
-    case "Canceled": return "Rechazado";
-    default: return "Pendiente";
-  }
-}
 
 const mapStatusToStyle = (status: TransactionStatus): string => {
   switch (status) {
-    case "Completado": return "bg-green-100 text-green-800 hover:bg-green-100";
+    case "Aprobado": return "bg-green-100 text-green-800 hover:bg-green-100";
     case "Pendiente": return "bg-blue-100 text-blue-800 hover:bg-blue-100";
     case "Rechazado": return "bg-red-100 text-red-800 hover:bg-red-100";
     default: return "";
   }
-}
+};
 
 const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
@@ -56,12 +39,13 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
     const fetchTransactions = async () => {
       try {
         setLoading(true);
-        // Use the Vite proxy with a relative URL
         const data = await getAllTransactions();
+        // Asegúrate de que 'data' sea un array. Si 'data' puede ser un objeto con una propiedad 'transactions', ajusta aquí.
+        // Por ejemplo: setApiTransactions(Array.isArray(data.transactions) ? data.transactions : []);
         setApiTransactions(Array.isArray(data) ? data : []);
         setError(null);
       } catch (err) {
-        console.error("Error fetching  transactions:", err);
+        console.error("Error fetching transactions:", err);
         setError("Error al cargar transacciones");
         toast.error("No se pudieron cargar las transacciones");
 
@@ -91,7 +75,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 950,
         amount: 1250,
         transaction_type: "Internacional",
-        status: "approved",
+        status: "approved", // O "Success" para probar el mapeo
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -122,7 +106,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 1000,
         amount: 1200,
         transaction_type: "Nacional",
-        status: "pending",
+        status: "pending", // O "On Process" para probar el mapeo
         seller_id: 102,
         seller_name: "John Seller",
         receipt: "",
@@ -153,7 +137,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
         agency_cost: 800,
         amount: 850,
         transaction_type: "Internacional",
-        status: "approved",
+        status: "rejected", // O "Canceled" para probar el mapeo
         seller_id: 101,
         seller_name: "Admin User",
         receipt: "",
@@ -181,8 +165,8 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
     customerAvatar: "",
     package: transaction.package,
     date: transaction.start_date,
-    status: mapStatusToSpanish(transaction.status) === "Completado" ? "Success" :
-      mapStatusToSpanish(transaction.status) === "Rechazado" ? "Canceled" : "On Process",
+    // ¡Aquí está la corrección principal! Llama a mapStatusToSpanish una sola vez.
+    status: mapStatusToSpanish(transaction.status),
     amount: transaction.amount,
     sellerName: transaction.seller_name,
     sellerId: transaction.seller_id.toString()
@@ -201,7 +185,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
 
   const toggleSelectAll = () => {
     setSelectedRows(prev =>
-      prev.length === allSales.length ? [] : allSales.map(sale => sale.id)
+      prev.length === allSales.length && allSales.length > 0 ? [] : allSales.map(sale => sale.id)
     );
   };
 
@@ -209,6 +193,15 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
     return (
       <div className="flex justify-center py-6">
         <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+      </div>
+    );
+  }
+
+  // Si hay un error y no hay transacciones para mostrar
+  if (error && allSales.length === 0) {
+    return (
+      <div className="text-center py-6 text-red-600">
+        <p>{error}. Por favor, inténtalo de nuevo más tarde o revisa tu conexión.</p>
       </div>
     );
   }
@@ -233,53 +226,61 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {allSales.map(sale => {
-            const status = mapStatusToSpanish(sale.status);
-            return (
-              <TableRow key={sale.id}>
-                <TableCell>
-                  <Checkbox
-                    checked={selectedRows.includes(sale.id)}
-                    onCheckedChange={() => toggleSelectRow(sale.id)}
-                  />
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      {sale.customerAvatar ? (
-                        <AvatarImage src={sale.customerAvatar} alt={sale.customerName} />
-                      ) : null}
-                      <AvatarFallback>{sale.customerName.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <span className="font-medium">{sale.customerName}</span>
-                  </div>
-                </TableCell>
-                <TableCell>{sale.package}</TableCell>
-                <TableCell>
-                  {new Date(sale.date).toLocaleDateString('es-ES')}
-                </TableCell>
-                <TableCell>{formatCurrency(sale.amount)}</TableCell>
-                <TableCell>
-                  <Badge className={mapStatusToStyle(status)}>
-                    {status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
-              </TableRow>
-            )
-          })}
+          {allSales.length === 0 && !loading ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center py-4">
+                No hay transacciones disponibles.
+              </TableCell>
+            </TableRow>
+          ) : (
+            allSales.map(sale => {
+              const status = sale.status; // Usa la función directamente aquí
+              return (
+                <TableRow key={sale.id}>
+                  <TableCell>
+                    <Checkbox
+                      checked={selectedRows.includes(sale.id)}
+                      onCheckedChange={() => toggleSelectRow(sale.id)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-8 w-8">
+                        {sale.customerAvatar ? (
+                          <AvatarImage src={sale.customerAvatar} alt={sale.customerName} />
+                        ) : null}
+                        <AvatarFallback>{sale.customerName.charAt(0).toUpperCase()}</AvatarFallback> {/* Añadido .toUpperCase() */}
+                      </Avatar>
+                      <span className="font-medium">{sale.customerName}</span>
+                    </div>
+                  </TableCell>
+                  <TableCell>{sale.package}</TableCell>
+                  <TableCell>
+                    {new Date(sale.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} {/* Formato de fecha mejorado */}
+                  </TableCell>
+                  <TableCell>{formatCurrency(sale.amount)}</TableCell>
+                  <TableCell>
+                    <Badge className={mapStatusToStyle(status)}>
+                      {status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          )}
         </TableBody>
       </Table>
     </div>

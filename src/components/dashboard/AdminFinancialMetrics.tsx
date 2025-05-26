@@ -1,19 +1,19 @@
 
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { 
-  TrendingUp, 
-  DollarSign, 
-  Users, 
+import {
+  TrendingUp,
+  DollarSign,
+  Users,
   ShoppingBag,
   ArrowUp
 } from "lucide-react";
 import TimePeriodFilter, { TimePeriod } from "./TimePeriodFilter";
 import SellerFilter from "./SellerFilter";
-import { getAllTransactions } from "@/lib/api";
+import { getAllTransactions, getMixedFilterTransactions, getTransactionsByPeriod } from "@/lib/api";
 import { calculateTotalRevenue, calculateTotalProfit, calculateTotalCommission, filterTransactionsByPeriod } from "@/lib/financialUtils";
 import { Transaction } from "@/types/transactions";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, mapStatusToSpanish } from "@/lib/utils";
 import {
   BarChart,
   Bar,
@@ -30,6 +30,7 @@ import {
 import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/use-mobile";
 import "./dashboardStyles.css";
+import { time } from "console";
 
 // Define chart colors
 const CHART_COLORS = ['#3b82f6', '#4ade80', '#f97316', '#8b5cf6'];
@@ -42,49 +43,45 @@ const AdminFinancialMetrics: React.FC = () => {
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("month");
   const [selectedSellerId, setSelectedSellerId] = useState<number | null>(null);
   const isMobile = useIsMobile();
-  
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const response = await getAllTransactions();
+        if (selectedSellerId === null) {
+        const response = await getTransactionsByPeriod(timePeriod);;
         const data = response;
-        setTransactions(Array.isArray(data) ? data : []);
-        setError(null);
+        setFilteredTransactions(Array.isArray(data) ? data : []);
+        setError(null);}
+        else {
+          const response = await getMixedFilterTransactions(timePeriod, selectedSellerId);
+          const data = response;
+          setFilteredTransactions(Array.isArray(data) ? data : []);
+          setError(null);
+        }
       } catch (err) {
         console.error("Error fetching transactions:", err);
         setError("No se pudieron cargar las transacciones");
         // Add mock data in case of error
-        setTransactions(getMockTransactions());
+        setFilteredTransactions(getMockTransactions());
       } finally {
         setLoading(false);
       }
     };
-    
     fetchData();
-  }, []);
-  
-  // Apply filters whenever transactions, time period or selected seller changes
-  useEffect(() => {
-    let result = filterTransactionsByPeriod(transactions, timePeriod);
-    
-    // Filter by seller if one is selected
-    if (selectedSellerId !== null) {
-      result = result.filter(t => t.seller_id === selectedSellerId);
-    }
-    
-    setFilteredTransactions(result);
-  }, [transactions, timePeriod, selectedSellerId]);
-  
+  }, [timePeriod, selectedSellerId]);
+
+
+
   // Mock data for testing or when API fails
   const getMockTransactions = (): Transaction[] => {
     const today = new Date();
     const lastMonth = new Date(today);
     lastMonth.setMonth(today.getMonth() - 1);
-    
+
     const lastFortnightDate = new Date(today);
     lastFortnightDate.setDate(today.getDate() - 15);
-    
+
     return [
       {
         id: 1001,
@@ -100,7 +97,7 @@ const AdminFinancialMetrics: React.FC = () => {
         agency_cost: 950,
         amount: 1250,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -122,7 +119,7 @@ const AdminFinancialMetrics: React.FC = () => {
         agency_cost: 1000,
         amount: 1200,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 102,
         seller_name: "Maria Seller",
         receipt: "",
@@ -144,7 +141,7 @@ const AdminFinancialMetrics: React.FC = () => {
         agency_cost: 800,
         amount: 850,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -154,7 +151,7 @@ const AdminFinancialMetrics: React.FC = () => {
       }
     ];
   };
-  
+
   // Calculate key metrics
   const totalRevenue = calculateTotalRevenue(filteredTransactions);
   const totalProfit = calculateTotalProfit(totalRevenue);
@@ -164,19 +161,19 @@ const AdminFinancialMetrics: React.FC = () => {
   // Prepare data for charts
   const prepareMonthlyData = () => {
     const monthlyData: { [key: string]: { month: string, revenue: number, sales: number } } = {};
-    
+
     filteredTransactions.forEach(transaction => {
       const date = new Date(transaction.start_date);
       const monthYear = date.toLocaleString('default', { month: 'short', year: '2-digit' });
-      
+
       if (!monthlyData[monthYear]) {
         monthlyData[monthYear] = { month: monthYear, revenue: 0, sales: 0 };
       }
-      
+
       monthlyData[monthYear].revenue += transaction.amount;
       monthlyData[monthYear].sales += 1;
     });
-    
+
     return Object.values(monthlyData).sort((a, b) => {
       return a.month.localeCompare(b.month);
     });
@@ -184,29 +181,29 @@ const AdminFinancialMetrics: React.FC = () => {
 
   const prepareStatusData = () => {
     const statusCounts: { [key: string]: number } = {};
-    
+
     filteredTransactions.forEach(transaction => {
       const status = transaction.status;
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
-    
-    return Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
+
+    return Object.entries(statusCounts).map(([name, value]) => ({ name: mapStatusToSpanish(name), value }));
   };
 
   const prepareSellerCommissionData = () => {
     const sellerCommissions: { [key: string]: { name: string, value: number } } = {};
-    
+
     filteredTransactions.forEach(transaction => {
       const sellerName = transaction.seller_name || 'Unknown';
       const commission = transaction.amount * 0.0225; // 2.25% commission
-      
+
       if (!sellerCommissions[sellerName]) {
         sellerCommissions[sellerName] = { name: sellerName, value: 0 };
       }
-      
+
       sellerCommissions[sellerName].value += commission;
     });
-    
+
     return Object.values(sellerCommissions);
   };
 
@@ -217,11 +214,11 @@ const AdminFinancialMetrics: React.FC = () => {
   const handlePeriodChange = (period: TimePeriod) => {
     setTimePeriod(period);
   };
-  
+
   const handleSellerChange = (sellerId: number | null) => {
     setSelectedSellerId(sellerId);
   };
-  
+
   return (
     <Card className="bg-white border-blue-200 mb-6">
       <CardHeader className="pb-2 border-b border-blue-200">
@@ -229,7 +226,7 @@ const AdminFinancialMetrics: React.FC = () => {
           <CardTitle className="text-blue-700">Métricas de Ventas</CardTitle>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <SellerFilter
-              transactions={transactions}
+              transactions={filteredTransactions}
               selectedSellerId={selectedSellerId}
               onSellerChange={handleSellerChange}
             />
@@ -263,7 +260,7 @@ const AdminFinancialMetrics: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-white shadow-md border border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -280,7 +277,7 @@ const AdminFinancialMetrics: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-white shadow-md border border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -297,7 +294,7 @@ const AdminFinancialMetrics: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               <Card className="bg-white shadow-md border border-gray-200">
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between mb-4">
@@ -328,7 +325,7 @@ const AdminFinancialMetrics: React.FC = () => {
                       <BarChart data={monthlyData} margin={{ top: 5, right: 30, left: 20, bottom: 25 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
                         <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                        <YAxis 
+                        <YAxis
                           tickFormatter={(value) => {
                             return new Intl.NumberFormat('es-CO', {
                               notation: 'compact',
@@ -340,7 +337,7 @@ const AdminFinancialMetrics: React.FC = () => {
                           }}
                           tick={{ fontSize: 12 }}
                         />
-                        <Tooltip 
+                        <Tooltip
                           formatter={(value) => [formatCurrency(value as number), "Ingresos"]}
                           labelFormatter={(label) => `Periodo: ${label}`}
                         />
@@ -350,7 +347,7 @@ const AdminFinancialMetrics: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Sales Status Distribution */}
               <Card className="bg-white shadow-md border border-gray-200">
                 <CardHeader className="pb-2 border-b border-gray-200">
@@ -376,7 +373,7 @@ const AdminFinancialMetrics: React.FC = () => {
                           ))}
                         </Pie>
                         <Legend verticalAlign="bottom" height={36} />
-                        <Tooltip 
+                        <Tooltip
                           formatter={(value, name) => [`${value} ventas`, name]}
                           labelFormatter={() => 'Estado'}
                         />
@@ -385,7 +382,7 @@ const AdminFinancialMetrics: React.FC = () => {
                   </div>
                 </CardContent>
               </Card>
-              
+
               {/* Commission Distribution */}
               <Card className="bg-white shadow-md border border-gray-200 lg:col-span-2">
                 <CardHeader className="pb-2 border-b border-gray-200">
@@ -400,18 +397,18 @@ const AdminFinancialMetrics: React.FC = () => {
                         margin={{ top: 5, right: 30, left: isMobile ? 60 : 100, bottom: 5 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                        <XAxis 
+                        <XAxis
                           type="number"
                           tickFormatter={(value) => formatCurrency(value, false)}
                           tick={{ fontSize: 12 }}
                         />
-                        <YAxis 
-                          dataKey="name" 
-                          type="category" 
+                        <YAxis
+                          dataKey="name"
+                          type="category"
                           width={80}
                           tick={{ fontSize: 12 }}
                         />
-                        <Tooltip 
+                        <Tooltip
                           formatter={(value) => [formatCurrency(value as number), "Comisión"]}
                           labelFormatter={(label) => `Vendedor: ${label}`}
                         />
