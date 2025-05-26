@@ -1,8 +1,12 @@
+
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
+import { getAllTransactions } from "@/lib/api";
+import { Transaction } from "@/types/transactions";
+import { mapStatusToSpanish } from "@/lib/utils";
 
-// Data types
+// Updated data types - now using Transaction as the primary type
 export type Customer = {
   id: string;
   name: string;
@@ -18,7 +22,7 @@ export type Sale = {
   customerAvatar?: string;
   package: string;
   date: string;
-  status: "pending" | "rejected" | "approved";
+  status: "Pendiente" | "Aprobado" | "Rechazado";
   amount: number;
   sellerName: string;
   sellerId: string;
@@ -39,9 +43,13 @@ export type WeeklyData = {
 
 type DataContextType = {
   sales: Sale[];
+  transactions: Transaction[];
   customers: Customer[];
   users: User[];
   weeklyData: WeeklyData[];
+  loading: boolean;
+  error: string | null;
+  refreshTransactions: () => Promise<void>;
   addSale: (sale: Omit<Sale, "id">) => void;
   updateSaleStatus: (id: string, status: Sale["status"]) => void;
   deleteSale: (id: string) => void;
@@ -66,69 +74,6 @@ const DEFAULT_CUSTOMERS: Customer[] = [
   { id: "c5", name: "Sofia Salinas", avatar: "https://i.pravatar.cc/150?img=5", email: "sofia@example.com" },
 ];
 
-const DEFAULT_SALES: Sale[] = [
-  {
-    id: "s1",
-    customerId: "c1",
-    customerName: "Daniel Rivera",
-    customerAvatar: "https://i.pravatar.cc/150?img=1",
-    package: "Paris Tour Package",
-    date: "2025-07-15",
-    status: "approved",
-    amount: 1200,
-    sellerName: "John Seller",
-    sellerId: "2"
-  },
-  {
-    id: "s2",
-    customerId: "c2",
-    customerName: "Miguel Muñoz",
-    customerAvatar: "https://i.pravatar.cc/150?img=2",
-    package: "Barcelona Tour",
-    date: "2025-08-10",
-    status: "pending",
-    amount: 850,
-    sellerName: "John Seller",
-    sellerId: "2"
-  },
-  {
-    id: "s3",
-    customerId: "c3",
-    customerName: "Gustavo Chipantiza",
-    customerAvatar: "https://i.pravatar.cc/150?img=3",
-    package: "Tokyo Adventure",
-    date: "2025-09-05",
-    status: "pending",
-    amount: 1750,
-    sellerName: "Admin User",
-    sellerId: "1"
-  },
-  {
-    id: "s4",
-    customerId: "c4",
-    customerName: "Manuel Alejandro Gruezo",
-    customerAvatar: "https://i.pravatar.cc/150?img=4",
-    package: "Bali Vacation",
-    date: "2025-07-25",
-    status: "approved",
-    amount: 950,
-    sellerName: "Admin User",
-    sellerId: "1"
-  },
-  {
-    id: "s5",
-    customerId: "c5",
-    customerName: "Sofia Salinas",
-    customerAvatar: "https://i.pravatar.cc/150?img=5",
-    package: "Student Adventure",
-    date: "2025-08-12",
-    status: "pending",
-    amount: 1250,
-    sellerName: "John Seller",
-    sellerId: "2"
-  },
-];
-
 const DEFAULT_WEEKLY_DATA: WeeklyData[] = [
   { day: "Sun", value: 2500 },
   { day: "Mon", value: 3200 },
@@ -145,25 +90,150 @@ export interface TransaccionesClientesProps {
   sales: Sale[];
 }
 
+// Helper function to convert Transaction to Sale format
+const convertTransactionToSale = (transaction: Transaction): Sale => ({
+  id: transaction.id.toString(),
+  customerId: transaction.id.toString(),
+  customerName: transaction.client_name,
+  customerAvatar: "",
+  package: transaction.package,
+  date: transaction.start_date,
+  status: mapStatusToSpanish(transaction.status),
+  amount: transaction.amount,
+  sellerName: transaction.seller_name,
+  sellerId: transaction.seller_id.toString()
+});
+
+// Mock transactions for fallback
+const getMockTransactions = (): Transaction[] => {
+  return [
+    {
+      id: 1001,
+      client_name: "Sofia Salinas",
+      client_email: "sofia@example.com",
+      client_phone: "+573145678901",
+      client_dni: "1089345678",
+      client_address: "Calle 123, Bogotá",
+      invoice_image: "",
+      id_image: "",
+      package: "Student Adventure",
+      quoted_flight: "Bogotá - Toulouse",
+      agency_cost: 950,
+      amount: 1250,
+      transaction_type: "Internacional",
+      status: "approved",
+      seller_id: 101,
+      seller_name: "John Seller",
+      receipt: "",
+      start_date: "2025-08-12",
+      end_date: "2025-08-20",
+      travelers: []
+    },
+    {
+      id: 1002,
+      client_name: "Daniel Rivera",
+      client_email: "daniel@example.com",
+      client_phone: "+573156789012",
+      client_dni: "1089456789",
+      client_address: "Carrera 45, Medellín",
+      invoice_image: "",
+      id_image: "",
+      package: "París Tour Package",
+      quoted_flight: "Bogotá - París",
+      agency_cost: 1000,
+      amount: 1200,
+      transaction_type: "Internacional",
+      status: "pending",
+      seller_id: 102,
+      seller_name: "John Seller",
+      receipt: "",
+      start_date: "2025-07-15",
+      end_date: "2025-07-25",
+      travelers: []
+    },
+    {
+      id: 1003,
+      client_name: "Miguel Muñoz",
+      client_email: "miguel@example.com",
+      client_phone: "+573167890123",
+      client_dni: "1089567890",
+      client_address: "Avenida 67, Cali",
+      invoice_image: "",
+      id_image: "",
+      package: "Barcelona Tour",
+      quoted_flight: "Bogotá - Barcelona",
+      agency_cost: 800,
+      amount: 850,
+      transaction_type: "Internacional",
+      status: "rejected",
+      seller_id: 101,
+      seller_name: "Admin User",
+      receipt: "",
+      start_date: "2025-08-10",
+      end_date: "2025-08-20",
+      travelers: []
+    }
+  ];
+};
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [sales, setSales] = useState<Sale[]>([]);
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Function to fetch transactions from API
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      const data = await getAllTransactions();
+      let transactionData: Transaction[] = [];
+
+      if (Array.isArray(data)) {
+        transactionData = data;
+      } else if (data && typeof data === 'object') {
+        if (Array.isArray(data.data)) {
+          transactionData = data.data;
+        } else {
+          transactionData = [data].filter(item => item && typeof item === 'object');
+        }
+      }
+
+      // If no transactions were fetched, use mock data
+      if (!transactionData.length) {
+        transactionData = getMockTransactions();
+      }
+
+      setTransactions(transactionData);
+      // Convert transactions to sales format for backward compatibility
+      const convertedSales = transactionData.map(convertTransactionToSale);
+      setSales(convertedSales);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching transactions:", err);
+      setError("Error al cargar transacciones");
+      // Use mock data in case of error
+      const mockTransactions = getMockTransactions();
+      setTransactions(mockTransactions);
+      setSales(mockTransactions.map(convertTransactionToSale));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshTransactions = async () => {
+    await fetchTransactions();
+  };
 
   // Load initial data
   useEffect(() => {
-    // Load or initialize sales data
-    const storedSales = localStorage.getItem("crm_sales");
-    if (storedSales) {
-      setSales(JSON.parse(storedSales));
-    } else {
-      localStorage.setItem("crm_sales", JSON.stringify(DEFAULT_SALES));
-      setSales(DEFAULT_SALES);
-    }
+    fetchTransactions();
 
-    // Load or initialize customers data
+    // Load customers data from localStorage or use defaults
     const storedCustomers = localStorage.getItem("crm_customers");
     if (storedCustomers) {
       setCustomers(JSON.parse(storedCustomers));
@@ -172,7 +242,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCustomers(DEFAULT_CUSTOMERS);
     }
 
-    // Load or initialize users data
+    // Load users data from localStorage or use defaults
     const storedUsers = localStorage.getItem("crm_users");
     if (storedUsers) {
       setUsers(JSON.parse(storedUsers));
@@ -185,7 +255,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUsers(defaultUsers);
     }
 
-    // Load or initialize weekly data
+    // Load weekly data from localStorage or use defaults
     const storedWeeklyData = localStorage.getItem("crm_weekly_data");
     if (storedWeeklyData) {
       setWeeklyData(JSON.parse(storedWeeklyData));
@@ -228,6 +298,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
     setSales([...sales, newSale]);
     toast.success("Sale added successfully!");
+    // Note: In a real implementation, this would also call an API to create the transaction
   };
 
   const updateSaleStatus = (id: string, status: Sale["status"]) => {
@@ -235,11 +306,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       sale.id === id ? { ...sale, status } : sale
     ));
     toast.success(`Sale status updated to ${status}`);
+    // Note: In a real implementation, this would also call an API to update the transaction
   };
 
   const deleteSale = (id: string) => {
     setSales(sales.filter(sale => sale.id !== id));
     toast.success("Sale deleted successfully");
+    // Note: In a real implementation, this would also call an API to delete the transaction
   };
 
   const addUser = (userData: Omit<User, "id">) => {
@@ -259,7 +332,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const deleteUser = (id: string) => {
-    // Prevent deleting the current user
     if (user?.id === id) {
       toast.error("You cannot delete your own account");
       return;
@@ -268,12 +340,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.success("User deleted successfully");
   };
 
-  // Calculate metrics
+  // Calculate metrics based on transactions
   const metrics = {
-    totalSales: sales.filter(sale => sale.status === "approved").length,
-    totalRevenue: sales
-      .filter(sale => sale.status === "approved")
-      .reduce((total, sale) => total + sale.amount, 0),
+    totalSales: transactions.filter(transaction => transaction.status === "approved").length,
+    totalRevenue: transactions
+      .filter(transaction => transaction.status === "approved")
+      .reduce((total, transaction) => total + transaction.amount, 0),
     totalCustomers: customers.length,
   };
 
@@ -281,9 +353,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     <DataContext.Provider
       value={{
         sales,
+        transactions,
         customers,
         users,
         weeklyData,
+        loading,
+        error,
+        refreshTransactions,
         addSale,
         updateSaleStatus,
         deleteSale,

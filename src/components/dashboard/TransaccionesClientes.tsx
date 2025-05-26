@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+
+import React, { useState } from "react";
 import {
   Table,
   TableBody,
@@ -11,14 +12,9 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Eye, Trash2, MoreHorizontal } from "lucide-react";
-import { Sale, TransaccionesClientesProps, TransactionStatus } from "@/contexts/DataContext";
+import { Sale, TransaccionesClientesProps, TransactionStatus, useData } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, mapStatusToSpanish } from "@/lib/utils";
-import { getAllTransactions } from "@/lib/api";
-import { toast } from "sonner";
-import { Transaction } from "@/types/transactions";
-
-
+import { formatCurrency } from "@/lib/utils";
 
 const mapStatusToStyle = (status: TransactionStatus): string => {
   switch (status) {
@@ -29,151 +25,9 @@ const mapStatusToStyle = (status: TransactionStatus): string => {
   }
 };
 
-const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) => {
+const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
   const [selectedRows, setSelectedRows] = useState<string[]>([]);
-  const [apiTransactions, setApiTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchTransactions = async () => {
-      try {
-        setLoading(true);
-        const data = await getAllTransactions();
-        // Asegúrate de que 'data' sea un array. Si 'data' puede ser un objeto con una propiedad 'transactions', ajusta aquí.
-        // Por ejemplo: setApiTransactions(Array.isArray(data.transactions) ? data.transactions : []);
-        setApiTransactions(Array.isArray(data) ? data : []);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching transactions:", err);
-        setError("Error al cargar transacciones");
-        toast.error("No se pudieron cargar las transacciones");
-
-        // Add mock transactions in case of error
-        setApiTransactions(getMockTransactions());
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchTransactions();
-  }, []);
-
-  const getMockTransactions = (): Transaction[] => {
-    return [
-      {
-        id: 1001,
-        client_name: "Sofia Salinas",
-        client_email: "sofia@example.com",
-        client_phone: "+573145678901",
-        client_dni: "1089345678",
-        client_address: "Calle 123, Bogotá",
-        invoice_image: "",
-        id_image: "",
-        package: "Student Adventure",
-        quoted_flight: "Bogotá - Toulouse",
-        agency_cost: 950,
-        amount: 1250,
-        transaction_type: "Internacional",
-        status: "approved", // O "Success" para probar el mapeo
-        seller_id: 101,
-        seller_name: "John Seller",
-        receipt: "",
-        start_date: "2025-08-12",
-        end_date: "2025-08-20",
-        travelers: [
-          {
-            id: 1,
-            name: "Sofia Salinas",
-            dni: "1089345678",
-            age: 22,
-            phone: "+573145678901",
-            dni_image: ""
-          }
-        ]
-      },
-      {
-        id: 1002,
-        client_name: "Daniel Rivera",
-        client_email: "daniel@example.com",
-        client_phone: "+573156789012",
-        client_dni: "1089456789",
-        client_address: "Carrera 45, Medellín",
-        invoice_image: "",
-        id_image: "",
-        package: "París Tour Package",
-        quoted_flight: "Bogotá - París",
-        agency_cost: 1000,
-        amount: 1200,
-        transaction_type: "Nacional",
-        status: "pending", // O "On Process" para probar el mapeo
-        seller_id: 102,
-        seller_name: "John Seller",
-        receipt: "",
-        start_date: "2025-07-15",
-        end_date: "2025-07-25",
-        travelers: [
-          {
-            id: 2,
-            name: "Daniel Rivera",
-            dni: "1089456789",
-            age: 30,
-            phone: "+573156789012",
-            dni_image: ""
-          }
-        ]
-      },
-      {
-        id: 1003,
-        client_name: "Miguel Muñoz",
-        client_email: "miguel@example.com",
-        client_phone: "+573167890123",
-        client_dni: "1089567890",
-        client_address: "Avenida 67, Cali",
-        invoice_image: "",
-        id_image: "",
-        package: "Barcelona Tour",
-        quoted_flight: "Bogotá - Barcelona",
-        agency_cost: 800,
-        amount: 850,
-        transaction_type: "Internacional",
-        status: "rejected", // O "Canceled" para probar el mapeo
-        seller_id: 101,
-        seller_name: "Admin User",
-        receipt: "",
-        start_date: "2025-08-10",
-        end_date: "2025-08-20",
-        travelers: [
-          {
-            id: 3,
-            name: "Miguel Muñoz",
-            dni: "1089567890",
-            age: 28,
-            phone: "+573167890123",
-            dni_image: ""
-          }
-        ]
-      }
-    ];
-  };
-
-  // Convert API transactions to Sale format for consistency
-  const convertedTransactions: Sale[] = apiTransactions.map(transaction => ({
-    id: transaction.id.toString(),
-    customerId: transaction.id.toString(),
-    customerName: transaction.client_name,
-    customerAvatar: "",
-    package: transaction.package,
-    date: transaction.start_date,
-    // ¡Aquí está la corrección principal! Llama a mapStatusToSpanish una sola vez.
-    status: mapStatusToSpanish(transaction.status),
-    amount: transaction.amount,
-    sellerName: transaction.seller_name,
-    sellerId: transaction.seller_id.toString()
-  }));
-
-  // Use API data if available, otherwise use props data
-  const allSales = convertedTransactions.length > 0 ? convertedTransactions : sales;
+  const { sales, loading, error } = useData();
 
   const toggleSelectRow = (id: string) => {
     setSelectedRows(prev =>
@@ -185,7 +39,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
 
   const toggleSelectAll = () => {
     setSelectedRows(prev =>
-      prev.length === allSales.length && allSales.length > 0 ? [] : allSales.map(sale => sale.id)
+      prev.length === sales.length && sales.length > 0 ? [] : sales.map(sale => sale.id)
     );
   };
 
@@ -197,8 +51,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
     );
   }
 
-  // Si hay un error y no hay transacciones para mostrar
-  if (error && allSales.length === 0) {
+  if (error && sales.length === 0) {
     return (
       <div className="text-center py-6 text-red-600">
         <p>{error}. Por favor, inténtalo de nuevo más tarde o revisa tu conexión.</p>
@@ -213,7 +66,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
-                checked={selectedRows.length === allSales.length && allSales.length > 0}
+                checked={selectedRows.length === sales.length && sales.length > 0}
                 onCheckedChange={toggleSelectAll}
               />
             </TableHead>
@@ -226,15 +79,15 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
           </TableRow>
         </TableHeader>
         <TableBody>
-          {allSales.length === 0 && !loading ? (
+          {sales.length === 0 && !loading ? (
             <TableRow>
               <TableCell colSpan={7} className="text-center py-4">
                 No hay transacciones disponibles.
               </TableCell>
             </TableRow>
           ) : (
-            allSales.map(sale => {
-              const status = sale.status; // Usa la función directamente aquí
+            sales.map(sale => {
+              const status = sale.status;
               return (
                 <TableRow key={sale.id}>
                   <TableCell>
@@ -249,14 +102,14 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = ({ sales }) 
                         {sale.customerAvatar ? (
                           <AvatarImage src={sale.customerAvatar} alt={sale.customerName} />
                         ) : null}
-                        <AvatarFallback>{sale.customerName.charAt(0).toUpperCase()}</AvatarFallback> {/* Añadido .toUpperCase() */}
+                        <AvatarFallback>{sale.customerName.charAt(0).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <span className="font-medium">{sale.customerName}</span>
                     </div>
                   </TableCell>
                   <TableCell>{sale.package}</TableCell>
                   <TableCell>
-                    {new Date(sale.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })} {/* Formato de fecha mejorado */}
+                    {new Date(sale.date).toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' })}
                   </TableCell>
                   <TableCell>{formatCurrency(sale.amount)}</TableCell>
                   <TableCell>

@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import PendingTransactions from "../admin/PendingTransactions";
 import TransaccionesClientes from "./TransaccionesClientes";
 import AdminFinancialMetrics from "./AdminFinancialMetrics";
-import CommissionDetails from "./CommissionDetails";
 
 const AdminDashboard = () => {
   const { sales } = useData();
@@ -14,9 +13,6 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       {/* Financial Metrics - Top Priority */}
       <AdminFinancialMetrics />
-
-      {/* Commission Details - Collapsible */}
-      {/* <CommissionDetails /> */}
 
       {/* Pending Transactions - High Priority */}
       <PendingTransactions />

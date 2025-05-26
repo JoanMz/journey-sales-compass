@@ -1,67 +1,73 @@
 
-import { Transaction } from "../types/transactions";
+import { Transaction } from "@/types/transactions";
 
 export const calculateTotalRevenue = (transactions: Transaction[]): number => {
-  return transactions.reduce((total, transaction) => total + transaction.amount, 0);
+  return transactions
+    .filter(transaction => transaction.status === "approved")
+    .reduce((total, transaction) => total + transaction.amount, 0);
 };
 
-export const calculateTotalProfit = (revenue: number): number => {
-  // 15% of total revenue as profit
-  return revenue * 0.15;
+export const calculateTotalProfit = (totalRevenue: number): number => {
+  return totalRevenue * 0.15; // 15% profit margin
 };
 
 export const calculateTotalCommission = (transactions: Transaction[]): number => {
-  // Total commission to be paid to salesmen
-  return transactions.reduce((total, transaction) => {
-    // 2.25% commission rate for each transaction
-    return total + (transaction.amount * 0.0225);
-  }, 0);
+  return transactions
+    .filter(transaction => transaction.status === "approved")
+    .reduce((total, transaction) => total + (transaction.amount * 0.0225), 0); // 2.25% commission
 };
 
-export const filterTransactionsByPeriod = (
-  transactions: Transaction[],
-  period: "fortnight" | "month" | "all"
-): Transaction[] => {
+export const calculateCommissionByVendor = (transactions: Transaction[]) => {
+  const vendorMap = new Map<number, {
+    sellerId: number;
+    sellerName: string;
+    sales: number;
+    commission: number;
+  }>();
+
+  transactions
+    .filter(transaction => transaction.status === "approved")
+    .forEach(transaction => {
+      const sellerId = transaction.seller_id;
+      const amount = transaction.amount;
+      const commission = amount * 0.0225;
+
+      if (vendorMap.has(sellerId)) {
+        const vendor = vendorMap.get(sellerId)!;
+        vendor.sales += amount;
+        vendor.commission += commission;
+      } else {
+        vendorMap.set(sellerId, {
+          sellerId,
+          sellerName: transaction.seller_name,
+          sales: amount,
+          commission
+        });
+      }
+    });
+
+  return Object.fromEntries(vendorMap);
+};
+
+export const filterTransactionsByPeriod = (transactions: Transaction[], period: "fortnight" | "month" | "all"): Transaction[] => {
   if (period === "all") return transactions;
 
-  const currentDate = new Date();
+  const now = new Date();
   let startDate: Date;
 
-  if (period === "fortnight") {
-    // Last 15 days
-    startDate = new Date(currentDate);
-    startDate.setDate(currentDate.getDate() - 15);
-  } else {
-    // Last 30 days
-    startDate = new Date(currentDate);
-    startDate.setMonth(currentDate.getMonth() - 1);
+  switch (period) {
+    case "fortnight":
+      startDate = new Date(now.getTime() - (15 * 24 * 60 * 60 * 1000));
+      break;
+    case "month":
+      startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      break;
+    default:
+      return transactions;
   }
 
   return transactions.filter(transaction => {
     const transactionDate = new Date(transaction.start_date);
-    return transactionDate >= startDate && transactionDate <= currentDate;
+    return transactionDate >= startDate;
   });
-};
-
-export const calculateCommissionByVendor = (transactions: Transaction[]): Record<string, { sellerId: number, sellerName: string, commission: number, sales: number }> => {
-  const vendorCommissions: Record<string, { sellerId: number, sellerName: string, commission: number, sales: number }> = {};
-
-  transactions.forEach(transaction => {
-    const { seller_id, seller_name, amount } = transaction;
-    const key = `${seller_id}`;
-    
-    if (!vendorCommissions[key]) {
-      vendorCommissions[key] = {
-        sellerId: seller_id,
-        sellerName: seller_name,
-        commission: 0,
-        sales: 0
-      };
-    }
-    
-    vendorCommissions[key].commission += amount * 0.0225;
-    vendorCommissions[key].sales += amount;
-  });
-
-  return vendorCommissions;
 };

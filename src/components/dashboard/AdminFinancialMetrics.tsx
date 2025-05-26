@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -10,10 +9,11 @@ import {
 } from "lucide-react";
 import TimePeriodFilter, { TimePeriod } from "./TimePeriodFilter";
 import SellerFilter from "./SellerFilter";
-import { getAllTransactions, getMixedFilterTransactions, getTransactionsByPeriod } from "@/lib/api";
-import { calculateTotalRevenue, calculateTotalProfit, calculateTotalCommission, filterTransactionsByPeriod } from "@/lib/financialUtils";
+import { getMixedFilterTransactions, getTransactionsByPeriod } from "@/lib/api";
+import { calculateTotalRevenue, calculateTotalProfit, calculateTotalCommission } from "@/lib/financialUtils";
 import { Transaction } from "@/types/transactions";
 import { formatCurrency, mapStatusToSpanish } from "@/lib/utils";
+import { useData } from "@/contexts/DataContext";
 import {
   BarChart,
   Bar,
@@ -27,142 +27,67 @@ import {
   Cell,
   Legend
 } from "recharts";
-import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useIsMobile } from "@/hooks/use-mobile";
 import "./dashboardStyles.css";
-import { time } from "console";
 
-// Define chart colors
-const CHART_COLORS = ['#3b82f6', '#4ade80', '#f97316', '#8b5cf6'];
+// Define chart colors matching the uploaded image
+const CHART_COLORS = ['#2563eb', '#16a34a', '#dc2626', '#7c3aed'];
 
 const AdminFinancialMetrics: React.FC = () => {
-  const [loading, setLoading] = useState(true);
+  const { transactions, loading: contextLoading, error: contextError } = useData();
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [filteredTransactions, setFilteredTransactions] = useState<Transaction[]>([]);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("month");
   const [selectedSellerId, setSelectedSellerId] = useState<number | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchFilteredData = async () => {
       try {
         setLoading(true);
-        if (selectedSellerId === null) {
-        const response = await getTransactionsByPeriod(timePeriod);;
-        const data = response;
-        setFilteredTransactions(Array.isArray(data) ? data : []);
-        setError(null);}
-        else {
+        if (selectedSellerId === null && timePeriod === "all") {
+          // Use transactions from context for "all" period with no seller filter
+          setFilteredTransactions(transactions);
+        } else if (selectedSellerId === null) {
+          const response = await getTransactionsByPeriod(timePeriod);
+          const data = response;
+          setFilteredTransactions(Array.isArray(data) ? data : []);
+        } else {
           const response = await getMixedFilterTransactions(timePeriod, selectedSellerId);
           const data = response;
           setFilteredTransactions(Array.isArray(data) ? data : []);
-          setError(null);
         }
+        setError(null);
       } catch (err) {
-        console.error("Error fetching transactions:", err);
-        setError("No se pudieron cargar las transacciones");
-        // Add mock data in case of error
-        setFilteredTransactions(getMockTransactions());
+        console.error("Error fetching filtered transactions:", err);
+        setError("No se pudieron cargar las transacciones filtradas");
+        // Fallback to context transactions
+        setFilteredTransactions(transactions);
       } finally {
         setLoading(false);
       }
     };
-    fetchData();
-  }, [timePeriod, selectedSellerId]);
 
+    if (transactions.length > 0) {
+      fetchFilteredData();
+    }
+  }, [timePeriod, selectedSellerId, transactions]);
 
-
-  // Mock data for testing or when API fails
-  const getMockTransactions = (): Transaction[] => {
-    const today = new Date();
-    const lastMonth = new Date(today);
-    lastMonth.setMonth(today.getMonth() - 1);
-
-    const lastFortnightDate = new Date(today);
-    lastFortnightDate.setDate(today.getDate() - 15);
-
-    return [
-      {
-        id: 1001,
-        client_name: "Sofia Salinas",
-        client_email: "sofia@example.com",
-        client_phone: "+573145678901",
-        client_dni: "1089345678",
-        client_address: "Calle 123, Bogotá",
-        invoice_image: "",
-        id_image: "",
-        package: "Student Adventure",
-        quoted_flight: "Bogotá - Toulouse",
-        agency_cost: 950,
-        amount: 1250,
-        transaction_type: "Internacional",
-        status: "approved",
-        seller_id: 101,
-        seller_name: "John Seller",
-        receipt: "",
-        start_date: new Date(lastFortnightDate).toISOString().split('T')[0],
-        end_date: today.toISOString().split('T')[0],
-        travelers: []
-      },
-      {
-        id: 1002,
-        client_name: "Daniel Rivera",
-        client_email: "daniel@example.com",
-        client_phone: "+573156789012",
-        client_dni: "1089456789",
-        client_address: "Carrera 45, Medellín",
-        invoice_image: "",
-        id_image: "",
-        package: "París Tour Package",
-        quoted_flight: "Bogotá - París",
-        agency_cost: 1000,
-        amount: 1200,
-        transaction_type: "Internacional",
-        status: "approved",
-        seller_id: 102,
-        seller_name: "Maria Seller",
-        receipt: "",
-        start_date: new Date(lastMonth).toISOString().split('T')[0],
-        end_date: today.toISOString().split('T')[0],
-        travelers: []
-      },
-      {
-        id: 1003,
-        client_name: "Miguel Muñoz",
-        client_email: "miguel@example.com",
-        client_phone: "+573167890123",
-        client_dni: "1089567890",
-        client_address: "Avenida 67, Cali",
-        invoice_image: "",
-        id_image: "",
-        package: "Barcelona Tour",
-        quoted_flight: "Bogotá - Barcelona",
-        agency_cost: 800,
-        amount: 850,
-        transaction_type: "Internacional",
-        status: "approved",
-        seller_id: 101,
-        seller_name: "John Seller",
-        receipt: "",
-        start_date: new Date(lastMonth).toISOString().split('T')[0],
-        end_date: today.toISOString().split('T')[0],
-        travelers: []
-      }
-    ];
-  };
+  // Use context transactions as fallback when no filtered data
+  const displayTransactions = filteredTransactions.length > 0 ? filteredTransactions : transactions;
 
   // Calculate key metrics
-  const totalRevenue = calculateTotalRevenue(filteredTransactions);
+  const totalRevenue = calculateTotalRevenue(displayTransactions);
   const totalProfit = calculateTotalProfit(totalRevenue);
-  const totalCommission = calculateTotalCommission(filteredTransactions);
-  const totalSales = filteredTransactions.length;
+  const totalCommission = calculateTotalCommission(displayTransactions);
+  const totalSales = displayTransactions.length;
 
   // Prepare data for charts
   const prepareMonthlyData = () => {
     const monthlyData: { [key: string]: { month: string, revenue: number, sales: number } } = {};
 
-    filteredTransactions.forEach(transaction => {
+    displayTransactions.forEach(transaction => {
       const date = new Date(transaction.start_date);
       const monthYear = date.toLocaleString('default', { month: 'short', year: '2-digit' });
 
@@ -182,7 +107,7 @@ const AdminFinancialMetrics: React.FC = () => {
   const prepareStatusData = () => {
     const statusCounts: { [key: string]: number } = {};
 
-    filteredTransactions.forEach(transaction => {
+    displayTransactions.forEach(transaction => {
       const status = transaction.status;
       statusCounts[status] = (statusCounts[status] || 0) + 1;
     });
@@ -193,7 +118,7 @@ const AdminFinancialMetrics: React.FC = () => {
   const prepareSellerCommissionData = () => {
     const sellerCommissions: { [key: string]: { name: string, value: number } } = {};
 
-    filteredTransactions.forEach(transaction => {
+    displayTransactions.forEach(transaction => {
       const sellerName = transaction.seller_name || 'Unknown';
       const commission = transaction.amount * 0.0225; // 2.25% commission
 
@@ -219,6 +144,9 @@ const AdminFinancialMetrics: React.FC = () => {
     setSelectedSellerId(sellerId);
   };
 
+  const isLoading = contextLoading || loading;
+  const displayError = contextError || error;
+
   return (
     <Card className="bg-white border-blue-200 mb-6">
       <CardHeader className="pb-2 border-b border-blue-200">
@@ -226,7 +154,7 @@ const AdminFinancialMetrics: React.FC = () => {
           <CardTitle className="text-blue-700">Métricas de Ventas</CardTitle>
           <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
             <SellerFilter
-              transactions={filteredTransactions}
+              transactions={displayTransactions}
               selectedSellerId={selectedSellerId}
               onSellerChange={handleSellerChange}
             />
@@ -235,12 +163,12 @@ const AdminFinancialMetrics: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent className="pt-6">
-        {loading ? (
+        {isLoading ? (
           <div className="flex justify-center py-6">
             <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
           </div>
-        ) : error ? (
-          <div className="text-center text-red-500 py-4">{error}</div>
+        ) : displayError ? (
+          <div className="text-center text-red-500 py-4">{displayError}</div>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -341,7 +269,7 @@ const AdminFinancialMetrics: React.FC = () => {
                           formatter={(value) => [formatCurrency(value as number), "Ingresos"]}
                           labelFormatter={(label) => `Periodo: ${label}`}
                         />
-                        <Bar dataKey="revenue" fill="#3b82f6" name="Ingresos" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="revenue" fill="#2563eb" name="Ingresos" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -412,7 +340,7 @@ const AdminFinancialMetrics: React.FC = () => {
                           formatter={(value) => [formatCurrency(value as number), "Comisión"]}
                           labelFormatter={(label) => `Vendedor: ${label}`}
                         />
-                        <Bar dataKey="value" fill="#8b5cf6" radius={[0, 4, 4, 0]} />
+                        <Bar dataKey="value" fill="#7c3aed" radius={[0, 4, 4, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
