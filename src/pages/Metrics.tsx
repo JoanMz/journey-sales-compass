@@ -46,19 +46,19 @@ const Metrics = () => {
     return null;
   }
 
-  // Calculate sales by status
+  // Calculate sales by status - using Spanish status values
   const salesByStatus = [
     { 
-      name: 'Success', 
-      value: sales.filter(sale => sale.status === 'Success').length 
+      name: 'Aprobado', 
+      value: sales.filter(sale => sale.status === 'Aprobado').length 
     },
     { 
-      name: 'On Process', 
-      value: sales.filter(sale => sale.status === 'On Process').length 
+      name: 'Pendiente', 
+      value: sales.filter(sale => sale.status === 'Pendiente').length 
     },
     { 
-      name: 'Canceled', 
-      value: sales.filter(sale => sale.status === 'Canceled').length 
+      name: 'Rechazado', 
+      value: sales.filter(sale => sale.status === 'Rechazado').length 
     }
   ];
   
@@ -79,7 +79,7 @@ const Metrics = () => {
       packageCount[sale.package] = { count: 0, revenue: 0 };
     }
     packageCount[sale.package].count += 1;
-    if (sale.status === 'Success') {
+    if (sale.status === 'Aprobado') {
       packageCount[sale.package].revenue += sale.amount;
     }
   });

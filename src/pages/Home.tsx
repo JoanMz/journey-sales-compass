@@ -40,7 +40,7 @@ const Home = () => {
     customerId: "",
     package: "",
     amount: 0,
-    status: "pending" as Sale["status"],
+    status: "Pendiente" as Sale["status"],
     date: new Date().toISOString().split('T')[0],
   });
 
@@ -51,9 +51,9 @@ const Home = () => {
 
   // Group sales by status for Kanban view
   const kanbanGroups = {
-    "Pendiente": filteredSales.filter(sale => sale.status === "pending"),
-    "Aprobado": filteredSales.filter(sale => sale.status === "approved"),
-    "Rechazado": filteredSales.filter(sale => sale.status === "rejected"),
+    "Pendiente": filteredSales.filter(sale => sale.status === "Pendiente"),
+    "Aprobado": filteredSales.filter(sale => sale.status === "Aprobado"),
+    "Rechazado": filteredSales.filter(sale => sale.status === "Rechazado"),
   };
 
   const handleAddSale = () => {
@@ -87,7 +87,7 @@ const Home = () => {
       customerId: "",
       package: "",
       amount: 0,
-      status: "pending",
+      status: "Pendiente",
       date: new Date().toISOString().split('T')[0],
     });
   };
@@ -327,7 +327,7 @@ const Home = () => {
                   {/* On Process Column */}
                   <div
                     className="kanban-column border-t-4 border-blue-400"
-                    onDrop={(e) => handleDrop(e, "pending")}
+                    onDrop={(e) => handleDrop(e, "Pendiente")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
@@ -382,7 +382,7 @@ const Home = () => {
                   {/* Success Column */}
                   <div
                     className="kanban-column border-t-4 border-green-400"
-                    // onDrop={(e) => handleDrop(e, "approved")}
+                    onDrop={(e) => handleDrop(e, "Aprobado")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
@@ -437,7 +437,7 @@ const Home = () => {
                   {/* Canceled Column */}
                   <div
                     className="kanban-column border-t-4 border-red-400"
-                    onDrop={(e) => handleDrop(e, "rejected")}
+                    onDrop={(e) => handleDrop(e, "Rechazado")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
@@ -529,9 +529,9 @@ const Home = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`status-badge ${
-                              sale.status === "approved"
+                              sale.status === "Aprobado"
                                 ? "status-success"
-                                : sale.status === "pending"
+                                : sale.status === "Pendiente"
                                 ? "status-process"
                                 : "status-canceled"
                             }`}>
@@ -619,9 +619,9 @@ const Home = () => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="pending">On Process</SelectItem>
-                  <SelectItem value="approved">Success</SelectItem>
-                  <SelectItem value="rejected">Canceled</SelectItem>
+                  <SelectItem value="Pendiente">On Process</SelectItem>
+                  <SelectItem value="Aprobado">Success</SelectItem>
+                  <SelectItem value="Rechazado">Canceled</SelectItem>
                 </SelectContent>
               </Select>
             </div>

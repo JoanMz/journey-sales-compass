@@ -71,7 +71,7 @@ const CommissionDetails: React.FC<CommissionDetailsProps> = ({ className }) => {
         agency_cost: 950,
         amount: 1250,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -93,7 +93,7 @@ const CommissionDetails: React.FC<CommissionDetailsProps> = ({ className }) => {
         agency_cost: 1000,
         amount: 1200,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 102,
         seller_name: "Maria Seller",
         receipt: "",
@@ -115,7 +115,7 @@ const CommissionDetails: React.FC<CommissionDetailsProps> = ({ className }) => {
         agency_cost: 800,
         amount: 850,
         transaction_type: "Internacional",
-        status: "completado",
+        status: "approved",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -126,8 +126,8 @@ const CommissionDetails: React.FC<CommissionDetailsProps> = ({ className }) => {
     ];
   };
   
-  const completedTransactions = transactions.filter(t => t.status === "completado");
-  const commissionsByVendor = calculateCommissionByVendor(completedTransactions);
+  const approvedTransactions = transactions.filter(t => t.status === "approved");
+  const commissionsByVendor = calculateCommissionByVendor(approvedTransactions);
   const vendorCommissions = Object.values(commissionsByVendor);
   
   return (
