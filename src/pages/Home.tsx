@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useData, Sale } from "../contexts/DataContext";
 import AppLayout from "../components/layout/AppLayout";
-import { 
-  Card, 
+import {
+  Card,
   CardContent,
   CardHeader,
   CardTitle
@@ -33,40 +33,40 @@ import AdminDashboard from "../components/dashboard/AdminDashboard";
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
   const { sales, weeklyData, customers, addSale, updateSaleStatus, metrics } = useData();
-  
+
   const [isAddSaleOpen, setIsAddSaleOpen] = useState(false);
   const [newSale, setNewSale] = useState({
     customerName: "",
     customerId: "",
     package: "",
     amount: 0,
-    status: "On Process" as Sale["status"],
+    status: "pending" as Sale["status"],
     date: new Date().toISOString().split('T')[0],
   });
 
   // Filter sales for the current user if not admin
-  const filteredSales = isAdmin 
-    ? sales 
+  const filteredSales = isAdmin
+    ? sales
     : sales.filter(sale => sale.sellerId === user?.id);
 
   // Group sales by status for Kanban view
   const kanbanGroups = {
-    "On Process": filteredSales.filter(sale => sale.status === "On Process"),
-    "Success": filteredSales.filter(sale => sale.status === "Success"),
-    "Canceled": filteredSales.filter(sale => sale.status === "Canceled"),
+    "Pendiente": filteredSales.filter(sale => sale.status === "pending"),
+    "Aprobado": filteredSales.filter(sale => sale.status === "approved"),
+    "Rechazado": filteredSales.filter(sale => sale.status === "rejected"),
   };
 
   const handleAddSale = () => {
     if (!user) return;
-    
+
     // Find customer by name
     const customer = customers.find(c => c.name === newSale.customerName);
-    
+
     if (!customer) {
       alert("Customer not found. Please enter a valid customer name.");
       return;
     }
-    
+
     addSale({
       customerId: customer.id,
       customerName: customer.name,
@@ -78,16 +78,16 @@ const Home = () => {
       sellerName: user.name,
       sellerId: user.id
     });
-    
+
     setIsAddSaleOpen(false);
-    
+
     // Reset form
     setNewSale({
       customerName: "",
       customerId: "",
       package: "",
       amount: 0,
-      status: "On Process",
+      status: "pending",
       date: new Date().toISOString().split('T')[0],
     });
   };
@@ -157,7 +157,7 @@ const Home = () => {
         <div className="space-y-6">
           <RoleSpecificDashboard />
         </div>
-        
+
         {/* Add Sale Dialog */}
         <Dialog open={isAddSaleOpen} onOpenChange={setIsAddSaleOpen}>
           <DialogContent>
@@ -167,7 +167,7 @@ const Home = () => {
                 Add a new sale to your dashboard.
               </DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Customer</label>
@@ -183,7 +183,7 @@ const Home = () => {
                   ))}
                 </datalist>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Travel Package</label>
                 <Input
@@ -192,7 +192,7 @@ const Home = () => {
                   onChange={(e) => setNewSale({...newSale, package: e.target.value})}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Amount ($)</label>
@@ -204,7 +204,7 @@ const Home = () => {
                     onChange={(e) => setNewSale({...newSale, amount: parseFloat(e.target.value)})}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Date</label>
                   <Input
@@ -214,7 +214,7 @@ const Home = () => {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Status</label>
                 <Select
@@ -225,17 +225,17 @@ const Home = () => {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="On Process">On Process</SelectItem>
-                    <SelectItem value="Success">Success</SelectItem>
-                    <SelectItem value="Canceled">Canceled</SelectItem>
+                    <SelectItem value="Pendiente">Pendiente</SelectItem>
+                    <SelectItem value="Aprobado">Aprobada</SelectItem>
+                    <SelectItem value="Rechazado">Rechazada</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            
+
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddSaleOpen(false)}>Cancel</Button>
-              <Button 
+              <Button
                 onClick={handleAddSale}
                 className="bg-brand-purple hover:bg-brand-purple-dark"
               >
@@ -279,7 +279,7 @@ const Home = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="stats-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-500">Total Customers</CardTitle>
@@ -291,7 +291,7 @@ const Home = () => {
               </div>
             </CardContent>
           </Card>
-          
+
           <Card className="stats-card">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-gray-500">Total Profit</CardTitle>
@@ -321,25 +321,25 @@ const Home = () => {
                 <TabsTrigger value="kanban">Kanban View</TabsTrigger>
                 <TabsTrigger value="list">List View</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="kanban">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {/* On Process Column */}
-                  <div 
+                  <div
                     className="kanban-column border-t-4 border-blue-400"
-                    onDrop={(e) => handleDrop(e, "On Process")}
+                    onDrop={(e) => handleDrop(e, "pending")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
                       <Clock className="h-5 w-5 mr-2 text-blue-500" />
                       <h3 className="font-semibold">On Process</h3>
                       <span className="ml-2 bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                        {kanbanGroups["On Process"].length}
+                        {kanbanGroups["Pendiente"].length}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-3">
-                      {kanbanGroups["On Process"].map((sale) => (
+                      {kanbanGroups["Pendiente"].map((sale) => (
                         <div
                           key={sale.id}
                           draggable
@@ -349,9 +349,9 @@ const Home = () => {
                           <div className="flex justify-between items-start">
                             <div className="flex items-center">
                               {sale.customerAvatar ? (
-                                <img 
-                                  src={sale.customerAvatar} 
-                                  alt={sale.customerName} 
+                                <img
+                                  src={sale.customerAvatar}
+                                  alt={sale.customerName}
                                   className="h-8 w-8 rounded-full mr-2"
                                 />
                               ) : (
@@ -366,7 +366,7 @@ const Home = () => {
                             </div>
                             <span className="text-sm font-semibold">${sale.amount}</span>
                           </div>
-                          
+
                           <div className="mt-3">
                             <p className="text-sm">{sale.package}</p>
                             <div className="flex justify-between items-center mt-2">
@@ -378,23 +378,23 @@ const Home = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Success Column */}
-                  <div 
+                  <div
                     className="kanban-column border-t-4 border-green-400"
-                    onDrop={(e) => handleDrop(e, "Success")}
+                    // onDrop={(e) => handleDrop(e, "approved")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
                       <Check className="h-5 w-5 mr-2 text-green-500" />
                       <h3 className="font-semibold">Success</h3>
                       <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                        {kanbanGroups["Success"].length}
+                        {kanbanGroups["Aprobado"].length}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-3">
-                      {kanbanGroups["Success"].map((sale) => (
+                      {kanbanGroups["Aprobado"].map((sale) => (
                         <div
                           key={sale.id}
                           draggable
@@ -404,9 +404,9 @@ const Home = () => {
                           <div className="flex justify-between items-start">
                             <div className="flex items-center">
                               {sale.customerAvatar ? (
-                                <img 
-                                  src={sale.customerAvatar} 
-                                  alt={sale.customerName} 
+                                <img
+                                  src={sale.customerAvatar}
+                                  alt={sale.customerName}
                                   className="h-8 w-8 rounded-full mr-2"
                                 />
                               ) : (
@@ -421,7 +421,7 @@ const Home = () => {
                             </div>
                             <span className="text-sm font-semibold">${sale.amount}</span>
                           </div>
-                          
+
                           <div className="mt-3">
                             <p className="text-sm">{sale.package}</p>
                             <div className="flex justify-between items-center mt-2">
@@ -433,23 +433,23 @@ const Home = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   {/* Canceled Column */}
-                  <div 
+                  <div
                     className="kanban-column border-t-4 border-red-400"
-                    onDrop={(e) => handleDrop(e, "Canceled")}
+                    onDrop={(e) => handleDrop(e, "rejected")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
                       <X className="h-5 w-5 mr-2 text-red-500" />
                       <h3 className="font-semibold">Canceled</h3>
                       <span className="ml-2 bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded">
-                        {kanbanGroups["Canceled"].length}
+                        {kanbanGroups["Rechazado"].length}
                       </span>
                     </div>
-                    
+
                     <div className="space-y-3">
-                      {kanbanGroups["Canceled"].map((sale) => (
+                      {kanbanGroups["Rechazado"].map((sale) => (
                         <div
                           key={sale.id}
                           draggable
@@ -459,9 +459,9 @@ const Home = () => {
                           <div className="flex justify-between items-start">
                             <div className="flex items-center">
                               {sale.customerAvatar ? (
-                                <img 
-                                  src={sale.customerAvatar} 
-                                  alt={sale.customerName} 
+                                <img
+                                  src={sale.customerAvatar}
+                                  alt={sale.customerName}
                                   className="h-8 w-8 rounded-full mr-2"
                                 />
                               ) : (
@@ -476,7 +476,7 @@ const Home = () => {
                             </div>
                             <span className="text-sm font-semibold">${sale.amount}</span>
                           </div>
-                          
+
                           <div className="mt-3">
                             <p className="text-sm">{sale.package}</p>
                             <div className="flex justify-between items-center mt-2">
@@ -490,7 +490,7 @@ const Home = () => {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="list">
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200">
@@ -529,9 +529,9 @@ const Home = () => {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span className={`status-badge ${
-                              sale.status === "Success" 
-                                ? "status-success" 
-                                : sale.status === "On Process"
+                              sale.status === "approved"
+                                ? "status-success"
+                                : sale.status === "pending"
                                 ? "status-process"
                                 : "status-canceled"
                             }`}>
@@ -561,7 +561,7 @@ const Home = () => {
               Add a new sale to your dashboard.
             </DialogDescription>
           </DialogHeader>
-          
+
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Customer</label>
@@ -577,7 +577,7 @@ const Home = () => {
                 ))}
               </datalist>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Travel Package</label>
               <Input
@@ -586,7 +586,7 @@ const Home = () => {
                 onChange={(e) => setNewSale({...newSale, package: e.target.value})}
               />
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Amount ($)</label>
@@ -598,7 +598,7 @@ const Home = () => {
                   onChange={(e) => setNewSale({...newSale, amount: parseFloat(e.target.value)})}
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <label className="text-sm font-medium">Date</label>
                 <Input
@@ -608,7 +608,7 @@ const Home = () => {
                 />
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Status</label>
               <Select
@@ -619,17 +619,17 @@ const Home = () => {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="On Process">On Process</SelectItem>
-                  <SelectItem value="Success">Success</SelectItem>
-                  <SelectItem value="Canceled">Canceled</SelectItem>
+                  <SelectItem value="pending">On Process</SelectItem>
+                  <SelectItem value="approved">Success</SelectItem>
+                  <SelectItem value="rejected">Canceled</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsAddSaleOpen(false)}>Cancel</Button>
-            <Button 
+            <Button
               onClick={handleAddSale}
               className="bg-brand-purple hover:bg-brand-purple-dark"
             >

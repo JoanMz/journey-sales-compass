@@ -15,12 +15,12 @@ const PendingTransactions = () => {
 
   useEffect(() => {
     fetchPendingTransactions();
-    
+
     // Set up polling to refresh data every 30 seconds
     const interval = setInterval(() => {
       fetchPendingTransactions();
     }, 30000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
@@ -28,12 +28,16 @@ const PendingTransactions = () => {
     try {
       setLoading(true);
       // Use the Vite proxy with a relative URL
-      //const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pendiente","method": "GET"});
-      const response = await axios.get("https://medium-server3.vercel.app/api/transactions")
-      console.log(response)
+      //const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pending","method": "GET"});
+      const response = await axios.post("/api", null, {
+        headers: { "X-Target-Path": "/transactions/filter/pending" }
+      });
+      //console.log(response.data)
+      console.log(
+        "Heyy", response.data, " response.data", typeof response.data)
       // Check if response.data is an array, if not, handle accordingly
       let transactions: Transaction[] = [];
-      
+
       if (Array.isArray(response.data)) {
         transactions = response.data;
       } else if (response.data && typeof response.data === 'object') {
@@ -45,19 +49,19 @@ const PendingTransactions = () => {
           transactions = [response.data].filter(item => item && typeof item === 'object');
         }
       }
-      
+
       // If no transactions were fetched or they're empty, add mock transactions
       if (!transactions.length) {
         transactions = getMockTransactions();
       }
-      
+
       setPendingTransactions(transactions);
       setError(null);
     } catch (err) {
       console.error("Error fetching pending transactions:", err);
       setError("Error al cargar transacciones pendientes");
       toast.error("No se pudieron cargar las transacciones pendientes");
-      
+
       // Add mock transactions in case of error
       setPendingTransactions(getMockTransactions());
     } finally {
@@ -82,7 +86,7 @@ const PendingTransactions = () => {
         agency_cost: 950,
         amount: 1250,
         transaction_type: "Internacional",
-        status: "pendiente",
+        status: "pending",
         seller_id: 101,
         seller_name: "John Seller",
         receipt: "",
@@ -113,7 +117,7 @@ const PendingTransactions = () => {
         agency_cost: 1000,
         amount: 1200,
         transaction_type: "Internacional",
-        status: "pendiente",
+        status: "pending",
         seller_id: 102,
         seller_name: "John Seller",
         receipt: "",
@@ -144,7 +148,7 @@ const PendingTransactions = () => {
         agency_cost: 800,
         amount: 850,
         transaction_type: "Internacional",
-        status: "pendiente",
+        status: "pending",
         seller_id: 101,
         seller_name: "Admin User",
         receipt: "",
@@ -180,10 +184,10 @@ const PendingTransactions = () => {
     }
   };
 
-  const callDocumentGeneration = async(id : number) => {
+  const callDocumentGeneration = async (id: number) => {
     try {
       await axios.post("https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/d5e02b96-c7fa-4358-8120-65fccbee7892",
-        { transaction_id: id},
+        { transaction_id: id },
         {
           headers: {
             accept: 'application/json',
@@ -219,7 +223,7 @@ const PendingTransactions = () => {
   return (
     <Card className="bg-white border-blue-200">
       <CardHeader>
-        <CardTitle className="text-xl font-bold">Aprobaciones de Ventas Pendientes</CardTitle>
+        <CardTitle className="text-xl font-bold">Aprobaciones de Ventas pendings</CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -229,7 +233,7 @@ const PendingTransactions = () => {
         ) : error && pendingTransactions.length === 0 ? (
           <div className="text-center text-red-500 py-4">{error}</div>
         ) : pendingTransactions.length === 0 ? (
-          <div className="text-center text-gray-500 py-4">No hay transacciones pendientes</div>
+          <div className="text-center text-gray-500 py-4">No hay transacciones pendings</div>
         ) : (
           <div className="space-y-4">
             {displayTransactions.map((transaction) => (
@@ -244,36 +248,36 @@ const PendingTransactions = () => {
                     <p className="font-bold text-lg">{formatCurrency(transaction.amount)}</p>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm text-gray-500">Paquete</p>
                   <p className="text-sm">{transaction.package}</p>
                 </div>
-                
+
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm text-gray-500">Fecha inicio</p>
                   <p className="text-sm">{new Date(transaction.start_date).toLocaleDateString()}</p>
                 </div>
-                
+
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm text-gray-500">Fecha fin</p>
                   <p className="text-sm">{new Date(transaction.end_date).toLocaleDateString()}</p>
                 </div>
-                
+
                 <div className="flex justify-between items-center mb-2">
                   <p className="text-sm text-gray-500">Vuelo cotizado</p>
                   <p className="text-sm">{transaction.quoted_flight}</p>
                 </div>
-                
+
                 <div className="flex justify-end gap-2 mt-3">
-                  <Button 
-                    className="bg-green-500 hover:bg-green-600" 
+                  <Button
+                    className="bg-green-500 hover:bg-green-600"
                     onClick={() => handleApprove(transaction.id)}
                   >
                     <Check className="mr-1 h-4 w-4" /> Aprobar
                   </Button>
-                  <Button 
-                    className="bg-red-500 hover:bg-red-600" 
+                  <Button
+                    className="bg-red-500 hover:bg-red-600"
                     onClick={() => handleReject(transaction.id)}
                   >
                     <X className="mr-1 h-4 w-4" /> Rechazar
@@ -281,11 +285,11 @@ const PendingTransactions = () => {
                 </div>
               </div>
             ))}
-            
+
             {pendingTransactions.length > showMoreCount && (
               <div className="flex justify-center mt-4">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="bg-indigo-600 text-white hover:bg-indigo-700"
                   onClick={handleShowMore}
                 >

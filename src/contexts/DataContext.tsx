@@ -66,44 +66,44 @@ const DEFAULT_CUSTOMERS: Customer[] = [
   { id: "c5", name: "Sofia Salinas", avatar: "https://i.pravatar.cc/150?img=5", email: "sofia@example.com" },
 ];
 
- const DEFAULT_SALES: Sale[] = [
-  { 
-    id: "s1", 
-    customerId: "c1", 
+const DEFAULT_SALES: Sale[] = [
+  {
+    id: "s1",
+    customerId: "c1",
     customerName: "Daniel Rivera",
     customerAvatar: "https://i.pravatar.cc/150?img=1",
-    package: "Paris Tour Package", 
-    date: "2025-07-15", 
+    package: "Paris Tour Package",
+    date: "2025-07-15",
     status: "approved",
     amount: 1200,
     sellerName: "John Seller",
     sellerId: "2"
   },
-  { 
-    id: "s2", 
-    customerId: "c2", 
+  {
+    id: "s2",
+    customerId: "c2",
     customerName: "Miguel Muñoz",
     customerAvatar: "https://i.pravatar.cc/150?img=2",
-    package: "Barcelona Tour", 
-    date: "2025-08-10", 
+    package: "Barcelona Tour",
+    date: "2025-08-10",
     status: "pending",
     amount: 850,
     sellerName: "John Seller",
     sellerId: "2"
   },
-  { 
-    id: "s3", 
-    customerId: "c3", 
+  {
+    id: "s3",
+    customerId: "c3",
     customerName: "Gustavo Chipantiza",
     customerAvatar: "https://i.pravatar.cc/150?img=3",
-    package: "Tokyo Adventure", 
-    date: "2025-09-05", 
+    package: "Tokyo Adventure",
+    date: "2025-09-05",
     status: "pending",
     amount: 1750,
     sellerName: "Admin User",
     sellerId: "1"
   },
-  { 
+  {
     id: "s4",
     customerId: "c4",
     customerName: "Manuel Alejandro Gruezo",
@@ -116,12 +116,12 @@ const DEFAULT_CUSTOMERS: Customer[] = [
     sellerId: "1"
   },
   {
-    id: "s5", 
-    customerId: "c5", 
+    id: "s5",
+    customerId: "c5",
     customerName: "Sofia Salinas",
     customerAvatar: "https://i.pravatar.cc/150?img=5",
-    package: "Student Adventure", 
-    date: "2025-08-12", 
+    package: "Student Adventure",
+    date: "2025-08-12",
     status: "pending",
     amount: 1250,
     sellerName: "John Seller",
@@ -138,6 +138,12 @@ const DEFAULT_WEEKLY_DATA: WeeklyData[] = [
   { day: "Fri", value: 1500 },
   { day: "Sat", value: 2300 },
 ];
+
+export type TransactionStatus = "Pendiente" | "Aprobado" | "Rechazado";
+
+export interface TransaccionesClientesProps {
+  sales: Sale[];
+}
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -225,7 +231,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateSaleStatus = (id: string, status: Sale["status"]) => {
-    setSales(sales.map(sale => 
+    setSales(sales.map(sale =>
       sale.id === id ? { ...sale, status } : sale
     ));
     toast.success(`Sale status updated to ${status}`);
@@ -246,7 +252,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const updateUser = (id: string, userData: Partial<User>) => {
-    setUsers(users.map(user => 
+    setUsers(users.map(user =>
       user.id === id ? { ...user, ...userData } : user
     ));
     toast.success("User updated successfully");

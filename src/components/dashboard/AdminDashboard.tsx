@@ -14,13 +14,13 @@ const AdminDashboard = () => {
     <div className="space-y-6">
       {/* Financial Metrics - Top Priority */}
       <AdminFinancialMetrics />
-      
+
       {/* Commission Details - Collapsible */}
       {/* <CommissionDetails /> */}
-      
+
       {/* Pending Transactions - High Priority */}
       <PendingTransactions />
-      
+
       {/* Customer Transactions Table */}
       <Card className="bg-white border-blue-200 mb-6">
         <CardHeader className="pb-2 border-b border-blue-200">

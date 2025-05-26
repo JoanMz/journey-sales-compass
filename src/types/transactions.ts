@@ -22,7 +22,7 @@ export interface Transaction {
   agency_cost: number;
   amount: number;
   transaction_type: string;
-  status: string;
+  status: "pending"| "approved" | "rejected";
   seller_id: number;
   seller_name: string;
   receipt: string;
