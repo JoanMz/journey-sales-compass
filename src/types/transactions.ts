@@ -18,10 +18,10 @@ export interface Transaction {
   invoice_image: string;
   id_image: string;
   package: string;
-  quoted_flight: string;
+  quoted_flight?: string;
   agency_cost: number;
   amount: number;
-  transaction_type: string;
+  transaction_type?: "Nacional" | "Internacional";
   status: "pending"| "approved" | "rejected";
   seller_id: number;
   seller_name: string;

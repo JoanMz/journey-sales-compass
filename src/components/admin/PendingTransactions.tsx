@@ -19,7 +19,7 @@ const PendingTransactions = () => {
     // Set up polling to refresh data every 30 seconds
     const interval = setInterval(() => {
       fetchPendingTransactions();
-    }, 30000);
+    }, 50000);
 
     return () => clearInterval(interval);
   }, []);
