@@ -382,7 +382,7 @@ const Home = () => {
                   {/* Success Column */}
                   <div
                     className="kanban-column border-t-4 border-green-400"
-                    onDrop={(e) => handleDrop(e, "Aprobado")}
+                    // onDrop={(e) => handleDrop(e, "Aprobado")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
