@@ -12,12 +12,12 @@ const Header = () => {
     switch (user.role) {
       case "admin":
       case "administrador":
-        return "Administrador de Servicio al Cliente";
+        return "Administrador de Ventas";
       case "seller":
       case "vendedor":
-        return "Agente de Soporte al Cliente";
+        return "Asesor de Ventas";
       case "encargado":
-        return "Supervisor de Equipo de Soporte";
+        return "Supervisor de Equipo de Ventas";
       default:
         return user.role;
     }
@@ -26,7 +26,7 @@ const Header = () => {
   return (
     <header className="bg-white border-b border-gray-200 py-4 px-6 flex items-center justify-between ml-20 transition-all duration-300">
       <div className="space-y-1">
-        <h1 className="text-2xl font-semibold text-gray-800">Panel de Servicio al Cliente</h1>
+        <h1 className="text-2xl font-semibold text-gray-800">Panel de Ventas</h1>
         {user && (
           <p className="text-sm text-gray-600">
             Hola {user.name}, estás conectado como <span className="font-medium">{getRoleDisplay()}</span>
@@ -44,7 +44,7 @@ const Header = () => {
         </button>
         <div className="h-10 w-px bg-gray-200 mx-2"></div>
         <div className="flex items-center">
-          <span className="text-sm font-medium mr-2">Chat de Soporte Activo</span>
+          <span className="text-sm font-medium mr-2">Chat de Ventas</span>
           <div className="w-3 h-3 rounded-full bg-green-500"></div>
         </div>
       </div>
