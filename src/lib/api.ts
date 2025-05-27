@@ -41,9 +41,10 @@ export const getTransactionsByStatus = async (status: string) => {
 
 export const getAllTransactions = async () => {
   try {
-    const response = await axios.post("/api", null, {
+   /*  const response = await axios.post("/api", null, {
       headers: { "X-Target-Path": "/transactions" },
-    });
+    }); */
+    const response = await axios.get("https://medium-server3.vercel.app/api");
     return response.data;
   } catch (error) {
     console.error("Failed to fetch all transactions:", error);
