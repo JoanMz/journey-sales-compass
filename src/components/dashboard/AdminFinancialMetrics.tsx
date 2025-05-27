@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import TimePeriodFilter, { TimePeriod } from "./TimePeriodFilter";
 import SellerFilter from "./SellerFilter";
-import { getMixedFilterTransactions, getTransactionsByPeriod } from "@/lib/api";
+import { getTransactionsByMixedFilters, getTransactionsByPeriod } from "@/lib/api";
 import { calculateTotalRevenue, calculateTotalProfit, calculateTotalCommission } from "@/lib/financialUtils";
 import { Transaction } from "@/types/transactions";
 import { formatCurrency, mapStatusToSpanish } from "@/lib/utils";
@@ -54,7 +54,7 @@ const AdminFinancialMetrics: React.FC = () => {
           const data = response;
           setFilteredTransactions(Array.isArray(data) ? data : []);
         } else {
-          const response = await getMixedFilterTransactions(timePeriod, selectedSellerId);
+          const response = await getTransactionsByMixedFilters(timePeriod, selectedSellerId);
           const data = response;
           setFilteredTransactions(Array.isArray(data) ? data : []);
         }

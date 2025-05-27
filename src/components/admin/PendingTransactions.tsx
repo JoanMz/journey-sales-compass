@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "../../lib/utils";
 import { Transaction, Traveler } from "@/types/transactions";
+import { getTransactionsByStatus } from "@/lib/api";
 
 const PendingTransactions = () => {
   const [pendingTransactions, setPendingTransactions] = useState<Transaction[]>([]);
@@ -29,26 +30,9 @@ const PendingTransactions = () => {
       setLoading(true);
       // Use the Vite proxy with a relative URL
       //const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pending","method": "GET"});
-      const response = await axios.post("/api", null, {
-        headers: { "X-Target-Path": "/transactions/filter/pending" }
-      });
+      let transactions = await getTransactionsByStatus("pending");
       //console.log(response.data)
-      console.log(
-        "Heyy", response.data, " response.data", typeof response.data)
-      // Check if response.data is an array, if not, handle accordingly
-      let transactions: Transaction[] = [];
-
-      if (Array.isArray(response.data)) {
-        transactions = response.data;
-      } else if (response.data && typeof response.data === 'object') {
-        // If it's an object with a data property that is an array
-        if (Array.isArray(response.data.data)) {
-          transactions = response.data.data;
-        } else {
-          // If it's a single transaction object, wrap it in an array
-          transactions = [response.data].filter(item => item && typeof item === 'object');
-        }
-      }
+      // Check if response.data is an array, if not, handle according
 
       // If no transactions were fetched or they're empty, add mock transactions
       if (!transactions.length) {
