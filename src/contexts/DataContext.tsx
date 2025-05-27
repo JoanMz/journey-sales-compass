@@ -3,6 +3,7 @@ import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
 import { getAllTransactions } from "@/lib/api";
 import { Transaction } from "@/types/transactions";
+import { SalesFormData } from "@/types/sales";
 import { mapStatusToSpanish } from "@/lib/utils";
 
 // Updated data types - now using Transaction as the primary type
@@ -173,6 +174,40 @@ const getMockTransactions = (): Transaction[] => {
       travelers: []
     }
   ];
+};
+
+// Function to create transactions - moved outside component
+export const createTransaction = async (formData: SalesFormData) => {
+  try {
+    // TODO: Implement actual API call to create transaction
+    const transactionData = {
+      client_name: formData.customerName,
+      client_email: formData.customerEmail,
+      client_phone: formData.customerPhone,
+      client_dni: formData.customerDni,
+      client_address: formData.customerAddress,
+      package: formData.package,
+      quoted_flight: formData.quotedFlight,
+      agency_cost: formData.agencyCost,
+      amount: formData.amount,
+      transaction_type: formData.transactionType,
+      start_date: formData.startDate,
+      end_date: formData.endDate,
+      travelers: formData.travelers,
+      invoice_image: formData.invoiceImage ? "uploaded_invoice.jpg" : "",
+      status: "pending"
+    };
+    
+    console.log("Creating transaction:", transactionData);
+    // const response = await axios.post("/api/transactions", transactionData);
+    // return response.data;
+    
+    // For now, return mock response
+    return { id: Date.now(), ...transactionData };
+  } catch (error) {
+    console.error("Failed to create transaction:", error);
+    throw error;
+  }
 };
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -346,40 +381,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       .filter(transaction => transaction.status === "approved")
       .reduce((total, transaction) => total + transaction.amount, 0),
     totalCustomers: customers.length,
-  };
-
-  // Add new function to create transactions
-  export const createTransaction = async (formData: SalesFormData) => {
-    try {
-      // TODO: Implement actual API call to create transaction
-      const transactionData = {
-        client_name: formData.customerName,
-        client_email: formData.customerEmail,
-        client_phone: formData.customerPhone,
-        client_dni: formData.customerDni,
-        client_address: formData.customerAddress,
-        package: formData.package,
-        quoted_flight: formData.quotedFlight,
-        agency_cost: formData.agencyCost,
-        amount: formData.amount,
-        transaction_type: formData.transactionType,
-        start_date: formData.startDate,
-        end_date: formData.endDate,
-        travelers: formData.travelers,
-        invoice_image: formData.invoiceImage ? "uploaded_invoice.jpg" : "",
-        status: "pending"
-      };
-      
-      console.log("Creating transaction:", transactionData);
-      // const response = await axios.post("/api/transactions", transactionData);
-      // return response.data;
-      
-      // For now, return mock response
-      return { id: Date.now(), ...transactionData };
-    } catch (error) {
-      console.error("Failed to create transaction:", error);
-      throw error;
-    }
   };
 
   return (
