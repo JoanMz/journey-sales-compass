@@ -51,6 +51,7 @@ const Settings = () => {
     phone_number: "",
     role: "seller" as User["role"],
   });
+  const [isLoading, setIsLoading] = useState(false);
 
 
   const roleLabels = {
@@ -66,6 +67,7 @@ const Settings = () => {
       return;
     }
     
+    setIsLoading(true);
     try {
       await addUser({
         name: newUser.name,
@@ -85,6 +87,8 @@ const Settings = () => {
       });
     } catch (error) {
       // Error handling is done in the DataContext
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -96,6 +100,7 @@ const Settings = () => {
       return;
     }
     
+    setIsLoading(true);
     try {
       await updateUser(selectedUser.id, {
         name: editUser.name,
@@ -107,6 +112,8 @@ const Settings = () => {
       setIsEditUserOpen(false);
     } catch (error) {
       // Error handling is done in the DataContext
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -441,16 +448,16 @@ const Settings = () => {
 
       {/* Add User Dialog */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="mb-2">
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>
               Add a new user to the system.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
+          <div className="space-y-3 py-2 overflow-y-auto">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Name</label>
               <Input
                 placeholder="Enter full name"
@@ -459,7 +466,7 @@ const Settings = () => {
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Email</label>
               <Input
                 type="email"
@@ -469,7 +476,7 @@ const Settings = () => {
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Password</label>
               <Input
                 type="password"
@@ -479,7 +486,7 @@ const Settings = () => {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Phone Number (Optional)</label>
               <Input
                 placeholder="Enter phone number"
@@ -488,7 +495,7 @@ const Settings = () => {
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Role</label>
               <Select
                 value={newUser.role}
@@ -506,13 +513,14 @@ const Settings = () => {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="mt-4 sm:mt-2">
             <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>Cancel</Button>
             <Button 
               onClick={handleAddUser}
               className="bg-brand-purple hover:bg-brand-purple-dark"
+              disabled={isLoading}
             >
-              Add User
+              {isLoading ? "Adding..." : "Add User"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -520,16 +528,16 @@ const Settings = () => {
       
       {/* Edit User Dialog */}
       <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent>
-          <DialogHeader>
+        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="mb-2">
             <DialogTitle>Edit User</DialogTitle>
             <DialogDescription>
               Update user information.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
+          <div className="space-y-3 py-2 overflow-y-auto">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Name</label>
               <Input
                 placeholder="Enter full name"
@@ -538,7 +546,7 @@ const Settings = () => {
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Email</label>
               <Input
                 type="email"
@@ -548,7 +556,7 @@ const Settings = () => {
               />
             </div>
 
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Phone Number (Optional)</label>
               <Input
                 placeholder="Enter phone number"
@@ -557,7 +565,7 @@ const Settings = () => {
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-1">
               <label className="text-sm font-medium">Role</label>
               <Select
                 value={editUser.role}
@@ -575,13 +583,14 @@ const Settings = () => {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter className="mt-4 sm:mt-2">
             <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>Cancel</Button>
             <Button 
               onClick={handleEditUser}
               className="bg-brand-purple hover:bg-brand-purple-dark"
+              disabled={isLoading}
             >
-              Update User
+              {isLoading ? "Updating..." : "Update User"}
             </Button>
           </DialogFooter>
         </DialogContent>
