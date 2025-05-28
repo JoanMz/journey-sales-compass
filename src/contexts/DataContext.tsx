@@ -1,7 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
-import { getAllTransactions } from "@/lib/api";
+import { getAllTransactions, getUsers, createUser, deleteUser as deleteUserApi, updateUser as updateUserApi } from "@/lib/api";
 import { Transaction } from "@/types/transactions";
 import { SalesFormData } from "@/types/sales";
 import { mapStatusToSpanish } from "@/lib/utils";
@@ -29,11 +29,13 @@ export type Sale = {
 };
 
 export type User = {
-  id: string;
+  id: string | number;
   name: string;
   email: string;
-  role: "admin" | "seller" | "administrador";
+  role: "admin" | "seller" | "administrador" | "vendedor";
   avatar?: string;
+  phone_number?: string | null;
+  password?: string;
 };
 
 export type WeeklyData = {
@@ -224,7 +226,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const data = await getAllTransactions();
+      const data : any = await getAllTransactions();
       let transactionData: Transaction[] = [];
 
       if (Array.isArray(data)) {
@@ -263,6 +265,40 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await fetchTransactions();
   };
 
+  // Function to fetch users from API
+  const fetchUsers = async () => {
+    try {
+      const userData = await getUsers();
+      if (Array.isArray(userData) && userData.length > 0) {
+        // Map API users to our User type
+        const mappedUsers = userData.map(apiUser => ({
+          id: apiUser.id,
+          name: apiUser.name,
+          email: apiUser.email,
+          role: apiUser.role as User['role'],
+          phone_number: apiUser.phone_number,
+          // Don't include password in the state
+        }));
+        setUsers(mappedUsers);
+      } else {
+        // Fallback to default users if API returns empty
+        const defaultUsers: User[] = [
+          { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
+          { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
+        ];
+        setUsers(defaultUsers);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      // Fallback to default users on error
+      const defaultUsers: User[] = [
+        { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
+        { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
+      ];
+      setUsers(defaultUsers);
+    }
+  };
+
   // Load initial data
   useEffect(() => {
     fetchTransactions();
@@ -276,18 +312,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setCustomers(DEFAULT_CUSTOMERS);
     }
 
-    // Load users data from localStorage or use defaults
-    const storedUsers = localStorage.getItem("crm_users");
-    if (storedUsers) {
-      setUsers(JSON.parse(storedUsers));
-    } else {
-      const defaultUsers: User[] = [
-        { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
-        { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
-      ];
-      localStorage.setItem("crm_users", JSON.stringify(defaultUsers));
-      setUsers(defaultUsers);
-    }
+    // Fetch users from API
+    fetchUsers()
 
     // Load weekly data from localStorage or use defaults
     const storedWeeklyData = localStorage.getItem("crm_weekly_data");
@@ -349,29 +375,89 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Note: In a real implementation, this would also call an API to delete the transaction
   };
 
-  const addUser = (userData: Omit<User, "id">) => {
-    const newUser = {
-      ...userData,
-      id: `u${Date.now()}`,
-    };
-    setUsers([...users, newUser]);
-    toast.success("User added successfully!");
+  const addUser = async (userData: Omit<User, "id">) => {
+    try {
+      // Add a default password if not provided
+      const userToCreate = {
+        ...userData,
+        password: "default123", // Default password
+        phone_number: userData.phone_number || ""
+      };
+      
+      const response = await createUser(userToCreate);
+      
+      if (response.message === "Usuario creado con éxito") {
+        // Add the new user to the state
+        setUsers([...users, response.user]);
+        toast.success("User added successfully!");
+        // Refresh the users list
+        fetchUsers();
+      } else {
+        toast.error(response.detail || "Failed to create user");
+      }
+    } catch (error: any) {
+      if (error.response && error.response.data && error.response.data.detail === "El usuario ya existe") {
+        toast.error("User with this email already exists");
+      } else {
+        toast.error("Failed to create user");
+        console.error("Error creating user:", error);
+      }
+    }
   };
 
-  const updateUser = (id: string, userData: Partial<User>) => {
-    setUsers(users.map(user =>
-      user.id === id ? { ...user, ...userData } : user
-    ));
-    toast.success("User updated successfully");
+  const updateUser = async (id: string | number, userData: Partial<User>) => {
+    try {
+      // Call the API to update the user
+      await updateUserApi(id.toString(), {
+        name: userData.name || '',
+        email: userData.email || '',
+        role: userData.role || '',
+        ...(userData.password ? { password: userData.password } : {}),
+        ...(userData.phone_number ? { phone_number: userData.phone_number } : {})
+      });
+      
+      // Update the local state
+      setUsers(users.map(user =>
+        user.id === id ? { ...user, ...userData } : user
+      ));
+      
+      toast.success("User updated successfully");
+      
+      // Refresh the users list
+      await fetchUsers();
+    } catch (error: any) {
+      toast.error("Failed to update user");
+      console.error("Error updating user:", error);
+    }
   };
 
-  const deleteUser = (id: string) => {
+  const deleteUser = async (id: string | number) => {
     if (user?.id === id) {
       toast.error("You cannot delete your own account");
       return;
     }
-    setUsers(users.filter(user => user.id !== id));
-    toast.success("User deleted successfully");
+    
+    try {
+      // Call the API to delete the user
+      await deleteUserApi(id.toString());
+      
+      // Update the local state
+      setUsers(users.filter(user => user.id !== id));
+      toast.success("User deleted successfully");
+      
+      // Refresh the users list
+      await fetchUsers();
+    } catch (error: any) {
+      if (error.response && error.response.status === 204) {
+        // If we get a 204 No Content response, it means the deletion was successful
+        setUsers(users.filter(user => user.id !== id));
+        toast.success("User deleted successfully");
+        await fetchUsers();
+      } else {
+        toast.error("Failed to delete user");
+        console.error("Error deleting user:", error);
+      }
+    }
   };
 
   // Calculate metrics based on transactions

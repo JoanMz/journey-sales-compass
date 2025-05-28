@@ -236,6 +236,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     toast.success("Logged out successfully");
   };
 
+
+  // !TODO: revisar como quedan los roles para todos los usuarios
+
   return (
     <AuthContext.Provider
       value={{

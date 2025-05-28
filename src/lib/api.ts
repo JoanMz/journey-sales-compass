@@ -150,4 +150,82 @@ export const generateDocuments = async (transactionId: number) => {
   }
 };
 
+// get users
+export const getUsers = async () => {
+  try {
+    const response = await axios.get("http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch users:", error);
+    throw error;
+  }
+};
+
+
+// create user
+export const createUser = async (user: {
+  name: string;
+  email: string;
+  password: string;
+  role: string;
+  phone_number?: string;
+}) => {
+  try {
+    const response = await axios.post(
+      "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/",
+      user
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to create user:", error);
+    throw error;
+  }
+};
+
+// delete user
+export const deleteUser = async (userId: string) => {
+  try {
+    const response = await axios.delete(
+      `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/${userId}`
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to delete user:", error);
+    throw error;
+  }
+};
+
+// update user using patch
+export const updateUser = async (userId: string, user: {
+  name: string;
+  email: string;
+  role: string;
+}) => {
+  try {
+    const response = await axios.patch(
+      `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/${userId}`,
+      user
+    );
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update user:", error);
+    throw error;
+  }
+};
+
+// !TODO: cambiar a los seller, get sellers (users with seller role)
+export const getSellers = async () => {
+  try {
+    const response = await getUsers();
+    // Filter users with role "seller" or "vendedor"
+    const sellers = response.filter((user: any) => 
+      user.role === "seller" || user.role === "vendedor"
+    );
+    return sellers;
+  } catch (error) {
+    console.error("Failed to fetch sellers:", error);
+    throw error;
+  }
+};
+
 export default api;

@@ -41,35 +41,54 @@ const Settings = () => {
   const [newUser, setNewUser] = useState({
     name: "",
     email: "",
+    password: "",
+    phone_number: "",
     role: "seller" as User["role"],
   });
   const [editUser, setEditUser] = useState({
     name: "",
     email: "",
+    phone_number: "",
     role: "seller" as User["role"],
   });
 
-  const handleAddUser = () => {
-    if (!newUser.name || !newUser.email) {
-      toast.error("Name and email are required");
+
+  const roleLabels = {
+    admin: 'Administrador',
+    manager: 'Gerente',
+    seller: 'Vendedor',
+  };
+
+  
+  const handleAddUser = async () => {
+    if (!newUser.name || !newUser.email || !newUser.password) {
+      toast.error("Name, email, and password are required");
       return;
     }
     
-    addUser({
-      name: newUser.name,
-      email: newUser.email,
-      role: newUser.role,
-    });
-    
-    setIsAddUserOpen(false);
-    setNewUser({
-      name: "",
-      email: "",
-      role: "seller",
-    });
+    try {
+      await addUser({
+        name: newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+        phone_number: newUser.phone_number,
+        role: newUser.role,
+      });
+      
+      setIsAddUserOpen(false);
+      setNewUser({
+        name: "",
+        email: "",
+        password: "",
+        phone_number: "",
+        role: "seller",
+      });
+    } catch (error) {
+      // Error handling is done in the DataContext
+    }
   };
 
-  const handleEditUser = () => {
+  const handleEditUser = async () => {
     if (!selectedUser) return;
     
     if (!editUser.name || !editUser.email) {
@@ -77,18 +96,27 @@ const Settings = () => {
       return;
     }
     
-    updateUser(selectedUser.id, {
-      name: editUser.name,
-      email: editUser.email,
-      role: editUser.role,
-    });
-    
-    setIsEditUserOpen(false);
+    try {
+      await updateUser(selectedUser.id, {
+        name: editUser.name,
+        email: editUser.email,
+        role: editUser.role,
+        phone_number: editUser.phone_number,
+      });
+      
+      setIsEditUserOpen(false);
+    } catch (error) {
+      // Error handling is done in the DataContext
+    }
   };
 
-  const handleDeleteUser = (userId: string) => {
+  const handleDeleteUser = async (userId: string | number) => {
     if (window.confirm("Are you sure you want to delete this user?")) {
-      deleteUser(userId);
+      try {
+        await deleteUser(userId);
+      } catch (error) {
+        // Error handling is done in the DataContext
+      }
     }
   };
 
@@ -98,6 +126,7 @@ const Settings = () => {
       name: user.name,
       email: user.email,
       role: user.role,
+      phone_number: user.phone_number || "",
     });
     setIsEditUserOpen(true);
   };
@@ -226,7 +255,7 @@ const Settings = () => {
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap">
                               <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-brand-purple-light text-brand-purple-dark capitalize">
-                                {u.role}
+                                {roleLabels[u.role] || `${u.role} otro`}
                               </span>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
@@ -441,6 +470,25 @@ const Settings = () => {
             </div>
             
             <div className="space-y-2">
+              <label className="text-sm font-medium">Password</label>
+              <Input
+                type="password"
+                placeholder="Enter password"
+                value={newUser.password}
+                onChange={(e) => setNewUser({...newUser, password: e.target.value})}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone Number (Optional)</label>
+              <Input
+                placeholder="Enter phone number"
+                value={newUser.phone_number}
+                onChange={(e) => setNewUser({...newUser, phone_number: e.target.value})}
+              />
+            </div>
+            
+            <div className="space-y-2">
               <label className="text-sm font-medium">Role</label>
               <Select
                 value={newUser.role}
@@ -450,8 +498,9 @@ const Settings = () => {
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="seller">Seller</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                  <SelectItem value="manager">Gerente</SelectItem>
+                  <SelectItem value="seller">Vendedor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -498,6 +547,15 @@ const Settings = () => {
                 onChange={(e) => setEditUser({...editUser, email: e.target.value})}
               />
             </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Phone Number (Optional)</label>
+              <Input
+                placeholder="Enter phone number"
+                value={editUser.phone_number}
+                onChange={(e) => setEditUser({...editUser, phone_number: e.target.value})}
+              />
+            </div>
             
             <div className="space-y-2">
               <label className="text-sm font-medium">Role</label>
@@ -509,8 +567,9 @@ const Settings = () => {
                   <SelectValue placeholder="Select role" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Admin</SelectItem>
-                  <SelectItem value="seller">Seller</SelectItem>
+                  <SelectItem value="admin">Administrator</SelectItem>
+                  <SelectItem value="manager">Gerente</SelectItem>
+                  <SelectItem value="seller">Vendedor</SelectItem>
                 </SelectContent>
               </Select>
             </div>
