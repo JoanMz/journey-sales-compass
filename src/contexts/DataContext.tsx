@@ -199,11 +199,11 @@ export const createTransaction = async (formData: SalesFormData) => {
       invoice_image: formData.invoiceImage ? "uploaded_invoice.jpg" : "",
       status: "pending"
     };
-    
+
     console.log("Creating transaction:", transactionData);
     // const response = await axios.post("/api/transactions", transactionData);
     // return response.data;
-    
+
     // For now, return mock response
     return { id: Date.now(), ...transactionData };
   } catch (error) {
@@ -383,9 +383,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password: "default123", // Default password
         phone_number: userData.phone_number || ""
       };
-      
+
       const response = await createUser(userToCreate);
-      
+
       if (response.message === "Usuario creado con éxito") {
         // Add the new user to the state
         setUsers([...users, response.user]);
@@ -415,14 +415,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         ...(userData.password ? { password: userData.password } : {}),
         ...(userData.phone_number ? { phone_number: userData.phone_number } : {})
       });
-      
+
       // Update the local state
       setUsers(users.map(user =>
         user.id === id ? { ...user, ...userData } : user
       ));
-      
+
       toast.success("User updated successfully");
-      
+
       // Refresh the users list
       await fetchUsers();
     } catch (error: any) {
@@ -436,15 +436,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.error("You cannot delete your own account");
       return;
     }
-    
+
     try {
       // Call the API to delete the user
       await deleteUserApi(id.toString());
-      
+
       // Update the local state
       setUsers(users.filter(user => user.id !== id));
       toast.success("User deleted successfully");
-      
+
       // Refresh the users list
       await fetchUsers();
     } catch (error: any) {

@@ -7,12 +7,12 @@ import { componentTagger } from "lovable-tagger";
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
-    port: 8080,
+   // port: 8080,
     proxy: {
       "/api": {
-        target: "https://medium-server3.vercel.app/api",
+        target: "http://localhost:3000",
+        // target: "https://medium-server3.vercel.app",
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, ""),
         secure: false,
       },
     },

@@ -42,7 +42,7 @@ export const mapStatusToSpanish = (status: string): TransactionStatus => {
   }
 };
 
-export const parseTransactionsResponse = (response: AxiosResponse): Transaction[]  => {
+export const parseTransactionsResponse = (response: AxiosResponse): Transaction[] => {
   let transactions: Transaction[] = [];
 
   if (Array.isArray(response.data)) {

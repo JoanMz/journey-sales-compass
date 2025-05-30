@@ -24,6 +24,7 @@ import AdminDashboard from "../components/dashboard/AdminDashboard";
 import EnhancedSalesForm from "../components/forms/EnhancedSalesForm";
 import { SalesFormData, SalesTransaction } from "../types/sales";
 import { mapStatusToSpanish } from "../lib/utils";
+import { createTransaction } from "@/lib/api";
 
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
@@ -49,12 +50,12 @@ const Home = () => {
     "Rechazado": filteredTransactions.filter(transaction => transaction.displayStatus === "Rechazado"),
   };
 
-  const handleAddSale = async (formData: SalesFormData) => {
+  const handleAddSale = async (formData: FormData) => {
     try {
-      console.log('Creating new sale with data:', formData);
+      // console.log('Creating new sale with file:', formData.invoiceImage);
       // TODO: Implement API call to create transaction
-      // await createTransaction(formData);
-      
+      const result = await createTransaction(formData);
+      console.log('Sale created successfully:', result);
       setIsAddSaleOpen(false);
       await refreshTransactions();
     } catch (error) {
@@ -398,13 +399,12 @@ const Home = () => {
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`status-badge ${
-                              transaction.displayStatus === "Aprobado"
+                            <span className={`status-badge ${transaction.displayStatus === "Aprobado"
                                 ? "status-success"
                                 : transaction.displayStatus === "Pendiente"
-                                ? "status-process"
-                                : "status-canceled"
-                            }`}>
+                                  ? "status-process"
+                                  : "status-canceled"
+                              }`}>
                               {transaction.displayStatus}
                             </span>
                           </td>

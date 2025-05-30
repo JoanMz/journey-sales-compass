@@ -16,7 +16,7 @@ import TravelerForm from './TravelerForm';
 import { SalesFormData, TravelerFormData } from '@/types/sales';
 
 interface EnhancedSalesFormProps {
-  onSubmit: (data: SalesFormData) => void;
+  onSubmit: (formData: FormData) => Promise<void> | void;
   onCancel: () => void;
   loading?: boolean;
 }
@@ -43,25 +43,52 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     invoiceImage: undefined
   });
 
-  const updateField = (field: keyof SalesFormData, value: any) => {
+
+  const updateField = async (field: keyof SalesFormData, value: any) => {
+    console.log(`Updating field: ${field} with value:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Basic validation
-    if (!formData.customerName || !formData.package || !formData.amount) {
-      alert('Por favor completa los campos obligatorios');
-      return;
-    }
-    
-    if (formData.travelers.length === 0) {
-      alert('Debe agregar al menos un viajero');
-      return;
+    /*    if (!formData.customerName || !formData.package || !formData.amount) {
+         alert('Por favor completa los campos obligatorios');
+         return;
+       } */
+
+    // if (formData.travelers.length === 0) {
+    //   alert('Debe agregar al menos un viajero');
+    //   return;
+    // }
+
+    const dataToSend = new FormData();
+
+    // Añade todos los campos de texto y números al FormData
+    dataToSend.append('customerName', formData.customerName);
+    dataToSend.append('customerEmail', formData.customerEmail);
+    dataToSend.append('customerPhone', formData.customerPhone);
+    dataToSend.append('customerDni', formData.customerDni);
+    dataToSend.append('customerAddress', formData.customerAddress);
+    dataToSend.append('package', formData.package);
+    dataToSend.append('quotedFlight', formData.quotedFlight);
+    dataToSend.append('agencyCost', formData.agencyCost.toString()); // Convertir a string
+    dataToSend.append('amount', formData.amount.toString()); // Convertir a string
+    dataToSend.append('transactionType', formData.transactionType);
+    dataToSend.append('startDate', formData.startDate);
+    dataToSend.append('endDate', formData.endDate);
+
+    // Serializar el array de viajeros como un string JSON
+    dataToSend.append('travelers', JSON.stringify(formData.travelers));
+
+    // Añadir la imagen si existe
+    if (formData.invoiceImage) {
+      dataToSend.append('invoiceImage', formData.invoiceImage, formData.invoiceImage.name);
     }
 
-    onSubmit(formData);
+    console.log("Submitting form data:", Object.fromEntries(dataToSend.entries()));
+    await onSubmit(dataToSend);
   };
 
   return (
@@ -71,7 +98,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         <h3 className="text-lg font-semibold text-blue-800 border-b border-blue-200 pb-2">
           Información del Cliente
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Nombre completo *</Label>
@@ -131,7 +158,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         <h3 className="text-lg font-semibold text-blue-800 border-b border-blue-200 pb-2">
           Información del Paquete
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Paquete turístico *</Label>
@@ -217,7 +244,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
         <ImageUpload
           label="Factura"
-          onImageSelect={(file) => updateField('invoiceImage', file)}
+          onImageSelect={(file) => updateField('invoiceImage', file)} // Recibe el objeto File
           required
         />
       </div>

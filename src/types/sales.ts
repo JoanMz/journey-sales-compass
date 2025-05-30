@@ -23,7 +23,7 @@ export interface SalesFormData {
   startDate: string;
   endDate: string;
   travelers: TravelerFormData[];
-  invoiceImage?: File;
+  invoiceImage: File;
 }
 
 // Traveler form data with image upload
@@ -32,10 +32,10 @@ export interface TravelerFormData extends Omit<Traveler, 'id' | 'dni_image'> {
 }
 
 // Image upload component props
-export interface ImageUploadProps {
-  label: string;
-  onImageSelect: (file: File | null) => void;
-  currentImage?: string;
-  accept?: string;
-  required?: boolean;
-}
+// export interface ImageUploadProps {
+//   label: string;
+//   onImageSelect: (file: File | null) => void;
+//   currentImage?: string;
+//   accept?: string;
+//   required?: boolean;
+// }

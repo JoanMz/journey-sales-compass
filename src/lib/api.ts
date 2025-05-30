@@ -1,5 +1,6 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
+import { SalesFormData } from "@/types/sales";
 
 // Create API service with consistent error handling
 const api = axios.create({
@@ -33,7 +34,7 @@ export const getTransactionsByStatus = async (status: "pending" | "rejected" | "
       throw new Error("Status is required");
     }
     const response = await axios.post(
-      "https://medium-server3.vercel.app/api",
+      "https://medium-server3.vercel.app/transactions",
       null,
       {
         headers: { "X-Target-Path": `/transactions/filter/${status}` },
@@ -43,7 +44,7 @@ export const getTransactionsByStatus = async (status: "pending" | "rejected" | "
   } catch (error) {
     //console.error(`Failed to fetch ${status} transactions:`, error);
     console.log("Retrying transaction fetch due to error:", error);
-    const response = await axios.post("/api", null, {
+    const response = await axios.post("/api/transactions", null, {
       headers: { "X-Target-Path": `/transactions/filter/${status}` },
     });
     console.log("Retry successful, response:", response.data);
@@ -58,7 +59,7 @@ export const getAllTransactions = async () => {
       headers: { "X-Target-Path": "/transactions" },
     }); */
     const response = await axios.post(
-      "https://medium-server3.vercel.app/api",
+      "https://medium-server3.vercel.app/api/transactions",
       null,
       {
         headers: { "X-Target-Path": "/transactions" },
@@ -67,7 +68,7 @@ export const getAllTransactions = async () => {
     return  parseTransactionsResponse(response);
   } catch (error) {
     console.error("Failed to fetch all transactions:", error);
-    const response = await axios.post("/api", null, {
+    const response = await axios.post("/api/transactions", null, {
       headers: { "X-Target-Path": "/transactions" },
     });
     return  parseTransactionsResponse(response);
@@ -75,12 +76,25 @@ export const getAllTransactions = async () => {
   }
 };
 
+export const createTransaction = async (formData: FormData) =>{
+  try {
+    console.log("Creating transaction with data:", formData);
+    const response = await axios.post("/api/transactions", {...formData}, {
+      headers: { "X-Target-Path": "/transactions/" , method: "POST"},
+    });
+    return response.data;
+  } catch (error) {
+    console.error("Failed to create sale :", error);
+    throw error;
+  }
+}
+
 export const getTransactionsByPeriod = async (
   period: "fortnight" | "month" | "all"
 ) => {
   try {
     const response = await axios.post(
-      "/api",
+      "/api/transactions",
       { data: { period } },
       {
         headers: { "X-Target-Path": "/transactions/date-range/" },
@@ -104,7 +118,7 @@ export const getTransactionsByMixedFilters = async (
   if (period === "all" && !sellerId && !status) return getAllTransactions();
   try {
     const response = await axios.post(
-      "/api",
+      "/api/transactions/",
       { data: { period }, query: { seller_id: sellerId, status: status } },
       {
         headers: { "X-Target-Path": "/transactions/filter-mixed/" },
@@ -119,7 +133,7 @@ export const getTransactionsByMixedFilters = async (
 
 export const updateTransactionStatus = async (id: number, status: string) => {
   try {
-    const response = await axios.post("/api/", {
+    const response = await axios.post("/api/transactions/", {
       url: `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000`,
       method: "PATCH",
       data: { status },
@@ -153,7 +167,9 @@ export const generateDocuments = async (transactionId: number) => {
 // get users
 export const getUsers = async () => {
   try {
-    const response = await axios.get("http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/");
+    const response = await axios.post("/api/users", null, {
+      headers: { "X-Target-Path": "/users/" },
+    });
     return response.data;
   } catch (error) {
     console.error("Failed to fetch users:", error);
@@ -171,10 +187,18 @@ export const createUser = async (user: {
   phone_number?: string;
 }) => {
   try {
+    // const response = await axios.post(
+    //   "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/",
+    //   user
+    // );
     const response = await axios.post(
-      "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/",
-      user
+      "/api/users",
+      user,
+      {
+        headers: { "X-Target-Path": "/users/" , method : "POST" },
+      }
     );
+    console.log("User created successfully:", response);
     return response.data;
   } catch (error) {
     console.error("Failed to create user:", error);

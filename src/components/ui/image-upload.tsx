@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { Upload, X, Eye } from 'lucide-react';
 import { Button } from './button';
@@ -7,7 +6,7 @@ import { cn } from '@/lib/utils';
 interface ImageUploadProps {
   label: string;
   onImageSelect: (file: File | null) => void;
-  currentImage?: string;
+  currentImage?:  string | null;
   accept?: string;
   required?: boolean;
   className?: string;
@@ -49,23 +48,29 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
+      console.log("File selected:", e.target.files[0]);
     }
   };
 
-  const handleFile = (file: File) => {
+const handleFile = (file: File) => {
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
+      onImageSelect(file);
       reader.onload = (e) => {
-        setPreview(e.target?.result as string);
+        setPreview(e.target?.result as string); // Para mostrar la vista previa localmente
       };
       reader.readAsDataURL(file);
-      onImageSelect(file);
+      // ¡Envía el objeto File!
+    } else {
+        alert('Por favor selecciona un archivo de imagen válido.');
+        onImageSelect(null); // No seleccionó una imagen
+        setPreview(null);
     }
   };
 
   const removeImage = () => {
     setPreview(null);
-    onImageSelect(null);
+    onImageSelect(null); // Pasa null para indicar que no hay archivo
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -83,7 +88,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
           dragActive 
             ? "border-blue-500 bg-blue-50" 
             : preview 
-            ? "border-green-500 bg-green-50" 
+            ? "border-green-500 bg-green-50" // Color verde si hay preview
             : "border-gray-300 hover:border-gray-400"
         )}
         onDragEnter={handleDrag}
@@ -94,6 +99,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         <input
           ref={fileInputRef}
           type="file"
+          name="image"
           accept={accept}
           onChange={handleChange}
           className="hidden"
