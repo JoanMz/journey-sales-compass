@@ -52,7 +52,7 @@ const Home = () => {
 
   const handleAddSale = async (formData: FormData) => {
     try {
-      // console.log('Creating new sale with file:', formData.invoiceImage);
+      console.log('Creating new sale with file:', formData);
       // TODO: Implement API call to create transaction
       const result = await createTransaction(formData);
       console.log('Sale created successfully:', result);

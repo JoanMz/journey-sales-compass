@@ -79,8 +79,9 @@ export const getAllTransactions = async () => {
 export const createTransaction = async (formData: FormData) =>{
   try {
     console.log("Creating transaction with data:", formData);
+    console.log("FormData entries:", formData.entries());
     const response = await axios.post("/api/transactions", {...formData}, {
-      headers: { "X-Target-Path": "/transactions/" , method: "POST"},
+      headers: { "X-Target-Path": "/transactions/" , method: "POST", "Content-Type": "multipart/form-data"},
     });
     return response.data;
   } catch (error) {

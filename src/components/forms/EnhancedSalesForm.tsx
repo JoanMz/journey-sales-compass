@@ -14,6 +14,8 @@ import {
 import ImageUpload from '../ui/image-upload';
 import TravelerForm from './TravelerForm';
 import { SalesFormData, TravelerFormData } from '@/types/sales';
+import { createTransaction } from '@/lib/api';
+import axios from 'axios';
 
 interface EnhancedSalesFormProps {
   onSubmit: (formData: FormData) => Promise<void> | void;
@@ -27,18 +29,18 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
   loading = false
 }) => {
   const [formData, setFormData] = useState<SalesFormData>({
-    customerName: '',
-    customerEmail: '',
-    customerPhone: '',
-    customerDni: '',
-    customerAddress: '',
-    package: '',
-    quotedFlight: '',
-    agencyCost: 0,
-    amount: 0,
+    customerName: 'Sofia',
+    customerEmail: 'sofia@sofia.com',
+    customerPhone: '123456789',
+    customerDni: '12345678',
+    customerAddress: '123 Main St',
+    package: 'Paquete 1',
+    quotedFlight: 'Vuelo 1',
+    agencyCost: 10,
+    amount: 120,
     transactionType: 'Nacional',
-    startDate: '',
-    endDate: '',
+    startDate: '2025-05-30',
+    endDate: '2025-05-30',
     travelers: [],
     invoiceImage: undefined
   });
@@ -66,29 +68,107 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     const dataToSend = new FormData();
 
     // Añade todos los campos de texto y números al FormData
-    dataToSend.append('customerName', formData.customerName);
-    dataToSend.append('customerEmail', formData.customerEmail);
-    dataToSend.append('customerPhone', formData.customerPhone);
-    dataToSend.append('customerDni', formData.customerDni);
-    dataToSend.append('customerAddress', formData.customerAddress);
-    dataToSend.append('package', formData.package);
-    dataToSend.append('quotedFlight', formData.quotedFlight);
-    dataToSend.append('agencyCost', formData.agencyCost.toString()); // Convertir a string
-    dataToSend.append('amount', formData.amount.toString()); // Convertir a string
-    dataToSend.append('transactionType', formData.transactionType);
-    dataToSend.append('startDate', formData.startDate);
-    dataToSend.append('endDate', formData.endDate);
+    // dataToSend.append('customerName', formData.customerName);
+    // dataToSend.append('customerEmail', formData.customerEmail);
+    // dataToSend.append('customerPhone', formData.customerPhone);
+    // dataToSend.append('customerDni', formData.customerDni);
+    // dataToSend.append('customerAddress', formData.customerAddress);
+    // dataToSend.append('package', formData.package);
+    // dataToSend.append('quotedFlight', formData.quotedFlight);
+    // dataToSend.append('agencyCost', formData.agencyCost.toString()); // Convertir a string
+    // dataToSend.append('amount', formData.amount.toString()); // Convertir a string
+    // dataToSend.append('transactionType', formData.transactionType);
+    // dataToSend.append('startDate', formData.startDate);
+    // dataToSend.append('endDate', formData.endDate);
 
     // Serializar el array de viajeros como un string JSON
-    dataToSend.append('travelers', JSON.stringify(formData.travelers));
+    // dataToSend.append('travelers', JSON.stringify(formData.travelers));
 
     // Añadir la imagen si existe
     if (formData.invoiceImage) {
-      dataToSend.append('invoiceImage', formData.invoiceImage, formData.invoiceImage.name);
+      dataToSend.append('data0', formData.invoiceImage, formData.invoiceImage.name);
     }
 
     console.log("Submitting form data:", Object.fromEntries(dataToSend.entries()));
-    await onSubmit(dataToSend);
+
+    try {
+      console.log("FormData entries:", dataToSend.entries());
+
+      const formdata = new FormData();
+      formdata.append("data0", formData.invoiceImage, formData.invoiceImage.name);
+
+      const response = await axios.post("/api/transactions", dataToSend, {
+        headers: { "X-Target-Path": "/transactions/", method: "POST", "Content-Type": "multipart/form-data" },
+      });
+      console.log("Transaction created successfully:", response.data[0].imageUrl);
+
+      /* 
+          {
+            "client_name": "string",
+            "client_email": "string",
+            "client_phone": "string",
+            "client_dni": "string",
+            "client_address": "string",
+            "invoice_image": "string",
+            "id_image": "string",
+            "package": "string",
+            "quoted_flight": "string",
+            "agency_cost": 0,
+            "amount": 0,
+            "transaction_type": "venta",
+            "status": "pending",
+            "seller_id": 0,
+            "receipt": "string",
+            "start_date": "2025-05-30T06:48:40.085Z",
+            "end_date": "2025-05-30T06:48:40.085Z",
+            "travelers": [
+    {
+                "name": "string",
+                "dni": "string",
+                "age": 0,
+                "phone": "string",
+                "dni_image": "string"
+    }
+  ]
+}
+       
+      */
+
+      const BODY = {
+        "client_name": formData.customerName,
+        "client_email": formData.customerEmail,
+        "client_phone": formData.customerPhone,
+        "client_dni": formData.customerDni,
+        "client_address": formData.customerAddress,
+        "invoice_image": response.data[0].imageUrl,
+        "id_image": `${response.data[0].imageUrl.split("amazonaws.com")[1]}-${new Date().getTime()}`,
+        "package": formData.package,
+        "quoted_flight": formData.quotedFlight,
+        "agency_cost": formData.agencyCost,
+        "amount": formData.amount,
+        "transaction_type": formData.transactionType,
+        "status": "pending",
+        "seller_id": 0,
+        "receipt": "",
+        "start_date": formData.startDate,
+        "end_date": formData.endDate,
+        "travelers": formData.travelers
+      }
+
+      const responseTransaction = await axios.post("http://localhost:3000/api/saveTransactions",
+        BODY
+      );
+
+      console.log("Transaction created successfully:", responseTransaction.data);
+
+      return
+      return response.data;
+    } catch (error) {
+      console.error("Failed to create sale :", error);
+      throw error;
+    }
+
+    // onSubmit(dataToSend);
   };
 
   return (
