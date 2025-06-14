@@ -28,7 +28,7 @@ import { createTransaction } from "@/lib/api";
 
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
-  const { transactions, loading, refreshTransactions } = useData();
+  const { transactions, loading, refreshTransactions, addTransaction } = useData();
   const [isAddSaleOpen, setIsAddSaleOpen] = useState(false);
 
   // Convert transactions to sales format with proper status mapping
@@ -48,13 +48,14 @@ const Home = () => {
     "Pendiente": filteredTransactions.filter(transaction => transaction.displayStatus === "Pendiente"),
     "Aprobado": filteredTransactions.filter(transaction => transaction.displayStatus === "Aprobado"),
     "Rechazado": filteredTransactions.filter(transaction => transaction.displayStatus === "Rechazado"),
+    "Terminado": filteredTransactions.filter(transaction => transaction.displayStatus === "Terminado"),
   };
 
   const handleAddSale = async (formData: FormData) => {
     try {
       console.log('Creating new sale with file:', formData);
       // TODO: Implement API call to create transaction
-      const result = await createTransaction(formData);
+      const result = await addTransaction(formData);
       console.log('Sale created successfully:', result);
       setIsAddSaleOpen(false);
       await refreshTransactions();

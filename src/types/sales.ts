@@ -5,7 +5,7 @@ import { Transaction, Traveler } from "./transactions";
 export interface SalesTransaction extends Transaction {
   // Additional UI-specific fields for backward compatibility
   customerAvatar?: string;
-  displayStatus: "Pendiente" | "Aprobado" | "Rechazado";
+  displayStatus: "Pendiente" | "Aprobado" | "Rechazado"| "Terminado";
 }
 
 // Form data for creating new sales with image uploads
@@ -19,7 +19,7 @@ export interface SalesFormData {
   quotedFlight?: string;
   agencyCost: number;
   amount: number;
-  transactionType: "Nacional" | "Internacional";
+  transactionType: "venta" | "abono";
   startDate: string;
   endDate: string;
   travelers: TravelerFormData[];

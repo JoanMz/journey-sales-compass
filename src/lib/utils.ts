@@ -34,6 +34,8 @@ export const mapStatusToSpanish = (status: string): TransactionStatus => {
     case "rejected":
     case "canceled": // Mapea "Canceled" a "rejected"
       return "Rechazado";
+    case "terminado": // Mapea "Canceled" a "rejected"
+      return "Terminado";
     default:
       console.warn(
         `Estado de transacción desconocido: ${status}. Mapeando a pending.`

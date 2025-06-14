@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 
 type User = {
-  id: string;
+  id: number;
   name: string;
   email: string;
   role: "admin" | "seller" | "administrador" | "vendedor" | "encargado";

@@ -21,8 +21,8 @@ export interface Transaction {
   quoted_flight?: string;
   agency_cost: number;
   amount: number;
-  transaction_type?: "Nacional" | "Internacional";
-  status: "pending"| "approved" | "rejected";
+  transaction_type?: "venta" | "abono";
+  status: "pending"| "approved" | "rejected"| "terminado";
   seller_id: number;
   seller_name: string;
   receipt: string;
