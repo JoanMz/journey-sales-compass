@@ -58,7 +58,7 @@ type DataContextType = {
   updateSaleStatus: (id: string, status: Sale["status"]) => void;
   deleteSale: (id: string) => void;
   addUser: (user: Omit<User, "id">) => void;
-  updateUser: (id: string, user: Partial<User>) => void;
+  updateUser: (id: number, user: Partial<User>) => void;
   deleteUser: (id: string) => void;
   updateTransactionStatus: (id: number, status: string) => Promise<void>;
   completeTransaction: (id: number, flightInfo: FlightInfo, hotelInfo: HotelInfo) => Promise<void>;
@@ -431,10 +431,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUser = async (id: string | number, userData: Partial<User>) => {
+  const updateUser = async (id: number, userData: Partial<User>) => {
     try {
       // Call the API to update the user
-      await updateUserApi(id.toString(), {
+      await updateUserApi(id, {
         name: userData.name || '',
         email: userData.email || '',
         role: userData.role || '',

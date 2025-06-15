@@ -273,7 +273,7 @@ export const deleteUser = async (userId: string) => {
 
 // update user using patch
 export const updateUser = async (
-  userId: string,
+  userId: number,
   user: {
     name: string;
     email: string;
