@@ -31,7 +31,7 @@ export type Sale = {
 };
 
 export type User = {
-  id: string | number;
+  id: number;
   name: string;
   email: string;
   role: "admin" | "seller" | "administrador" | "vendedor";
@@ -59,7 +59,7 @@ type DataContextType = {
   deleteSale: (id: string) => void;
   addUser: (user: Omit<User, "id">) => void;
   updateUser: (id: number, user: Partial<User>) => void;
-  deleteUser: (id: string) => void;
+  deleteUser: (id: number) => void;
   updateTransactionStatus: (id: number, status: string) => Promise<void>;
   completeTransaction: (id: number, flightInfo: FlightInfo, hotelInfo: HotelInfo) => Promise<void>;
   metrics: {
@@ -277,8 +277,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         // Fallback to default users if API returns empty
         const defaultUsers: User[] = [
-          { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
-          { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
+          { id: 1, name: "Admin User", email: "example@gmail.com", role: "admin" },
+          { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
         ];
         setUsers(defaultUsers);
       }
@@ -286,8 +286,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Error fetching users:", error);
       // Fallback to default users on error
       const defaultUsers: User[] = [
-        { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
-        { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
+        { id: 2, name: "Admin User", email: "example@gmail.com", role: "admin" },
+        { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
       ];
       setUsers(defaultUsers);
     }

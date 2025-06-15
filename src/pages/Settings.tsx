@@ -116,17 +116,17 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string | number) => {
+  const handleDeleteUser = async (userId: number) => {
     try {
-      await deleteUser(String(userId));
+      await deleteUser(userId);
     } catch (error) {
       // Error handling is done in the DataContext
     }
   };
 
-  const handleUpdateUser = async (userId: string | number, userProps) => {
+  const handleUpdateUser = async (userId: number, userProps) => {
     try {
-      await updateUser(String(userId), userProps);
+      await updateUser(userId, userProps);
     } catch (error) {
       // Error handling is done in the DataContext
     }
