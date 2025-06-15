@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useData } from "../contexts/DataContext";
@@ -22,14 +21,17 @@ import { Plus, Check, Clock, X, Users, CreditCard } from "lucide-react";
 import ManagerDashboard from "../components/dashboard/ManagerDashboard";
 import AdminDashboard from "../components/dashboard/AdminDashboard";
 import EnhancedSalesForm from "../components/forms/EnhancedSalesForm";
-import { SalesFormData, SalesTransaction } from "../types/sales";
+import FlightHotelForm from "../components/forms/FlightHotelForm";
+import { SalesFormData, SalesTransaction, FlightInfo, HotelInfo } from "../types/sales";
 import { mapStatusToSpanish } from "../lib/utils";
-import { createTransaction } from "@/lib/api";
+import { createTransaction, completeTransaction } from "@/lib/api";
 
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
-  const { transactions, loading, refreshTransactions, addTransaction } = useData();
+  const { transactions, loading, refreshTransactions, addTransaction, completeTransaction } = useData();
   const [isAddSaleOpen, setIsAddSaleOpen] = useState(false);
+  const [isCompleteInfoOpen, setIsCompleteInfoOpen] = useState(false);
+  const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null);
 
   // Convert transactions to sales format with proper status mapping
   const salesTransactions: SalesTransaction[] = transactions.map(transaction => ({
@@ -43,12 +45,12 @@ const Home = () => {
     ? salesTransactions
     : salesTransactions.filter(transaction => transaction.seller_id.toString() === user?.id?.toString());
 
-  // Group transactions by status for Kanban view
+  // Group transactions by status for Kanban view - Updated to include "Terminado"
   const kanbanGroups = {
     "Pendiente": filteredTransactions.filter(transaction => transaction.displayStatus === "Pendiente"),
     "Aprobado": filteredTransactions.filter(transaction => transaction.displayStatus === "Aprobado"),
-    "Rechazado": filteredTransactions.filter(transaction => transaction.displayStatus === "Rechazado"),
     "Terminado": filteredTransactions.filter(transaction => transaction.displayStatus === "Terminado"),
+    "Rechazado": filteredTransactions.filter(transaction => transaction.displayStatus === "Rechazado"),
   };
 
   const handleAddSale = async (formData: FormData) => {
@@ -160,7 +162,7 @@ const Home = () => {
             <CardContent>
               <div className="text-2xl font-bold">
                 ${filteredTransactions
-                  .filter(t => t.displayStatus === "Aprobado")
+                  .filter(t => t.displayStatus === "Aprobado" || t.displayStatus === "Terminado")
                   .reduce((sum, t) => sum + t.amount, 0)
                   .toLocaleString()}
               </div>
@@ -184,11 +186,11 @@ const Home = () => {
 
           <Card className="stats-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Approved Sales</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">Completed Sales</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {filteredTransactions.filter(t => t.displayStatus === "Aprobado").length}
+                {filteredTransactions.filter(t => t.displayStatus === "Terminado").length}
               </div>
               <div className="text-xs text-green-600 flex items-center mt-1">
                 <span className="mr-1">+8.12%</span> vs last week
@@ -215,7 +217,7 @@ const Home = () => {
               </TabsList>
 
               <TabsContent value="kanban">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   {/* Pending Column */}
                   <div
                     className="kanban-column border-t-4 border-blue-400"
@@ -267,14 +269,14 @@ const Home = () => {
 
                   {/* Approved Column */}
                   <div
-                    className="kanban-column border-t-4 border-green-400"
+                    className="kanban-column border-t-4 border-yellow-400"
                     onDrop={(e) => handleDrop(e, "Aprobado")}
                     onDragOver={allowDrop}
                   >
                     <div className="flex items-center mb-4">
-                      <Check className="h-5 w-5 mr-2 text-green-500" />
+                      <Check className="h-5 w-5 mr-2 text-yellow-500" />
                       <h3 className="font-semibold">Aprobadas</h3>
-                      <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                      <span className="ml-2 bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded">
                         {kanbanGroups["Aprobado"].length}
                       </span>
                     </div>
@@ -285,11 +287,11 @@ const Home = () => {
                           key={transaction.id}
                           draggable
                           onDragStart={(e) => startDrag(e, transaction.id.toString())}
-                          className="kanban-card border-l-green-400"
+                          className="kanban-card border-l-yellow-400"
                         >
                           <div className="flex justify-between items-start">
                             <div className="flex items-center">
-                              <div className="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-2">
+                              <div className="h-8 w-8 rounded-full bg-yellow-100 text-yellow-600 flex items-center justify-center mr-2">
                                 {transaction.client_name.charAt(0)}
                               </div>
                               <div>
@@ -306,14 +308,24 @@ const Home = () => {
                               <span className="text-xs text-gray-500">
                                 {new Date(transaction.start_date).toLocaleDateString()}
                               </span>
-                              <span className="status-badge status-success">Aprobado</span>
+                              <span className="status-badge bg-yellow-100 text-yellow-800">Aprobado</span>
                             </div>
+                            {isSeller && transaction.seller_id.toString() === user?.id?.toString() && (
+                              <Button
+                                size="sm"
+                                className="w-full mt-2 bg-blue-600 hover:bg-blue-700"
+                                onClick={() => openCompleteInfo(transaction.id)}
+                              >
+                                Completar Información
+                              </Button>
+                            )}
                           </div>
                         </div>
                       ))}
                     </div>
                   </div>
-                  {/* Finished Column */}
+
+                  {/* Terminado Column */}
                   <div
                     className="kanban-column border-t-4 border-green-400"
                     onDrop={(e) => handleDrop(e, "Terminado")}
@@ -354,7 +366,7 @@ const Home = () => {
                               <span className="text-xs text-gray-500">
                                 {new Date(transaction.start_date).toLocaleDateString()}
                               </span>
-                              <span className="status-badge status-success">Aprobado</span>
+                              <span className="status-badge status-success">Terminado</span>
                             </div>
                           </div>
                         </div>
@@ -484,6 +496,24 @@ const Home = () => {
           <EnhancedSalesForm
             onSubmit={handleAddSale}
             onCancel={() => setIsAddSaleOpen(false)}
+            loading={loading}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Complete Transaction Info Dialog */}
+      <Dialog open={isCompleteInfoOpen} onOpenChange={setIsCompleteInfoOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Completar Información de la Venta</DialogTitle>
+            <DialogDescription>
+              Agrega la información de vuelo y hotel para completar la transacción.
+            </DialogDescription>
+          </DialogHeader>
+
+          <FlightHotelForm
+            onSubmit={handleCompleteTransaction}
+            onCancel={() => setIsCompleteInfoOpen(false)}
             loading={loading}
           />
         </DialogContent>

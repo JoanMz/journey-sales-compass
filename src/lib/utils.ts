@@ -20,26 +20,17 @@ export function formatCurrency(
   }).format(amount);
 }
 
-export const mapStatusToSpanish = (status: string): TransactionStatus => {
-  // Asegúrate de que el estado de entrada sea consistente (minúsculas, sin espacios extra)
-  const normalizedStatus = status.toLowerCase().trim();
-
-  switch (normalizedStatus) {
+export const mapStatusToSpanish = (status: string): "Pendiente" | "Aprobado" | "Rechazado" | "Terminado" => {
+  switch (status) {
     case "pending":
-    case "on process": // Mapea "On Process" a "pending"
       return "Pendiente";
     case "approved":
-    case "success": // Mapea "Success" a "approved"
       return "Aprobado";
     case "rejected":
-    case "canceled": // Mapea "Canceled" a "rejected"
       return "Rechazado";
-    case "terminado": // Mapea "Canceled" a "rejected"
+    case "terminado":
       return "Terminado";
     default:
-      console.warn(
-        `Estado de transacción desconocido: ${status}. Mapeando a pending.`
-      );
       return "Pendiente";
   }
 };

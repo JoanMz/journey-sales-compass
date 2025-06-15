@@ -1,6 +1,6 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
-import { Transaction } from "@/types/transactions";
+import { Transaction, FlightInfo, HotelInfo } from "@/types/transactions";
 
 // Define API response type
 export interface ApiResponse {
@@ -169,6 +169,35 @@ export const updateTransactionStatus = async (id: number, status: string) => {
     return parseTransactionsResponse(response);
   } catch (error) {
     console.error(`Failed to update transaction ${id} status:`, error);
+    throw error;
+  }
+};
+
+export const updateTransactionWithFlightHotel = async (
+  id: number, 
+  flightInfo: FlightInfo, 
+  hotelInfo: HotelInfo
+) => {
+  try {
+    const response = await axios.post(
+      "/api/transactions/",
+      {
+        params: { 
+          flight_info: flightInfo,
+          hotel_info: hotelInfo,
+          status: "terminado"
+        },
+      },
+      {
+        headers: {
+          "X-Target-Path": `/transactions/${id}/complete`,
+          method: "PATCH",
+        },
+      }
+    );
+    return parseTransactionsResponse(response);
+  } catch (error) {
+    console.error(`Failed to complete transaction ${id}:`, error);
     throw error;
   }
 };

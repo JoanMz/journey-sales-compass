@@ -1,8 +1,8 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
-import { getAllTransactions, getUsers, createUser, deleteUser as deleteUserApi, updateUser as updateUserApi, createTransaction, updateTransactionStatus } from "@/lib/api";
-import { Transaction } from "@/types/transactions";
+import { getAllTransactions, getUsers, createUser, deleteUser as deleteUserApi, updateUser as updateUserApi, createTransaction, updateTransactionStatus, updateTransactionWithFlightHotel } from "@/lib/api";
+import { Transaction, FlightInfo, HotelInfo } from "@/types/transactions";
 import { SalesFormData } from "@/types/sales";
 import { mapStatusToSpanish } from "@/lib/utils";
 import { create } from "domain";
@@ -61,6 +61,7 @@ type DataContextType = {
   updateUser: (id: string, user: Partial<User>) => void;
   deleteUser: (id: string) => void;
   updateTransactionStatus: (id: number, status: string) => Promise<void>;
+  completeTransaction: (id: number, flightInfo: FlightInfo, hotelInfo: HotelInfo) => Promise<void>;
   metrics: {
     totalSales: number;
     totalRevenue: number;
@@ -374,6 +375,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const completeTransactionWithInfo = async (id: number, flightInfo: FlightInfo, hotelInfo: HotelInfo) => {
+    try {
+      await updateTransactionWithFlightHotel(id, flightInfo, hotelInfo);
+      
+      // Force refresh after completion
+      await refreshTransactions();
+    } catch (error) {
+      console.error(`Failed to complete transaction ${id}:`, error);
+      throw error;
+    }
+  };
+
   const updateSaleStatus = (id: string, status: Sale["status"]) => {
     setSales(sales.map(sale =>
       sale.id === id ? { ...sale, status } : sale
@@ -530,6 +543,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateUser,
         deleteUser,
         updateTransactionStatus: changeTransactionStatus,
+        completeTransaction: completeTransactionWithInfo,
         metrics,
       }}
     >
