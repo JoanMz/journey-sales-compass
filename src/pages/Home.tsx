@@ -24,11 +24,12 @@ import EnhancedSalesForm from "../components/forms/EnhancedSalesForm";
 import FlightHotelForm from "../components/forms/FlightHotelForm";
 import { SalesFormData, SalesTransaction, FlightInfo, HotelInfo } from "../types/sales";
 import { mapStatusToSpanish } from "../lib/utils";
-import { createTransaction, completeTransaction } from "@/lib/api";
+import { createTransaction, updateTransactionWithFlightHotel } from "@/lib/api";
+import { toast } from "sonner";
 
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
-  const { transactions, loading, refreshTransactions, addTransaction, completeTransaction } = useData();
+  const { transactions, loading, refreshTransactions, addTransaction } = useData();
   const [isAddSaleOpen, setIsAddSaleOpen] = useState(false);
   const [isCompleteInfoOpen, setIsCompleteInfoOpen] = useState(false);
   const [selectedTransactionId, setSelectedTransactionId] = useState<number | null>(null);
@@ -65,6 +66,33 @@ const Home = () => {
       console.error('Error creating sale:', error);
       alert('Error al crear la venta');
     }
+  };
+
+  // Handler for completing transaction info
+  const handleCompleteTransaction = async (
+    flightInfo: FlightInfo,
+    hotelInfo: HotelInfo
+  ) => {
+    try {
+      if (!selectedTransactionId) {
+        toast.error("No hay transacción seleccionada para completar.");
+        return;
+      }
+      await updateTransactionWithFlightHotel(selectedTransactionId, flightInfo, hotelInfo);
+      toast.success("Venta completada exitosamente");
+      setIsCompleteInfoOpen(false);
+      setSelectedTransactionId(null);
+      await refreshTransactions();
+    } catch (error) {
+      toast.error("Error al completar la venta");
+      console.error(error);
+    }
+  };
+
+  // Handler to open modal when completing info
+  const openCompleteInfo = (transactionId: number) => {
+    setSelectedTransactionId(transactionId);
+    setIsCompleteInfoOpen(true);
   };
 
   // Handle dropping a transaction card to a new status column
@@ -310,7 +338,7 @@ const Home = () => {
                               </span>
                               <span className="status-badge bg-yellow-100 text-yellow-800">Aprobado</span>
                             </div>
-                            {isSeller && transaction.seller_id.toString() === user?.id?.toString() && (
+                            {isSeller && transaction.seller_id === user?.id && (
                               <Button
                                 size="sm"
                                 className="w-full mt-2 bg-blue-600 hover:bg-blue-700"

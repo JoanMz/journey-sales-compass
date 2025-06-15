@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import { useAuth } from "../contexts/AuthContext";
@@ -118,12 +117,18 @@ const Settings = () => {
   };
 
   const handleDeleteUser = async (userId: string | number) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        await deleteUser(userId);
-      } catch (error) {
-        // Error handling is done in the DataContext
-      }
+    try {
+      await deleteUser(String(userId));
+    } catch (error) {
+      // Error handling is done in the DataContext
+    }
+  };
+
+  const handleUpdateUser = async (userId: string | number, userProps) => {
+    try {
+      await updateUser(String(userId), userProps);
+    } catch (error) {
+      // Error handling is done in the DataContext
     }
   };
 

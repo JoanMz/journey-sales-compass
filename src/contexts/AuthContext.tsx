@@ -60,7 +60,7 @@ const deleteCookie = (name: string) => {
 
 // Default users for testing
 const DEFAULT_ADMIN: User = {
-  id: "1",
+  id: 1,
   name: "Admin User",
   email: "example@gmai.com",
   role: "admin",
@@ -68,7 +68,7 @@ const DEFAULT_ADMIN: User = {
 };
 
 const DEFAULT_SELLER: User = {
-  id: "2",
+  id: 2,
   name: "Luis Seller",
   email: "seller@vive.com",
   role: "encargado",
@@ -78,7 +78,7 @@ const DEFAULT_USERS: User[] = [
   DEFAULT_ADMIN,
   DEFAULT_SELLER,
   {
-    id: "3",
+    id: 3,
     name: "John Seller",
     email: "seller@example.com",
     role: "seller",
@@ -112,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (email === "mariana@example.com" && password === "mariana123") {
         // Simulating API response with predetermined admin data
         const loggedInUser: User = {
-          id: "3",
+          id: 3,
           name: "Mariana",
           email: email,
           role: "administrador",
@@ -131,7 +131,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (email === "seller@vive.com" && password === "luis123") {
         // Update with correct information based on API response
         const managerUser: User = {
-          id: "7",
+          id: 7,
           name: "Luis Barraza",
           email: "seller@vive.com",
           role: "encargado",
@@ -149,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Additional user for demo - "Sara" as vendedor
       if (email === "sara@example.com" && password === "sara123") {
         const sellerUser: User = {
-          id: "1",
+          id: 1,
           name: "Sara",
           email: "sara@example.com",
           role: "vendedor",
@@ -181,7 +181,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (userData && (userData.role === "administrador" || userData.role === "admin")) {
           const loggedInUser: User = {
-            id: userData.user_id.toString(),
+            id: Number(userData.user_id),
             name: userData.name,
             email: email,
             role: userData.role as "admin" | "seller" | "administrador",
@@ -235,7 +235,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteCookie("crm_refresh_token");
     toast.success("Logged out successfully");
   };
-
 
   // !TODO: revisar como quedan los roles para todos los usuarios
 

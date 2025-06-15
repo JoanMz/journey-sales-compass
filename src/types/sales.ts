@@ -1,5 +1,6 @@
 
-import { Transaction, Traveler } from "./transactions";
+import { Transaction, Traveler, FlightInfo, HotelInfo } from "./transactions";
+export type { FlightInfo, HotelInfo };
 
 // Unified sales transaction type that extends the base transaction
 export interface SalesTransaction extends Transaction {
