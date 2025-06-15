@@ -41,7 +41,7 @@ const Home = () => {
   // Filter transactions for the current user if not admin
   const filteredTransactions = isAdmin
     ? salesTransactions
-    : salesTransactions.filter(transaction => transaction.seller_id.toString() === user?.id);
+    : salesTransactions.filter(transaction => transaction.seller_id.toString() === user?.id?.toString());
 
   // Group transactions by status for Kanban view
   const kanbanGroups = {
@@ -66,7 +66,7 @@ const Home = () => {
   };
 
   // Handle dropping a transaction card to a new status column
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetStatus: "Pendiente" | "Aprobado" | "Rechazado") => {
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>, targetStatus: "Pendiente" | "Aprobado" | "Rechazado"| "Terminado") => {
     e.preventDefault();
     const transactionId = e.dataTransfer.getData("text/plain");
     console.log(`Moving transaction ${transactionId} to ${targetStatus}`);
@@ -281,6 +281,54 @@ const Home = () => {
 
                     <div className="space-y-3">
                       {kanbanGroups["Aprobado"].map((transaction) => (
+                        <div
+                          key={transaction.id}
+                          draggable
+                          onDragStart={(e) => startDrag(e, transaction.id.toString())}
+                          className="kanban-card border-l-green-400"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex items-center">
+                              <div className="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-2">
+                                {transaction.client_name.charAt(0)}
+                              </div>
+                              <div>
+                                <h4 className="font-medium">{transaction.client_name}</h4>
+                                <span className="text-xs text-gray-500">Vendedor: {transaction.seller_name}</span>
+                              </div>
+                            </div>
+                            <span className="text-sm font-semibold">${transaction.amount}</span>
+                          </div>
+
+                          <div className="mt-3">
+                            <p className="text-sm">{transaction.package}</p>
+                            <div className="flex justify-between items-center mt-2">
+                              <span className="text-xs text-gray-500">
+                                {new Date(transaction.start_date).toLocaleDateString()}
+                              </span>
+                              <span className="status-badge status-success">Aprobado</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Finished Column */}
+                  <div
+                    className="kanban-column border-t-4 border-green-400"
+                    onDrop={(e) => handleDrop(e, "Terminado")}
+                    onDragOver={allowDrop}
+                  >
+                    <div className="flex items-center mb-4">
+                      <Check className="h-5 w-5 mr-2 text-green-500" />
+                      <h3 className="font-semibold">Completadas</h3>
+                      <span className="ml-2 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                        {kanbanGroups["Terminado"].length}
+                      </span>
+                    </div>
+
+                    <div className="space-y-3">
+                      {kanbanGroups["Terminado"].map((transaction) => (
                         <div
                           key={transaction.id}
                           draggable

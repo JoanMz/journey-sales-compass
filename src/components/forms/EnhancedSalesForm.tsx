@@ -14,7 +14,6 @@ import {
 import ImageUpload from '../ui/image-upload';
 import TravelerForm from './TravelerForm';
 import { SalesFormData, TravelerFormData } from '@/types/sales';
-import { createTransaction } from '@/lib/api';
 import axios from 'axios';
 
 interface EnhancedSalesFormProps {
@@ -38,7 +37,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     quotedFlight: 'Vuelo 1',
     agencyCost: 10,
     amount: 120,
-    transactionType: 'Nacional',
+    transactionType: 'venta',
     startDate: '2025-05-30',
     endDate: '2025-05-30',
     travelers: [],
@@ -46,8 +45,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
   });
 
 
-  const updateField = async (field: keyof SalesFormData, value: any) => {
-    console.log(`Updating field: ${field} with value:`, value);
+  const updateField = async (field: keyof SalesFormData, value) => {
+    // console.log(`Updating field: ${field} with value:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -93,9 +92,6 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
     try {
       console.log("FormData entries:", dataToSend.entries());
-
-      const formdata = new FormData();
-      formdata.append("data0", formData.invoiceImage, formData.invoiceImage.name);
 
       const response = await axios.post("/api/transactions", dataToSend, {
         headers: { "X-Target-Path": "/transactions/", method: "POST", "Content-Type": "multipart/form-data" },
@@ -254,14 +250,14 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Tipo de transacción *</Label>
             <Select
               value={formData.transactionType}
-              onValueChange={(value: "Nacional" | "Internacional") => updateField('transactionType', value)}
+              onValueChange={(value: "venta" | "abono") => updateField('transactionType', value)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Nacional">Nacional</SelectItem>
-                <SelectItem value="Internacional">Internacional</SelectItem>
+                <SelectItem value="venta">Venta</SelectItem>
+                <SelectItem value="abono">Abono</SelectItem>
               </SelectContent>
             </Select>
           </div>

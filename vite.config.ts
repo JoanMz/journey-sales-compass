@@ -11,7 +11,6 @@ export default defineConfig(({ mode }) => ({
     proxy: {
       "/api": {
         target: "http://localhost:3000",
-        // target: "https://medium-server3.vercel.app",
         changeOrigin: true,
         secure: false,
       },

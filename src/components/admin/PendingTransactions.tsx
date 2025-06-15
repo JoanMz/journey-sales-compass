@@ -1,200 +1,44 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import { Check, X } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "../../lib/utils";
-import { Transaction, Traveler } from "@/types/transactions";
-import { getTransactionsByStatus } from "@/lib/api";
+import { useData } from "@/contexts/DataContext";
 
 const PendingTransactions = () => {
-  const [pendingTransactions, setPendingTransactions] = useState<Transaction[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { transactions, loading, error, refreshTransactions, updateTransactionStatus } = useData();
   const [showMoreCount, setShowMoreCount] = useState(3);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  useEffect(() => {
-    fetchPendingTransactions();
-
-    // Set up polling to refresh data every 30 seconds
-    const interval = setInterval(() => {
-      fetchPendingTransactions();
-    }, 50000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const fetchPendingTransactions = async () => {
-    try {
-      setLoading(true);
-      // Use the Vite proxy with a relative URL
-      //const response = await axios.post("/api/",{"url": "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/transactions/filter/pending","method": "GET"});
-      let transactions = await getTransactionsByStatus("pending");
-      //console.log(response.data)
-      // Check if response.data is an array, if not, handle according
-
-      // If no transactions were fetched or they're empty, add mock transactions
-      if (!transactions.length) {
-        transactions = getMockTransactions();
-      }
-
-      setPendingTransactions(transactions);
-      setError(null);
-    } catch (err) {
-      console.error("Error fetching pending transactions:", err);
-      setError("Error al cargar transacciones pendientes");
-      toast.error("No se pudieron cargar las transacciones pendientes");
-
-      // Add mock transactions in case of error
-      setPendingTransactions(getMockTransactions());
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Function to generate mock transactions with the required client names
-  const getMockTransactions = (): Transaction[] => {
-    return [
-      {
-        id: 1001,
-        client_name: "Sofia Salinas",
-        client_email: "sofia@example.com",
-        client_phone: "+573145678901",
-        client_dni: "1089345678",
-        client_address: "Calle 123, Bogotá",
-        invoice_image: "",
-        id_image: "",
-        package: "Student Adventure",
-        quoted_flight: "Bogotá - Toulouse",
-        agency_cost: 950,
-        amount: 1250,
-        transaction_type: "Internacional",
-        status: "pending",
-        seller_id: 101,
-        seller_name: "John Seller",
-        receipt: "",
-        start_date: "2025-08-12",
-        end_date: "2025-08-20",
-        travelers: [
-          {
-            id: 1,
-            name: "Sofia Salinas",
-            dni: "1089345678",
-            age: 22,
-            phone: "+573145678901",
-            dni_image: ""
-          }
-        ]
-      },
-      {
-        id: 1002,
-        client_name: "Daniel Rivera",
-        client_email: "daniel@example.com",
-        client_phone: "+573156789012",
-        client_dni: "1089456789",
-        client_address: "Carrera 45, Medellín",
-        invoice_image: "",
-        id_image: "",
-        package: "París Tour Package",
-        quoted_flight: "Bogotá - París",
-        agency_cost: 1000,
-        amount: 1200,
-        transaction_type: "Internacional",
-        status: "pending",
-        seller_id: 102,
-        seller_name: "John Seller",
-        receipt: "",
-        start_date: "2025-07-15",
-        end_date: "2025-07-25",
-        travelers: [
-          {
-            id: 2,
-            name: "Daniel Rivera",
-            dni: "1089456789",
-            age: 30,
-            phone: "+573156789012",
-            dni_image: ""
-          }
-        ]
-      },
-      {
-        id: 1003,
-        client_name: "Miguel Muñoz",
-        client_email: "miguel@example.com",
-        client_phone: "+573167890123",
-        client_dni: "1089567890",
-        client_address: "Avenida 67, Cali",
-        invoice_image: "",
-        id_image: "",
-        package: "Barcelona Tour",
-        quoted_flight: "Bogotá - Barcelona",
-        agency_cost: 800,
-        amount: 850,
-        transaction_type: "Internacional",
-        status: "pending",
-        seller_id: 101,
-        seller_name: "Admin User",
-        receipt: "",
-        start_date: "2025-08-10",
-        end_date: "2025-08-20",
-        travelers: [
-          {
-            id: 3,
-            name: "Miguel Muñoz",
-            dni: "1089567890",
-            age: 28,
-            phone: "+573167890123",
-            dni_image: ""
-          }
-        ]
-      }
-    ];
-  };
+ /*  useEffect(() => {
+    // Initial fetch
+    refreshTransactions();
+  }, []);  */// Remove the polling here since it's handled by DataContext
 
   const handleApprove = async (id: number) => {
     try {
-      // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=completado`);
+      setIsProcessing(true);
+      await updateTransactionStatus(id, "completado");
       toast.success(`Transacción #${id} aprobada`);
-      // Call Document generation
-      callDocumentGeneration(id);
-      // Remove from pending list
-      setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
-
     } catch (err) {
       console.error("Error approving transaction:", err);
       toast.error("Error al aprobar la transacción");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
-  const callDocumentGeneration = async (id: number) => {
-    try {
-      await axios.post("https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/d5e02b96-c7fa-4358-8120-65fccbee7892",
-        { transaction_id: id },
-        {
-          headers: {
-            accept: 'application/json',
-          },
-          timeout: 5000 // Add timeout to prevent long waits
-        }
-      );
-    } catch (err) {
-      console.error("Error generating document:", err);
-      // We don't show an error to the user since this is a background process
-    }
-  }
-
   const handleReject = async (id: number) => {
     try {
-      // Use the Vite proxy with a relative URL
-      await axios.patch(`/api/transactions/${id}/status?status=rechazado`);
+      setIsProcessing(true);
+      await updateTransactionStatus(id, "rechazado");
       toast.info(`Transacción #${id} rechazada`);
-      // Remove from pending list
-      setPendingTransactions(pendingTransactions.filter(transaction => transaction.id !== id));
     } catch (err) {
       console.error("Error rejecting transaction:", err);
       toast.error("Error al rechazar la transacción");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -202,6 +46,8 @@ const PendingTransactions = () => {
     setShowMoreCount(prev => prev + 3);
   };
 
+  // Filter pending transactions
+  const pendingTransactions = transactions.filter(t => t.status === "pending");
   const displayTransactions = pendingTransactions.slice(0, showMoreCount);
 
   return (
@@ -257,12 +103,14 @@ const PendingTransactions = () => {
                   <Button
                     className="bg-green-500 hover:bg-green-600"
                     onClick={() => handleApprove(transaction.id)}
+                    disabled={isProcessing}
                   >
                     <Check className="mr-1 h-4 w-4" /> Aprobar
                   </Button>
                   <Button
                     className="bg-red-500 hover:bg-red-600"
                     onClick={() => handleReject(transaction.id)}
+                    disabled={isProcessing}
                   >
                     <X className="mr-1 h-4 w-4" /> Rechazar
                   </Button>
@@ -276,6 +124,7 @@ const PendingTransactions = () => {
                   variant="outline"
                   className="bg-indigo-600 text-white hover:bg-indigo-700"
                   onClick={handleShowMore}
+                  disabled={isProcessing}
                 >
                   Ver más
                 </Button>

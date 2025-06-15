@@ -1,6 +1,13 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
-import { SalesFormData } from "@/types/sales";
+import { Transaction } from "@/types/transactions";
+
+// Define API response type
+export interface ApiResponse {
+  data?: Transaction | Transaction[];
+  status?: number;
+  message?: string;
+}
 
 // Create API service with consistent error handling
 const api = axios.create({
@@ -26,9 +33,10 @@ api.interceptors.response.use(
   }
 );
 
-
 // Transaction API functions with the new approach
-export const getTransactionsByStatus = async (status: "pending" | "rejected" | "approved" ) => {
+export const getTransactionsByStatus = async (
+  status: "pending" | "rejected" | "approved" | "terminado"
+) => {
   try {
     if (!status) {
       throw new Error("Status is required");
@@ -40,7 +48,7 @@ export const getTransactionsByStatus = async (status: "pending" | "rejected" | "
         headers: { "X-Target-Path": `/transactions/filter/${status}` },
       }
     );
-    return  parseTransactionsResponse(response);
+    return parseTransactionsResponse(response);
   } catch (error) {
     //console.error(`Failed to fetch ${status} transactions:`, error);
     console.log("Retrying transaction fetch due to error:", error);
@@ -48,16 +56,15 @@ export const getTransactionsByStatus = async (status: "pending" | "rejected" | "
       headers: { "X-Target-Path": `/transactions/filter/${status}` },
     });
     console.log("Retry successful, response:", response.data);
-    return  parseTransactionsResponse(response);
+    return parseTransactionsResponse(response);
     // throw error;
   }
 };
 
-export const getAllTransactions = async () => {
+export const getAllTransactions = async (): Promise<
+  Transaction[] | ApiResponse
+> => {
   try {
-    /*  const response = await axios.post("/api", null, {
-      headers: { "X-Target-Path": "/transactions" },
-    }); */
     const response = await axios.post(
       "https://medium-server3.vercel.app/api/transactions",
       null,
@@ -65,30 +72,43 @@ export const getAllTransactions = async () => {
         headers: { "X-Target-Path": "/transactions" },
       }
     );
-    return  parseTransactionsResponse(response);
+    return parseTransactionsResponse(response);
   } catch (error) {
-    console.error("Failed to fetch all transactions:", error);
-    const response = await axios.post("/api/transactions", null, {
-      headers: { "X-Target-Path": "/transactions" },
-    });
-    return  parseTransactionsResponse(response);
-    // throw error; // Uncomment if you want to propagate the error
+    console.log("- Failed to fetch all transactions:", error);
+    try {
+      const response = await axios.post("/api/transactions", null, {
+        headers: { "X-Target-Path": "/transactions" },
+      });
+
+      return parseTransactionsResponse(response);
+    } catch (retryError) {
+      console.error("Retry failed:", retryError);
+      return { status: 500, message: "Failed to fetch transactions" };
+    }
   }
 };
 
-export const createTransaction = async (formData: FormData) =>{
+export const createTransaction = async (formData: FormData) => {
   try {
     console.log("Creating transaction with data:", formData);
     console.log("FormData entries:", formData.entries());
-    const response = await axios.post("/api/transactions", {...formData}, {
-      headers: { "X-Target-Path": "/transactions/" , method: "POST", "Content-Type": "multipart/form-data"},
-    });
-    return response.data;
+    const response = await axios.post(
+      "/api/transactions",
+      { ...formData },
+      {
+        headers: {
+          "X-Target-Path": "/transactions/",
+          method: "POST",
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response;
   } catch (error) {
     console.error("Failed to create sale :", error);
     throw error;
   }
-}
+};
 
 export const getTransactionsByPeriod = async (
   period: "fortnight" | "month" | "all"
@@ -111,7 +131,7 @@ export const getTransactionsByPeriod = async (
 export const getTransactionsByMixedFilters = async (
   period: "fortnight" | "month" | "all",
   sellerId?: number,
-  status?: "pending" | "rejected" | "approved" | null
+  status?: "pending" | "rejected" | "approved" | "terminado" | null
 ) => {
   if (!period) {
     throw new Error("Period is required");
@@ -125,7 +145,7 @@ export const getTransactionsByMixedFilters = async (
         headers: { "X-Target-Path": "/transactions/filter-mixed/" },
       }
     );
-    return  parseTransactionsResponse(response);
+    return parseTransactionsResponse(response);
   } catch (error) {
     console.error(`Failed to fetch transactions for period ${period}:`, error);
     throw error;
@@ -134,12 +154,19 @@ export const getTransactionsByMixedFilters = async (
 
 export const updateTransactionStatus = async (id: number, status: string) => {
   try {
-    const response = await axios.post("/api/transactions/", {
-      url: `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000`,
-      method: "PATCH",
-      data: { status },
-    });
-    return  parseTransactionsResponse(response);
+    const response = await axios.post(
+      "/api/transactions/",
+      {
+        params: { status },
+      },
+      {
+        headers: {
+          "X-Target-Path": `/transactions/${id}/status`,
+          method: "PATCH",
+        },
+      }
+    );
+    return parseTransactionsResponse(response);
   } catch (error) {
     console.error(`Failed to update transaction ${id} status:`, error);
     throw error;
@@ -178,7 +205,6 @@ export const getUsers = async () => {
   }
 };
 
-
 // create user
 export const createUser = async (user: {
   name: string;
@@ -192,13 +218,9 @@ export const createUser = async (user: {
     //   "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/",
     //   user
     // );
-    const response = await axios.post(
-      "/api/users",
-      user,
-      {
-        headers: { "X-Target-Path": "/users/" , method : "POST" },
-      }
-    );
+    const response = await axios.post("/api/users", user, {
+      headers: { "X-Target-Path": "/users/", method: "POST" },
+    });
     console.log("User created successfully:", response);
     return response.data;
   } catch (error) {
@@ -221,11 +243,14 @@ export const deleteUser = async (userId: string) => {
 };
 
 // update user using patch
-export const updateUser = async (userId: string, user: {
-  name: string;
-  email: string;
-  role: string;
-}) => {
+export const updateUser = async (
+  userId: string,
+  user: {
+    name: string;
+    email: string;
+    role: string;
+  }
+) => {
   try {
     const response = await axios.patch(
       `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/${userId}`,
@@ -243,8 +268,9 @@ export const getSellers = async () => {
   try {
     const response = await getUsers();
     // Filter users with role "seller" or "vendedor"
-    const sellers = response.filter((user: any) => 
-      user.role === "seller" || user.role === "vendedor"
+    const sellers = response.filter(
+      (user: { role: string }) =>
+        user.role === "seller" || user.role === "vendedor"
     );
     return sellers;
   } catch (error) {

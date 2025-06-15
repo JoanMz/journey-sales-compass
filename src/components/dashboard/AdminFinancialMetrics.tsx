@@ -144,7 +144,7 @@ const AdminFinancialMetrics: React.FC = () => {
     setSelectedSellerId(sellerId);
   };
 
-  const isLoading = contextLoading || loading;
+  const isLoading = contextLoading && loading;
   const displayError = contextError || error;
 
   return (
