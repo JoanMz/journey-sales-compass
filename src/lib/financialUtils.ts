@@ -3,7 +3,7 @@ import { Transaction } from "@/types/transactions";
 
 export const calculateTotalRevenue = (transactions: Transaction[]): number => {
   return transactions
-    .filter(transaction => transaction.status === "approved")
+    .filter(transaction => transaction.status === "approved" || transaction.status === "terminado")
     .reduce((total, transaction) => total + transaction.amount, 0);
 };
 
@@ -13,7 +13,7 @@ export const calculateTotalProfit = (totalRevenue: number): number => {
 
 export const calculateTotalCommission = (transactions: Transaction[]): number => {
   return transactions
-    .filter(transaction => transaction.status === "approved")
+    .filter(transaction => transaction.status === "approved" || transaction.status === "terminado")
     .reduce((total, transaction) => total + (transaction.amount * 0.0225), 0); // 2.25% commission
 };
 

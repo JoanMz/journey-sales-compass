@@ -26,6 +26,7 @@ import { SalesFormData, SalesTransaction, FlightInfo, HotelInfo } from "../types
 import { mapStatusToSpanish } from "../lib/utils";
 import { createTransaction, updateTransactionWithFlightHotel } from "@/lib/api";
 import { toast } from "sonner";
+import { calculateTotalCommission } from "@/lib/financialUtils";
 
 const Home = () => {
   const { isAdmin, isSeller, isManager, user } = useAuth();
@@ -185,43 +186,40 @@ const Home = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card className="stats-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Total Revenue</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">Mis ganancias totales</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                ${filteredTransactions
-                  .filter(t => t.displayStatus === "Aprobado" || t.displayStatus === "Terminado")
-                  .reduce((sum, t) => sum + t.amount, 0)
-                  .toLocaleString()}
+                ${calculateTotalCommission(filteredTransactions)}
               </div>
               <div className="text-xs text-green-600 flex items-center mt-1">
-                <span className="mr-1">+6.32%</span> vs last week
+                {/* <span className="mr-1">+6.32%</span> vs last week */}
               </div>
             </CardContent>
           </Card>
 
           <Card className="stats-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Total Transactions</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">Transacciones Totales</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{filteredTransactions.length}</div>
               <div className="text-xs text-green-600 flex items-center mt-1">
-                <span className="mr-1">+3.54%</span> vs last month
+                {/* <span className="mr-1">+3.54%</span> vs last month */}
               </div>
             </CardContent>
           </Card>
 
           <Card className="stats-card">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-gray-500">Completed Sales</CardTitle>
+              <CardTitle className="text-sm font-medium text-gray-500">Ventas Completadas</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
                 {filteredTransactions.filter(t => t.displayStatus === "Terminado").length}
               </div>
               <div className="text-xs text-green-600 flex items-center mt-1">
-                <span className="mr-1">+8.12%</span> vs last week
+                {/* <span className="mr-1">+8.12%</span> vs last week */}
               </div>
             </CardContent>
           </Card>

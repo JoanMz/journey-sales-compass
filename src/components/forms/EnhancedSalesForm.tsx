@@ -85,7 +85,12 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
     // Añadir la imagen si existe
     if (formData.invoiceImage) {
-      dataToSend.append('data0', formData.invoiceImage, formData.invoiceImage.name);
+      dataToSend.append('payment_evidence', formData.invoiceImage, formData.invoiceImage.name);
+    }
+    for (const traveler of formData.travelers) {
+      if (traveler.dniImage) {
+        dataToSend.append('data_traveler_'+traveler.name, traveler.dniImage);
+      }
     }
 
     console.log("Submitting form data:", Object.fromEntries(dataToSend.entries()));
