@@ -42,7 +42,8 @@ export const getTransactionsByStatus = async (
       throw new Error("Status is required");
     }
     const response = await axios.post(
-      "https://medium-server3.vercel.app/transactions",
+      // "https://medium-server3.vercel.app/transactions",
+      "/api/transactions",
       null,
       {
         headers: { "X-Target-Path": `/transactions/filter/${status}` },
@@ -66,7 +67,8 @@ export const getAllTransactions = async (): Promise<
 > => {
   try {
     const response = await axios.post(
-      "https://medium-server3.vercel.app/api/transactions",
+      // "https://medium-server3.vercel.app/api/transactions",
+      "/api/transactions",
       null,
       {
         headers: { "X-Target-Path": "/transactions" },
