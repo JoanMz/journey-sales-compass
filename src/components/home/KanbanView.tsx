@@ -178,6 +178,24 @@ export const KanbanView = ({
                   </span>
                   <span className="status-badge status-success">Terminado</span>
                 </div>
+                  {isSeller && transaction.seller_id === user?.id && (
+                  <Button
+                    size="sm"
+                    className="w-full mt-2 bg-green-600 hover:bg-green-700"
+                    onClick={() => onCompleteInfo(transaction.id)}
+                  >
+                    Ver Información
+                  </Button>
+                )}
+                  {isSeller && transaction.seller_id === user?.id && (
+                  <Button
+                    size="sm"
+                    className="w-full mt-2 bg-gray-600 hover:bg-gray-700"
+                    onClick={() => onCompleteInfo(transaction.id)}
+                  >
+                    Generar Factura
+                  </Button>
+                )}
               </div>
             </div>
           ))}
