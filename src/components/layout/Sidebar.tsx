@@ -18,8 +18,8 @@ const Sidebar = () => {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", adminOnly: false },
-    { name: "Business Intelligence", icon: Map, path: "/business-intelligence", adminOnly: true },
-    { name: "Support Stats", icon: BarChart3, path: "/metrics", adminOnly: true },
+    // { name: "Business Intelligence", icon: Map, path: "/business-intelligence", adminOnly: true },
+    // { name: "Support Stats", icon: BarChart3, path: "/metrics", adminOnly: true },
     { name: "Team", icon: Users, path: "/team", adminOnly: true },
     { name: "Settings", icon: Settings, path: "/settings", adminOnly: false },
   ];

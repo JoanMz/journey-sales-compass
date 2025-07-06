@@ -4,7 +4,7 @@ import {
   Card,
   CardContent,
   CardHeader,
-  CardTitle
+  CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import {
@@ -14,7 +14,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "../components/ui/tabs";
 import { Plus } from "lucide-react";
 import EnhancedSalesForm from "../components/forms/EnhancedSalesForm";
 import FlightHotelForm from "../components/forms/FlightHotelForm";
@@ -22,20 +27,25 @@ import { FlightInfo, HotelInfo } from "../types/sales";
 import { useTransactions } from "../hooks/useTransactions";
 import { useDialogs } from "../hooks/useDialogs";
 import { useDragAndDrop } from "../hooks/useDragAndDrop";
-import { StatsCards, KanbanView, ListView, RoleSpecificDashboard } from "../components/home";
+import {
+  StatsCards,
+  KanbanView,
+  ListView,
+  RoleSpecificDashboard,
+} from "../components/home";
 
 const Home = () => {
   const { isAdmin, isManager } = useAuth();
-  
+
   // Custom hooks
-  const { 
-    filteredTransactions, 
-    kanbanGroups, 
-    loading, 
-    handleAddSale, 
-    handleCompleteTransaction 
+  const {
+    filteredTransactions,
+    kanbanGroups,
+    loading,
+    handleAddSale,
+    handleCompleteTransaction,
   } = useTransactions();
-  
+
   const {
     isAddSaleOpen,
     openAddSale,
@@ -43,9 +53,9 @@ const Home = () => {
     isCompleteInfoOpen,
     selectedTransactionId,
     openCompleteInfo,
-    closeCompleteInfo
+    closeCompleteInfo,
   } = useDialogs();
-  
+
   const { handleDrop, allowDrop, startDrag } = useDragAndDrop();
 
   // Enhanced handlers
@@ -54,7 +64,7 @@ const Home = () => {
       await handleAddSale(formData);
       closeAddSale();
     } catch (error) {
-      alert('Error al crear la venta');
+      alert("Error al crear la venta");
     }
   };
 
@@ -63,17 +73,21 @@ const Home = () => {
     hotelInfo: HotelInfo
   ) => {
     if (!selectedTransactionId) return;
-    
+
     try {
-      await handleCompleteTransaction(selectedTransactionId, flightInfo, hotelInfo);
+      await handleCompleteTransaction(
+        selectedTransactionId,
+        flightInfo,
+        hotelInfo
+      );
       closeCompleteInfo();
     } catch (error) {
       // Error is already handled in the hook
     }
   };
 
-  // If user is a manager, show only the specialized manager dashboard
-  if (isManager) {
+  // If user is an admin, show only the admin dashboard
+  if (isAdmin) {
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -83,8 +97,8 @@ const Home = () => {
     );
   }
 
-  // If user is an admin, show only the admin dashboard
-  if (isAdmin) {
+  // If user is a manager, show only the specialized manager dashboard
+  if (isManager) {
     return (
       <AppLayout>
         <div className="space-y-6">
@@ -109,7 +123,10 @@ const Home = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Gestión de Ventas</CardTitle>
-              <Button onClick={openAddSale} className="bg-blue-600 hover:bg-blue-700">
+              <Button
+                onClick={openAddSale}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
                 <Plus className="h-4 w-4 mr-1" /> Agregar Venta
               </Button>
             </div>
@@ -145,7 +162,8 @@ const Home = () => {
           <DialogHeader>
             <DialogTitle>Crear Nueva Venta</DialogTitle>
             <DialogDescription>
-              Completa todos los datos para crear una nueva venta con carga de documentos.
+              Completa todos los datos para crear una nueva venta con carga de
+              documentos.
             </DialogDescription>
           </DialogHeader>
 
@@ -163,7 +181,8 @@ const Home = () => {
           <DialogHeader>
             <DialogTitle>Completar Información de la Venta</DialogTitle>
             <DialogDescription>
-              Agrega la información de vuelo y hotel para completar la transacción.
+              Agrega la información de vuelo y hotel para completar la
+              transacción.
             </DialogDescription>
           </DialogHeader>
 

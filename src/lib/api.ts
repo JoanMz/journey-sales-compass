@@ -1,6 +1,7 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
 import { Transaction, FlightInfo, HotelInfo } from "@/types/transactions";
+import endpoints from "./endpoints";
 
 // Define API response type
 export interface ApiResponse {
@@ -43,7 +44,7 @@ export const getTransactionsByStatus = async (
     }
     const response = await axios.post(
       // "https://medium-server3.vercel.app/transactions",
-      "/api/transactions",
+      "/api/transactions3",
       null,
       {
         headers: { "X-Target-Path": `/transactions/filter/${status}` },
@@ -53,7 +54,7 @@ export const getTransactionsByStatus = async (
   } catch (error) {
     //console.error(`Failed to fetch ${status} transactions:`, error);
     console.log("Retrying transaction fetch due to error:", error);
-    const response = await axios.post("/api/transactions", null, {
+    const response = await axios.post("/api/transactions4", null, {
       headers: { "X-Target-Path": `/transactions/filter/${status}` },
     });
     console.log("Retry successful, response:", response.data);
@@ -66,23 +67,28 @@ export const getAllTransactions = async (): Promise<
   Transaction[] | ApiResponse
 > => {
   try {
-    const response = await axios.post(
+    // const response = await axios.post(
+    const response = await axios.get(
       // "https://medium-server3.vercel.app/api/transactions",
-      "/api/transactions",
-      null,
-      {
-        headers: { "X-Target-Path": "/transactions" },
-      }
+      endpoints.transactions.all,
+      null
+      // {
+      //   // headers: { "X-Target-Path": "/transactions", "w": "valor inicial para obtener todas las transacciones" },
+      //   headers: { "w": "valor inicial para obtener todas las transacciones" },
+
+      // }
     );
     return parseTransactionsResponse(response);
   } catch (error) {
     console.log("- Failed to fetch all transactions:", error);
     try {
-      const response = await axios.post("/api/transactions", null, {
-        headers: { "X-Target-Path": "/transactions" },
-      });
+      // ! FIX: si falla llama de nuevo a la misma ruta
+      // const response = await axios.post("/api/transactions", null, {
+      //   headers: { "X-Target-Path": "/transactions", "w": "valor6" },
+      // });
 
-      return parseTransactionsResponse(response);
+      // return parseTransactionsResponse(response);
+      return { status: 500, message: "Failed to fetch transactions" };
     } catch (retryError) {
       console.error("Retry failed:", retryError);
       return { status: 500, message: "Failed to fetch transactions" };
@@ -95,7 +101,7 @@ export const createTransaction = async (formData: FormData) => {
     console.log("Creating transaction with data:", formData);
     console.log("FormData entries:", formData.entries());
     const response = await axios.post(
-      "/api/transactions",
+      "/api/transactions7",
       { ...formData },
       {
         headers: {
@@ -116,19 +122,61 @@ export const getTransactionsByPeriod = async (
   period: "fortnight" | "month" | "all"
 ) => {
   try {
-    const response = await axios.post(
-      "/api/transactions",
-      { data: { period } },
-      {
-        headers: { "X-Target-Path": "/transactions/date-range/" },
-      }
+    console.log("period", period);
+    const { start_date, end_date } = getDateRange(period);
+    console.log("start_date", start_date);
+    console.log("end_date", end_date);
+    const response = await axios.get(
+      endpoints.transactions.dateRange(start_date, end_date)
     );
+    // const response = await axios.post(
+    //   endpoints.transactions.all,
+    //   { data: { period } },
+    //   {
+    //     headers: {
+    //       "X-Target-Path": "/transactions/date-range/",
+    //       w: "busqueda por periodo",
+    //     },
+    //   }
+    // );
     return response.data;
   } catch (error) {
     console.error(`Failed to fetch transactions for period ${period}:`, error);
     throw error;
   }
 };
+
+function getDateRange(period) {
+  const end = new Date();
+  let start;
+  if (period === "fortnight") {
+    start = new Date(
+      end.getFullYear(),
+      end.getMonth(),
+      end.getDate() - 15
+    );
+  } else if (period === "month") {
+    start = new Date(
+      end.getFullYear(),
+      end.getMonth() - 1,
+      end.getDate()
+    );
+  } else if (period === "all") {
+    start = new Date(0);
+  }
+
+  // Format to "YYYY-MM-DDTHH:mm:ss"
+  function formatDate(date) {
+    return date
+      .toISOString()
+      .slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
+  }
+
+  return {
+    start_date: formatDate(start),
+    end_date: formatDate(end),
+  };
+}
 
 export const getTransactionsByMixedFilters = async (
   period: "fortnight" | "month" | "all",
@@ -141,7 +189,7 @@ export const getTransactionsByMixedFilters = async (
   if (period === "all" && !sellerId && !status) return getAllTransactions();
   try {
     const response = await axios.post(
-      "/api/transactions/",
+      "/api/transactions/9",
       { data: { period }, query: { seller_id: sellerId, status: status } },
       {
         headers: { "X-Target-Path": "/transactions/filter-mixed/" },
@@ -156,18 +204,19 @@ export const getTransactionsByMixedFilters = async (
 
 export const updateTransactionStatus = async (id: number, status: string) => {
   try {
-    const response = await axios.post(
-      "/api/transactions/",
-      {
-        params: { status },
-      },
-      {
-        headers: {
-          "X-Target-Path": `/transactions/${id}/status`,
-          method: "PATCH",
-        },
-      }
-    );
+    // const response = await axios.post(
+    //   "/api/transactions/",
+    //   {
+    //     params: { status },
+    //   },
+    //   {
+    //     headers: {
+    //       "X-Target-Path": `/transactions/${id}/status`,
+    //       method: "PATCH",
+    //     },
+    //   }
+    // );
+    const response = await axios.patch(endpoints.transactions.updateStatus(id, status));
     return parseTransactionsResponse(response);
   } catch (error) {
     console.error(`Failed to update transaction ${id} status:`, error);
@@ -176,18 +225,18 @@ export const updateTransactionStatus = async (id: number, status: string) => {
 };
 
 export const updateTransactionWithFlightHotel = async (
-  id: number, 
-  flightInfo: FlightInfo, 
+  id: number,
+  flightInfo: FlightInfo,
   hotelInfo: HotelInfo
 ) => {
   try {
     const response = await axios.post(
-      "/api/transactions/",
+      "/api/transactions/12",
       {
-        params: { 
+        params: {
           flight_info: flightInfo,
           hotel_info: hotelInfo,
-          status: "terminado"
+          status: "terminado",
         },
       },
       {

@@ -98,7 +98,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     try {
       console.log("FormData entries:", dataToSend.entries());
 
-      const response = await axios.post("/api/transactions", dataToSend, {
+      const response = await axios.post("/api/transactions2", dataToSend, {
         headers: { "X-Target-Path": "/transactions/", method: "POST", "Content-Type": "multipart/form-data" },
       });
       console.log("Transaction created successfully:", response.data[0].imageUrl);
