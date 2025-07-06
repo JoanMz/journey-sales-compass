@@ -275,9 +275,10 @@ export const generateDocuments = async (transactionId: number) => {
 // get users
 export const getUsers = async () => {
   try {
-    const response = await axios.post("/api/users", null, {
-      headers: { "X-Target-Path": "/users/" },
-    });
+    // const response = await axios.post("/api/users", null, {
+    //   headers: { "X-Target-Path": "/users/" },
+    // });
+    const response = await axios.get(endpoints.users.all);
     return response.data;
   } catch (error) {
     console.error("Failed to fetch users:", error);
@@ -348,11 +349,12 @@ export const getSellers = async () => {
   try {
     const response = await getUsers();
     // Filter users with role "seller" or "vendedor"
-    const sellers = response.filter(
-      (user: { role: string }) =>
-        user.role === "seller" || user.role === "vendedor"
-    );
-    return sellers;
+    // const sellers = response.filter(
+    //   (user: { role: string }) =>
+    //     user.role === "seller" || user.role === "vendedor"
+    // );
+    // return sellers;
+    return response;
   } catch (error) {
     console.error("Failed to fetch sellers:", error);
     throw error;

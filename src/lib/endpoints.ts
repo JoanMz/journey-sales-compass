@@ -14,6 +14,9 @@ const endpoints = {
       `${baseUrl}/transactions/${transactionId}/status?status=${status}`,
   getById: (transactionId: number | string) => `${baseUrl}/transactions/${transactionId}`,
   },
+  users: {
+    all: `${baseUrl}/users`,
+  },
 };
 
 export default endpoints;

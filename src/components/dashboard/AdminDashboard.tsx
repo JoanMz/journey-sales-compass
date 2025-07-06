@@ -11,10 +11,10 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       {/* Financial Metrics - Top Priority */}
-      {/* <AdminFinancialMetrics /> */}
+      <AdminFinancialMetrics />
 
       {/* Pending Transactions - High Priority  */}
-      {/* <PendingTransactions /> */}
+      <PendingTransactions />
 
       {/* Customer Transactions Table */}
       <Card className="bg-white border-blue-200 mb-6">
