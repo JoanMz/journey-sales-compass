@@ -91,7 +91,7 @@ const DEFAULT_WEEKLY_DATA: WeeklyData[] = [
   { day: "Sat", value: 2300 },
 ];
 
-export type TransactionStatus = "Pendiente" | "Aprobado" | "Rechazado"| "Terminado";
+export type TransactionStatus = "pendiente" | "aprobado" | "rechazado"| "terminado";
 
 export interface TransaccionesClientesProps {
   sales: Sale[];
@@ -196,20 +196,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Function to fetch users from API
   const fetchUsers = async () => {
     try {
-      // const userData = await getUsers();
-      // if (Array.isArray(userData) && userData.length > 0) {
-      if (true) {
-      //   // Map API users to our User type
-      //   const mappedUsers = userData.map(apiUser => ({
-      //     id: apiUser.id,
-      //     name: apiUser.name,
-      //     email: apiUser.email,
-      //     role: apiUser.role as User['role'],
-      //     phone_number: apiUser.phone_number,
-      //     // Don't include password in the state
-      //   }));
+      const userData = await getUsers();
+      if (Array.isArray(userData) && userData.length > 0) {
+      // if (true) {
+        // Map API users to our User type
+        const mappedUsers = userData.map(apiUser => ({
+          id: apiUser.id,
+          name: apiUser.name,
+          email: apiUser.email,
+          role: apiUser.role as User['role'],
+          phone_number: apiUser.phone_number,
+          // Don't include password in the state
+        }));
       
-        // setUsers(mappedUsers);
+        setUsers(mappedUsers);
       } else {
         // Fallback to default users if API returns empty
         // const defaultUsers: User[] = [

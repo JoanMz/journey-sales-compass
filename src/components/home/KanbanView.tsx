@@ -13,16 +13,22 @@ interface KanbanViewProps {
   };
   onDrop: (e: DragEvent<HTMLDivElement>, targetStatus: "Pendiente" | "Aprobado" | "Rechazado" | "Terminado") => void;
   allowDrop: (e: DragEvent<HTMLDivElement>) => void;
+  loadingTransaction: boolean;
   startDrag: (e: DragEvent<HTMLDivElement>, transactionId: string) => void;
   onCompleteInfo: (transactionId: number) => void;
+  viewTransaction: (transactionId: any) => void;
+  generateInvoice: (transactionId: any) => void;
 }
 
 export const KanbanView = ({
   kanbanGroups,
   onDrop,
+  loadingTransaction,
   allowDrop,
   startDrag,
-  onCompleteInfo
+  onCompleteInfo,
+  viewTransaction,
+  generateInvoice
 }: KanbanViewProps) => {
   const { isSeller, user } = useAuth();
 
@@ -160,7 +166,8 @@ export const KanbanView = ({
               <div className="flex justify-between items-start">
                 <div className="flex items-center">
                   <div className="h-8 w-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mr-2">
-                    {transaction.client_name.charAt(0)}
+                    {transaction.client_name.charAt(0)} 
+                    {/* {transaction.id} */}
                   </div>
                   <div>
                     <h4 className="font-medium">{transaction.client_name}</h4>
@@ -182,7 +189,8 @@ export const KanbanView = ({
                   <Button
                     size="sm"
                     className="w-full mt-2 bg-green-600 hover:bg-green-700"
-                    onClick={() => onCompleteInfo(transaction.id)}
+                    onClick={() => viewTransaction(transaction.id)}
+                    disabled={loadingTransaction}
                   >
                     Ver Información
                   </Button>
@@ -191,7 +199,7 @@ export const KanbanView = ({
                   <Button
                     size="sm"
                     className="w-full mt-2 bg-gray-600 hover:bg-gray-700"
-                    onClick={() => onCompleteInfo(transaction.id)}
+                    onClick={() => generateInvoice(transaction.id)}
                   >
                     Generar Factura
                   </Button>

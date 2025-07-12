@@ -21,14 +21,16 @@ import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import endpoints from "@/lib/endpoints";
 
-const mapStatusToStyle = (status: TransactionStatus): string => {
+export const mapStatusToStyle = (status: TransactionStatus): string => {
   switch (status) {
-    case "Aprobado":
+    case "aprobado":
       return "bg-green-100 text-green-800 hover:bg-green-100";
-    case "Pendiente":
+    case "pendiente":
       return "bg-blue-100 text-blue-800 hover:bg-blue-100";
-    case "Rechazado":
+    case "rechazado":
       return "bg-red-100 text-red-800 hover:bg-red-100";
+    case "terminado":
+      return "bg-green-100 text-green-800 hover:bg-green-100";
     default:
       return "";
   }
@@ -167,7 +169,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                     </TableCell>
                     <TableCell>{formatCurrency(sale.amount)}</TableCell>
                     <TableCell>
-                      <Badge className={mapStatusToStyle(status)}>
+                      <Badge className={mapStatusToStyle(status.toLowerCase() as TransactionStatus)}>
                         {status}
                       </Badge>
                     </TableCell>
@@ -284,6 +286,14 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                         {selectedTransaction.seller_name}
                       </p>
                     </div>
+                    {selectedTransaction.quoted_flight && (
+                      <div>
+                        <p className="text-sm text-gray-600">Vuelo Cotizado</p>
+                        <p className="font-medium">
+                          {selectedTransaction.quoted_flight}
+                        </p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-sm text-gray-600">Costo de Agencia</p>
                       <p className="font-medium">
@@ -345,7 +355,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                     Teléfono
                                   </p>
                                   <p className="font-medium">
-                                    {traveler.phone}
+                                    {traveler.phone || "No especificado"}
                                   </p>
                                 </div>
                                 <div>
@@ -383,7 +393,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                   <p className="text-sm text-gray-600">
                                     Aerolínea
                                   </p>
-                                  <p className="font-medium">
+                                  <p className="font-medium capitalize">
                                     {itinerary.aerolinea}
                                   </p>
                                 </div>
@@ -398,7 +408,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                     Hora de Salida
                                   </p>
                                   <p className="font-medium">
-                                    {itinerary.hora_salida}
+                                    {itinerary.hora_salida || "No especificado"}
                                   </p>
                                 </div>
                                 <div>
@@ -406,7 +416,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                     Hora de Llegada
                                   </p>
                                   <p className="font-medium">
-                                    {itinerary.hora_llegada}
+                                    {itinerary.hora_llegada || "No especificado"}
                                   </p>
                                 </div>
                               </div>
@@ -450,17 +460,33 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                   <p className="text-sm text-gray-600">
                                     Incluye
                                   </p>
-                                  <p className="font-medium">
-                                    {travelInfo.incluye || "No especificado"}
-                                  </p>
+                                  <div className="font-medium">
+                                    {travelInfo.incluye && Array.isArray(travelInfo.incluye) ? (
+                                      <ul className="list-disc list-inside">
+                                        {travelInfo.incluye.map((item: string, idx: number) => (
+                                          <li key={idx} className="text-sm">{item}</li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p>{travelInfo.incluye || "No especificado"}</p>
+                                    )}
+                                  </div>
                                 </div>
                                 <div>
                                   <p className="text-sm text-gray-600">
                                     No Incluye
                                   </p>
-                                  <p className="font-medium">
-                                    {travelInfo.no_incluye || "No especificado"}
-                                  </p>
+                                  <div className="font-medium">
+                                    {travelInfo.no_incluye && Array.isArray(travelInfo.no_incluye) ? (
+                                      <ul className="list-disc list-inside">
+                                        {travelInfo.no_incluye.map((item: string, idx: number) => (
+                                          <li key={idx} className="text-sm">{item}</li>
+                                        ))}
+                                      </ul>
+                                    ) : (
+                                      <p>{travelInfo.no_incluye || "No especificado"}</p>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             </div>
@@ -499,16 +525,15 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                     ).toLocaleDateString("es-ES")}
                                   </p>
                                 </div>
-                                {evidence.evidence_file.length === 0 ? (
+                                {evidence.evidence_file ? (
                                   <div className="md:col-span-2">
                                     <p className="text-sm text-gray-600">
                                       Archivo
                                     </p>
                                     <img
                                       src={evidence.evidence_file}
-                                      width="auto"
-                                      height="100px"
-                                      className="text-blue-600 hover:text-blue-800 underline"
+                                      alt="Evidencia"
+                                      className="max-w-xs h-auto rounded border"
                                     />
                                   </div>
                                 ) : (

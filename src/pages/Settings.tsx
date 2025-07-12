@@ -453,7 +453,7 @@ const Settings = () => {
 
       {/* Add User Dialog */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-[100vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="mb-2">
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>

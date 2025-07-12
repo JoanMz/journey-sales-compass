@@ -278,6 +278,7 @@ export const getUsers = async () => {
     // const response = await axios.post("/api/users", null, {
     //   headers: { "X-Target-Path": "/users/" },
     // });
+    // alert(endpoints.users.all);
     const response = await axios.get(endpoints.users.all);
     return response.data;
   } catch (error) {
@@ -299,7 +300,8 @@ export const createUser = async (user: {
     //   "http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/",
     //   user
     // );
-    const response = await axios.post("/api/users", user, {
+    // const response = await axios.post("/api/users", user, {
+    const response = await axios.post(endpoints.users.all, user, {
       headers: { "X-Target-Path": "/users/", method: "POST" },
     });
     console.log("User created successfully:", response);
@@ -314,7 +316,8 @@ export const createUser = async (user: {
 export const deleteUser = async (userId: string) => {
   try {
     const response = await axios.delete(
-      `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/${userId}`
+      // `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/${userId}`
+      endpoints.users.delete(userId)
     );
     return response.data;
   } catch (error) {
@@ -334,7 +337,8 @@ export const updateUser = async (
 ) => {
   try {
     const response = await axios.patch(
-      `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/${userId}`,
+      // `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/users/${userId}`,
+      endpoints.users.update(userId),
       user
     );
     return response.data;
