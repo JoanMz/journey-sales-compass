@@ -41,6 +41,7 @@ type TeamMember = {
   avatar?: string;
   position: string;
   progress: number;
+  role: string;
 };
 
 const Team = () => {
@@ -48,10 +49,11 @@ const Team = () => {
   const { user, isAdmin } = useAuth();
   const { users } = useData();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTeam, setSelectedTeam] = useState("All");
+  const [selectedTeam, setSelectedTeam] = useState("all");
   const [view, setView] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState("All");
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [allTeamMembers, setAllTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch sellers from the API
@@ -68,9 +70,11 @@ const Team = () => {
           email: seller.email,
           position: seller.role === "seller" ? "VENDEDOR" : "VENDEDOR",
           progress: Math.floor(Math.random() * 100), // Random progress for demo
-          avatar: undefined
+          avatar: undefined,
+          role: seller.role
         }));
 
+        setAllTeamMembers(formattedSellers);
         setTeamMembers(formattedSellers);
       } catch (error) {
         console.error("Error fetching sellers:", error);
@@ -82,6 +86,7 @@ const Team = () => {
             email: "henry.paulista@email.com",
             position: "ADMINISTRADOR",
             progress: 100,
+            role: "admin"
           },
           {
             id: "2",
@@ -89,6 +94,7 @@ const Team = () => {
             email: "evan.jefferson@email.com",
             position: "VENDEDOR",
             progress: 82,
+            role: "seller"
           },]);
       } finally {
         setLoading(false);
@@ -116,13 +122,27 @@ const Team = () => {
   }, [isAdmin, navigate]);
 
   // Filter team members by search term
-  const filteredTeamMembers = teamMembers.filter(member =>
-    member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    member.position.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // const filteredTeamMembers = teamMembers.filter(member =>
+  //   member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //   member.position.toLowerCase().includes(searchTerm.toLowerCase())
+  // );
 
   if (!isAdmin) return null;
+
+  const handleChangeTeam = (value: string) => {
+    setSelectedTeam(value);
+    setSearchTerm("");
+    console.log("value", value);
+    if (value === "all") {
+      console.log("allTeamMembers", allTeamMembers);
+      setTeamMembers(allTeamMembers);
+    } else {
+      const FTM = allTeamMembers.filter(member => member.role === value);
+      console.log("FTM", FTM);
+      setTeamMembers(FTM);
+    }
+  };
 
   return (
     <AppLayout>
@@ -154,15 +174,15 @@ const Team = () => {
             </div>
 
             <div className="flex gap-2 items-center">
-              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
+              <Select value={selectedTeam} onValueChange={(value)=> handleChangeTeam(value)}>
                 <SelectTrigger className="w-40">
                   <SelectValue placeholder="Equipo" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="All">Todos</SelectItem>
-                  <SelectItem value="Ventas">Ventas</SelectItem>
-                  <SelectItem value="Soporte">Soporte</SelectItem>
-                  <SelectItem value="Administración">Administración</SelectItem>
+                  <SelectItem value="all">Todos</SelectItem>
+                  <SelectItem value="seller">Ventas</SelectItem>
+                  <SelectItem value="encargado">Soporte</SelectItem>
+                  <SelectItem value="admin">Administración</SelectItem>
                 </SelectContent>
               </Select>
 
@@ -210,7 +230,7 @@ const Team = () => {
 
           {/* Team Members Grid */}
           <div className={view === "grid" ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" : "space-y-4"}>
-            {filteredTeamMembers.map(member => (
+            {teamMembers.map(member => (
               view === "grid" ? (
                 <Card key={member.id} className="overflow-hidden">
                   <CardContent className="p-6">

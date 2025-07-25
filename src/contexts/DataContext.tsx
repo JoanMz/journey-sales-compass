@@ -7,6 +7,7 @@ import { SalesFormData } from "@/types/sales";
 import { mapStatusToSpanish } from "@/lib/utils";
 import { create } from "domain";
 import axios from "axios";
+import { dataMockInfo } from "./mockData";
 
 // Updated data types - now using Transaction as the primary type
 export type Customer = {
@@ -90,7 +91,7 @@ const DEFAULT_WEEKLY_DATA: WeeklyData[] = [
   { day: "Sat", value: 2300 },
 ];
 
-export type TransactionStatus = "Pendiente" | "Aprobado" | "Rechazado"| "Terminado";
+export type TransactionStatus = "pendiente" | "aprobado" | "rechazado"| "terminado";
 
 export interface TransaccionesClientesProps {
   sales: Sale[];
@@ -112,74 +113,7 @@ const convertTransactionToSale = (transaction: Transaction): Sale => ({
 
 // Mock transactions for fallback
 const getMockTransactions = (): Transaction[] => {
-  return [
-    {
-      id: 1001,
-      client_name: "Sofia Salinas",
-      client_email: "sofia@example.com",
-      client_phone: "+573145678901",
-      client_dni: "1089345678",
-      client_address: "Calle 123, Bogotá",
-      invoice_image: "",
-      id_image: "",
-      package: "Student Adventure",
-      quoted_flight: "Bogotá - Toulouse",
-      agency_cost: 950,
-      amount: 1250,
-      transaction_type: "abono",
-      status: "approved",
-      seller_id: 101,
-      seller_name: "John Seller",
-      receipt: "",
-      start_date: "2025-08-12",
-      end_date: "2025-08-20",
-      travelers: []
-    },
-    {
-      id: 1002,
-      client_name: "Daniel Rivera",
-      client_email: "daniel@example.com",
-      client_phone: "+573156789012",
-      client_dni: "1089456789",
-      client_address: "Carrera 45, Medellín",
-      invoice_image: "",
-      id_image: "",
-      package: "París Tour Package",
-      quoted_flight: "Bogotá - París",
-      agency_cost: 1000,
-      amount: 1200,
-      transaction_type: "abono",
-      status: "pending",
-      seller_id: 102,
-      seller_name: "John Seller",
-      receipt: "",
-      start_date: "2025-07-15",
-      end_date: "2025-07-25",
-      travelers: []
-    },
-    {
-      id: 1003,
-      client_name: "Miguel Muñoz",
-      client_email: "miguel@example.com",
-      client_phone: "+573167890123",
-      client_dni: "1089567890",
-      client_address: "Avenida 67, Cali",
-      invoice_image: "",
-      id_image: "",
-      package: "Barcelona Tour",
-      quoted_flight: "Bogotá - Barcelona",
-      agency_cost: 800,
-      amount: 850,
-      transaction_type: "abono",
-      status: "rejected",
-      seller_id: 101,
-      seller_name: "Admin User",
-      receipt: "",
-      start_date: "2025-08-10",
-      end_date: "2025-08-20",
-      travelers: []
-    }
-  ];
+  return dataMockInfo as Transaction[];
 };
 
 // Add interface for API response
@@ -264,6 +198,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userData = await getUsers();
       if (Array.isArray(userData) && userData.length > 0) {
+      // if (true) {
         // Map API users to our User type
         const mappedUsers = userData.map(apiUser => ({
           id: apiUser.id,
@@ -273,23 +208,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           phone_number: apiUser.phone_number,
           // Don't include password in the state
         }));
+      
         setUsers(mappedUsers);
       } else {
         // Fallback to default users if API returns empty
-        const defaultUsers: User[] = [
-          { id: 1, name: "Admin User", email: "example@gmail.com", role: "admin" },
-          { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
-        ];
-        setUsers(defaultUsers);
+        // const defaultUsers: User[] = [
+        //   { id: 1, name: "Admin User", email: "example@gmail.com", role: "admin" },
+        //   { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
+        // ];
+        // setUsers(defaultUsers);
+        setUsers([]);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
       // Fallback to default users on error
-      const defaultUsers: User[] = [
-        { id: 2, name: "Admin User", email: "example@gmail.com", role: "admin" },
-        { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
-      ];
-      setUsers(defaultUsers);
+      // const defaultUsers: User[] = [
+      //   { id: 2, name: "Admin User", email: "example@gmail.com", role: "admin" },
+      //   { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
+      // ];
+      // setUsers(defaultUsers);
+      setUsers([]);
     }
   };
 
@@ -319,11 +257,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Set up polling with a longer interval
-    const interval = setInterval(() => {
-      fetchTransactions();
-    }, FETCH_COOLDOWN);
+    // const interval = setInterval(() => {
+    //   fetchTransactions();
+    // }, FETCH_COOLDOWN);
 
-    return () => clearInterval(interval);
+    // return () => clearInterval(interval);
   }, []);
 
   // Save data to localStorage whenever it changes

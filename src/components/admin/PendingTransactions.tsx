@@ -27,7 +27,7 @@ const PendingTransactions = () => {
   const handleReject = async (id: number) => {
     try {
       setIsProcessing(true);
-      await updateTransactionStatus(id, "rechazado");
+      await updateTransactionStatus(id, "rejected");
       toast.info(`Transacción #${id} rechazada`);
     } catch (err) {
       console.error("Error rejecting transaction:", err);

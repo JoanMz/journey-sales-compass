@@ -15,6 +15,7 @@ import ImageUpload from '../ui/image-upload';
 import TravelerForm from './TravelerForm';
 import { SalesFormData, TravelerFormData } from '@/types/sales';
 import axios from 'axios';
+import endpoints from '@/lib/endpoints';
 
 interface EnhancedSalesFormProps {
   onSubmit: (formData: FormData) => Promise<void> | void;
@@ -98,7 +99,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     try {
       console.log("FormData entries:", dataToSend.entries());
 
-      const response = await axios.post("/api/transactions", dataToSend, {
+      const response = await axios.post("/api/transactions2", dataToSend, {
         headers: { "X-Target-Path": "/transactions/", method: "POST", "Content-Type": "multipart/form-data" },
       });
       console.log("Transaction created successfully:", response.data[0].imageUrl);
@@ -156,7 +157,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         "travelers": formData.travelers
       }
 
-      const responseTransaction = await axios.post("http://localhost:3000/api/saveTransactions",
+      // const responseTransaction = await axios.post("http://localhost:3000/api/saveTransactions",
+      const responseTransaction = await axios.post(endpoints.transactions.saveTransactions,
         BODY
       );
 
