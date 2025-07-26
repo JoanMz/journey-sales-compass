@@ -1,11 +1,12 @@
 
-import { Transaction, Traveler } from "./transactions";
+import { Transaction, Traveler, FlightInfo, HotelInfo } from "./transactions";
+export type { FlightInfo, HotelInfo };
 
 // Unified sales transaction type that extends the base transaction
 export interface SalesTransaction extends Transaction {
   // Additional UI-specific fields for backward compatibility
   customerAvatar?: string;
-  displayStatus: "Pendiente" | "Aprobado" | "Rechazado";
+  displayStatus: "Pendiente" | "Aprobado" | "Rechazado"| "Terminado";
 }
 
 // Form data for creating new sales with image uploads
@@ -19,7 +20,7 @@ export interface SalesFormData {
   quotedFlight?: string;
   agencyCost: number;
   amount: number;
-  transactionType: "Nacional" | "Internacional";
+  transactionType: "venta" | "abono";
   startDate: string;
   endDate: string;
   travelers: TravelerFormData[];

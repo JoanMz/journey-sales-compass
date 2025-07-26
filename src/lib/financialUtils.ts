@@ -1,9 +1,11 @@
-
 import { Transaction } from "@/types/transactions";
 
 export const calculateTotalRevenue = (transactions: Transaction[]): number => {
   return transactions
-    .filter(transaction => transaction.status === "approved")
+    .filter(
+      (transaction) =>
+        transaction.status === "approved" || transaction.status === "terminado"
+    )
     .reduce((total, transaction) => total + transaction.amount, 0);
 };
 
@@ -11,23 +13,35 @@ export const calculateTotalProfit = (totalRevenue: number): number => {
   return totalRevenue * 0.15; // 15% profit margin
 };
 
-export const calculateTotalCommission = (transactions: Transaction[]): number => {
-  return transactions
-    .filter(transaction => transaction.status === "approved")
-    .reduce((total, transaction) => total + (transaction.amount * 0.0225), 0); // 2.25% commission
+export const calculateTotalCommission = (transactions: Transaction[]): any => {
+  const VALUE = transactions
+    .filter(
+      (transaction) =>
+        transaction.status === "approved" || transaction.status === "terminado"
+    )
+    .reduce((total, transaction) => total + transaction.amount * 0.0225, 0); // 2.25% commission
+
+  // return VALUE;
+  return VALUE.toLocaleString("es-CO", {
+    style: "currency",
+    currency: "COP",
+  });
 };
 
 export const calculateCommissionByVendor = (transactions: Transaction[]) => {
-  const vendorMap = new Map<number, {
-    sellerId: number;
-    sellerName: string;
-    sales: number;
-    commission: number;
-  }>();
+  const vendorMap = new Map<
+    number,
+    {
+      sellerId: number;
+      sellerName: string;
+      sales: number;
+      commission: number;
+    }
+  >();
 
   transactions
-    .filter(transaction => transaction.status === "approved")
-    .forEach(transaction => {
+    .filter((transaction) => transaction.status === "approved")
+    .forEach((transaction) => {
       const sellerId = transaction.seller_id;
       const amount = transaction.amount;
       const commission = amount * 0.0225;
@@ -41,7 +55,7 @@ export const calculateCommissionByVendor = (transactions: Transaction[]) => {
           sellerId,
           sellerName: transaction.seller_name,
           sales: amount,
-          commission
+          commission,
         });
       }
     });
@@ -49,7 +63,10 @@ export const calculateCommissionByVendor = (transactions: Transaction[]) => {
   return Object.fromEntries(vendorMap);
 };
 
-export const filterTransactionsByPeriod = (transactions: Transaction[], period: "fortnight" | "month" | "all"): Transaction[] => {
+export const filterTransactionsByPeriod = (
+  transactions: Transaction[],
+  period: "fortnight" | "month" | "all"
+): Transaction[] => {
   if (period === "all") return transactions;
 
   const now = new Date();
@@ -57,16 +74,20 @@ export const filterTransactionsByPeriod = (transactions: Transaction[], period: 
 
   switch (period) {
     case "fortnight":
-      startDate = new Date(now.getTime() - (15 * 24 * 60 * 60 * 1000));
+      startDate = new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000);
       break;
     case "month":
-      startDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+      startDate = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        now.getDate()
+      );
       break;
     default:
       return transactions;
   }
 
-  return transactions.filter(transaction => {
+  return transactions.filter((transaction) => {
     const transactionDate = new Date(transaction.start_date);
     return transactionDate >= startDate;
   });

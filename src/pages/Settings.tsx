@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import AppLayout from "../components/layout/AppLayout";
 import { useAuth } from "../contexts/AuthContext";
@@ -117,13 +116,19 @@ const Settings = () => {
     }
   };
 
-  const handleDeleteUser = async (userId: string | number) => {
-    if (window.confirm("Are you sure you want to delete this user?")) {
-      try {
-        await deleteUser(userId);
-      } catch (error) {
-        // Error handling is done in the DataContext
-      }
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      await deleteUser(userId);
+    } catch (error) {
+      // Error handling is done in the DataContext
+    }
+  };
+
+  const handleUpdateUser = async (userId: number, userProps) => {
+    try {
+      await updateUser(userId, userProps);
+    } catch (error) {
+      // Error handling is done in the DataContext
     }
   };
 
@@ -448,7 +453,7 @@ const Settings = () => {
 
       {/* Add User Dialog */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-lg w-[100vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="mb-2">
             <DialogTitle>Add New User</DialogTitle>
             <DialogDescription>

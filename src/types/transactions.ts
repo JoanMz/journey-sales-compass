@@ -8,6 +8,29 @@ export interface Traveler {
   dni_image: string;
 }
 
+export interface FlightInfo {
+  aerolinea: string;
+  ruta: string;
+  fecha: string;
+  hora_salida: string;
+  hora_llegada: string;
+}
+
+export interface CuentasRecaudo {
+  banco: string;
+  numero: string;
+  nombre: string;
+  nit: string;
+}
+
+export interface HotelInfo {
+  hotel: string;
+  noches: number;
+  incluye: string[];
+  no_incluye: string[];
+  cuentas_recaudo: CuentasRecaudo;
+}
+
 export interface Transaction {
   id: number;
   client_name: string;
@@ -21,12 +44,14 @@ export interface Transaction {
   quoted_flight?: string;
   agency_cost: number;
   amount: number;
-  transaction_type?: "Nacional" | "Internacional";
-  status: "pending"| "approved" | "rejected";
+  transaction_type?: "venta" | "abono";
+  status: "pending" | "approved" | "rejected" | "terminado";
   seller_id: number;
   seller_name: string;
   receipt: string;
   start_date: string;
   end_date: string;
   travelers: Traveler[];
+  flight_info?: FlightInfo;
+  hotel_info?: HotelInfo;
 }

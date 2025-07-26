@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useData } from "../../contexts/DataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
@@ -8,13 +7,13 @@ import AdminFinancialMetrics from "./AdminFinancialMetrics";
 
 const AdminDashboard = () => {
   const { sales } = useData();
-  
+
   return (
     <div className="space-y-6">
       {/* Financial Metrics - Top Priority */}
       <AdminFinancialMetrics />
 
-      {/* Pending Transactions - High Priority */}
+      {/* Pending Transactions - High Priority  */}
       <PendingTransactions />
 
       {/* Customer Transactions Table */}

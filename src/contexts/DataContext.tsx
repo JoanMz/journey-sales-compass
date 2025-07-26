@@ -1,10 +1,13 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { toast } from "sonner";
 import { useAuth } from "./AuthContext";
-import { getAllTransactions, getUsers, createUser, deleteUser as deleteUserApi, updateUser as updateUserApi } from "@/lib/api";
-import { Transaction } from "@/types/transactions";
+import { getAllTransactions, getUsers, createUser, deleteUser as deleteUserApi, updateUser as updateUserApi, createTransaction, updateTransactionStatus, updateTransactionWithFlightHotel } from "@/lib/api";
+import { Transaction, FlightInfo, HotelInfo } from "@/types/transactions";
 import { SalesFormData } from "@/types/sales";
 import { mapStatusToSpanish } from "@/lib/utils";
+import { create } from "domain";
+import axios from "axios";
+import { dataMockInfo } from "./mockData";
 
 // Updated data types - now using Transaction as the primary type
 export type Customer = {
@@ -22,14 +25,14 @@ export type Sale = {
   customerAvatar?: string;
   package: string;
   date: string;
-  status: "Pendiente" | "Aprobado" | "Rechazado";
+  status: "Pendiente" | "Aprobado" | "Rechazado"| "Terminado";
   amount: number;
   sellerName: string;
   sellerId: string;
 };
 
 export type User = {
-  id: string | number;
+  id: number;
   name: string;
   email: string;
   role: "admin" | "seller" | "administrador" | "vendedor";
@@ -52,12 +55,14 @@ type DataContextType = {
   loading: boolean;
   error: string | null;
   refreshTransactions: () => Promise<void>;
-  addSale: (sale: Omit<Sale, "id">) => void;
+  addTransaction: (formData: FormData) => Promise<Transaction>;
   updateSaleStatus: (id: string, status: Sale["status"]) => void;
   deleteSale: (id: string) => void;
   addUser: (user: Omit<User, "id">) => void;
-  updateUser: (id: string, user: Partial<User>) => void;
-  deleteUser: (id: string) => void;
+  updateUser: (id: number, user: Partial<User>) => void;
+  deleteUser: (id: number) => void;
+  updateTransactionStatus: (id: number, status: string) => Promise<void>;
+  completeTransaction: (id: number, flightInfo: FlightInfo, hotelInfo: HotelInfo) => Promise<void>;
   metrics: {
     totalSales: number;
     totalRevenue: number;
@@ -86,7 +91,7 @@ const DEFAULT_WEEKLY_DATA: WeeklyData[] = [
   { day: "Sat", value: 2300 },
 ];
 
-export type TransactionStatus = "Pendiente" | "Aprobado" | "Rechazado";
+export type TransactionStatus = "pendiente" | "aprobado" | "rechazado"| "terminado";
 
 export interface TransaccionesClientesProps {
   sales: Sale[];
@@ -108,109 +113,17 @@ const convertTransactionToSale = (transaction: Transaction): Sale => ({
 
 // Mock transactions for fallback
 const getMockTransactions = (): Transaction[] => {
-  return [
-    {
-      id: 1001,
-      client_name: "Sofia Salinas",
-      client_email: "sofia@example.com",
-      client_phone: "+573145678901",
-      client_dni: "1089345678",
-      client_address: "Calle 123, Bogotá",
-      invoice_image: "",
-      id_image: "",
-      package: "Student Adventure",
-      quoted_flight: "Bogotá - Toulouse",
-      agency_cost: 950,
-      amount: 1250,
-      transaction_type: "Internacional",
-      status: "approved",
-      seller_id: 101,
-      seller_name: "John Seller",
-      receipt: "",
-      start_date: "2025-08-12",
-      end_date: "2025-08-20",
-      travelers: []
-    },
-    {
-      id: 1002,
-      client_name: "Daniel Rivera",
-      client_email: "daniel@example.com",
-      client_phone: "+573156789012",
-      client_dni: "1089456789",
-      client_address: "Carrera 45, Medellín",
-      invoice_image: "",
-      id_image: "",
-      package: "París Tour Package",
-      quoted_flight: "Bogotá - París",
-      agency_cost: 1000,
-      amount: 1200,
-      transaction_type: "Internacional",
-      status: "pending",
-      seller_id: 102,
-      seller_name: "John Seller",
-      receipt: "",
-      start_date: "2025-07-15",
-      end_date: "2025-07-25",
-      travelers: []
-    },
-    {
-      id: 1003,
-      client_name: "Miguel Muñoz",
-      client_email: "miguel@example.com",
-      client_phone: "+573167890123",
-      client_dni: "1089567890",
-      client_address: "Avenida 67, Cali",
-      invoice_image: "",
-      id_image: "",
-      package: "Barcelona Tour",
-      quoted_flight: "Bogotá - Barcelona",
-      agency_cost: 800,
-      amount: 850,
-      transaction_type: "Internacional",
-      status: "rejected",
-      seller_id: 101,
-      seller_name: "Admin User",
-      receipt: "",
-      start_date: "2025-08-10",
-      end_date: "2025-08-20",
-      travelers: []
-    }
-  ];
+  return dataMockInfo as Transaction[];
 };
+
+// Add interface for API response
+interface ApiResponse {
+  data?: Transaction | Transaction[];
+  status?: number;
+  message?: string;
+}
 
 // Function to create transactions - moved outside component
-export const createTransaction = async (formData: SalesFormData) => {
-  try {
-    // TODO: Implement actual API call to create transaction
-    const transactionData = {
-      client_name: formData.customerName,
-      client_email: formData.customerEmail,
-      client_phone: formData.customerPhone,
-      client_dni: formData.customerDni,
-      client_address: formData.customerAddress,
-      package: formData.package,
-      quoted_flight: formData.quotedFlight,
-      agency_cost: formData.agencyCost,
-      amount: formData.amount,
-      transaction_type: formData.transactionType,
-      start_date: formData.startDate,
-      end_date: formData.endDate,
-      travelers: formData.travelers,
-      invoice_image: formData.invoiceImage ? "uploaded_invoice.jpg" : "",
-      status: "pending"
-    };
-
-    console.log("Creating transaction:", transactionData);
-    // const response = await axios.post("/api/transactions", transactionData);
-    // return response.data;
-
-    // For now, return mock response
-    return { id: Date.now(), ...transactionData };
-  } catch (error) {
-    console.error("Failed to create transaction:", error);
-    throw error;
-  }
-};
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
@@ -221,21 +134,34 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetchTime, setLastFetchTime] = useState<number>(0);
+  const FETCH_COOLDOWN = 30000; // 30 seconds cooldown between fetches
 
-  // Function to fetch transactions from API
-  const fetchTransactions = async () => {
+  // Function to check if we should fetch data
+  const shouldFetchData = () => {
+    const now = Date.now();
+    return now - lastFetchTime >= FETCH_COOLDOWN;
+  };
+
+  // Updated fetchTransactions function with cooldown check
+  const fetchTransactions = async (force = false) => {
+    if (!force && !shouldFetchData()) {
+      return;
+    }
+
     try {
       setLoading(true);
-      const data : any = await getAllTransactions();
+      const response: Transaction[] | ApiResponse = await getAllTransactions();
       let transactionData: Transaction[] = [];
 
-      if (Array.isArray(data)) {
-        transactionData = data;
-      } else if (data && typeof data === 'object') {
-        if (Array.isArray(data.data)) {
-          transactionData = data.data;
-        } else {
-          transactionData = [data].filter(item => item && typeof item === 'object');
+      if (Array.isArray(response)) {
+        transactionData = response;
+      } else if (response && typeof response === 'object' && 'data' in response) {
+        const responseData = response.data;
+        if (Array.isArray(responseData)) {
+          transactionData = responseData;
+        } else if (responseData && typeof responseData === 'object') {
+          transactionData = [responseData].filter(isTransaction);
         }
       }
 
@@ -249,6 +175,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const convertedSales = transactionData.map(convertTransactionToSale);
       setSales(convertedSales);
       setError(null);
+      setLastFetchTime(Date.now());
     } catch (err) {
       console.error("Error fetching transactions:", err);
       setError("Error al cargar transacciones");
@@ -257,12 +184,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTransactions(mockTransactions);
       setSales(mockTransactions.map(convertTransactionToSale));
     } finally {
-      setLoading(false);
+      setLoading(false) // Add minimum loading time for better UX
     }
   };
 
+  // Updated refreshTransactions function
   const refreshTransactions = async () => {
-    await fetchTransactions();
+    await fetchTransactions(true); // Force refresh
   };
 
   // Function to fetch users from API
@@ -270,6 +198,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userData = await getUsers();
       if (Array.isArray(userData) && userData.length > 0) {
+      // if (true) {
         // Map API users to our User type
         const mappedUsers = userData.map(apiUser => ({
           id: apiUser.id,
@@ -279,29 +208,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           phone_number: apiUser.phone_number,
           // Don't include password in the state
         }));
+      
         setUsers(mappedUsers);
       } else {
         // Fallback to default users if API returns empty
-        const defaultUsers: User[] = [
-          { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
-          { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
-        ];
-        setUsers(defaultUsers);
+        // const defaultUsers: User[] = [
+        //   { id: 1, name: "Admin User", email: "example@gmail.com", role: "admin" },
+        //   { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
+        // ];
+        // setUsers(defaultUsers);
+        setUsers([]);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
       // Fallback to default users on error
-      const defaultUsers: User[] = [
-        { id: "1", name: "Admin User", email: "example@gmail.com", role: "admin" },
-        { id: "2", name: "John Seller", email: "seller@example.com", role: "seller" }
-      ];
-      setUsers(defaultUsers);
+      // const defaultUsers: User[] = [
+      //   { id: 2, name: "Admin User", email: "example@gmail.com", role: "admin" },
+      //   { id: 2, name: "John Seller", email: "seller@example.com", role: "seller" }
+      // ];
+      // setUsers(defaultUsers);
+      setUsers([]);
     }
   };
 
   // Load initial data
   useEffect(() => {
-    fetchTransactions();
+    fetchTransactions(true); // Initial load should always fetch
 
     // Load customers data from localStorage or use defaults
     const storedCustomers = localStorage.getItem("crm_customers");
@@ -313,7 +245,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
 
     // Fetch users from API
-    fetchUsers()
+    fetchUsers();
 
     // Load weekly data from localStorage or use defaults
     const storedWeeklyData = localStorage.getItem("crm_weekly_data");
@@ -323,6 +255,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem("crm_weekly_data", JSON.stringify(DEFAULT_WEEKLY_DATA));
       setWeeklyData(DEFAULT_WEEKLY_DATA);
     }
+
+    // Set up polling with a longer interval
+    // const interval = setInterval(() => {
+    //   fetchTransactions();
+    // }, FETCH_COOLDOWN);
+
+    // return () => clearInterval(interval);
   }, []);
 
   // Save data to localStorage whenever it changes
@@ -351,14 +290,39 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [weeklyData]);
 
   // CRUD operations
-  const addSale = (sale: Omit<Sale, "id">) => {
-    const newSale = {
-      ...sale,
-      id: `s${Date.now()}`,
-    };
-    setSales([...sales, newSale]);
+  const addSale = (transaction: Transaction) => {
+    setSales([...sales, convertTransactionToSale(transaction)]);
     toast.success("Sale added successfully!");
     // Note: In a real implementation, this would also call an API to create the transaction
+  };
+
+  const addTransaction = async (formData: FormData): Promise<Transaction> => {
+    try {
+      const response = await createTransaction(formData);
+      const newTransaction = response.data;
+
+      if (!isTransaction(newTransaction)) {
+        throw new Error('Invalid transaction data received from server');
+      }
+
+      addSale(newTransaction);
+      return newTransaction;
+    } catch (error) {
+      console.error("Failed to create transaction:", error);
+      throw error;
+    }
+  };
+
+  const completeTransactionWithInfo = async (id: number, flightInfo: FlightInfo, hotelInfo: HotelInfo) => {
+    try {
+      await updateTransactionWithFlightHotel(id, flightInfo, hotelInfo);
+      
+      // Force refresh after completion
+      await refreshTransactions();
+    } catch (error) {
+      console.error(`Failed to complete transaction ${id}:`, error);
+      throw error;
+    }
   };
 
   const updateSaleStatus = (id: string, status: Sale["status"]) => {
@@ -395,7 +359,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         toast.error(response.detail || "Failed to create user");
       }
-    } catch (error: any) {
+    } catch (error) {
       if (error.response && error.response.data && error.response.data.detail === "El usuario ya existe") {
         toast.error("User with this email already exists");
       } else {
@@ -405,10 +369,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateUser = async (id: string | number, userData: Partial<User>) => {
+  const updateUser = async (id: number, userData: Partial<User>) => {
     try {
       // Call the API to update the user
-      await updateUserApi(id.toString(), {
+      await updateUserApi(id, {
         name: userData.name || '',
         email: userData.email || '',
         role: userData.role || '',
@@ -425,7 +389,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Refresh the users list
       await fetchUsers();
-    } catch (error: any) {
+    } catch (error) {
       toast.error("Failed to update user");
       console.error("Error updating user:", error);
     }
@@ -447,7 +411,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Refresh the users list
       await fetchUsers();
-    } catch (error: any) {
+    } catch (error) {
       if (error.response && error.response.status === 204) {
         // If we get a 204 No Content response, it means the deletion was successful
         setUsers(users.filter(user => user.id !== id));
@@ -457,6 +421,36 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         toast.error("Failed to delete user");
         console.error("Error deleting user:", error);
       }
+    }
+  };
+
+  const changeTransactionStatus = async (id: number, status: string) => {
+    try {
+      await updateTransactionStatus(id, status);
+
+      // If status is "completado", trigger document generation
+      if (status === "completado") {
+        try {
+          await axios.post(
+            "https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/d5e02b96-c7fa-4358-8120-65fccbee7892",
+            { transaction_id: id },
+            {
+              headers: {
+                accept: 'application/json',
+              },
+              timeout: 5000
+            }
+          );
+        } catch (err) {
+          console.error("Error generating document:", err);
+        }
+      }
+
+      // Force refresh after status update
+      await refreshTransactions();
+    } catch (error) {
+      console.error(`Failed to update transaction ${id} status:`, error);
+      throw error;
     }
   };
 
@@ -480,12 +474,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         loading,
         error,
         refreshTransactions,
-        addSale,
+        addTransaction,
         updateSaleStatus,
         deleteSale,
         addUser,
         updateUser,
         deleteUser,
+        updateTransactionStatus: changeTransactionStatus,
+        completeTransaction: completeTransactionWithInfo,
         metrics,
       }}
     >
@@ -500,4 +496,22 @@ export const useData = () => {
     throw new Error("useData must be used within a DataProvider");
   }
   return context;
+};
+
+// Update type guard for Transaction to use unknown instead of any
+const isTransaction = (obj: unknown): obj is Transaction => {
+  if (!obj || typeof obj !== 'object') {
+    return false;
+  }
+
+  const candidate = obj as Record<string, unknown>;
+
+  return typeof candidate.id === 'number'
+    && typeof candidate.client_name === 'string'
+    && typeof candidate.client_email === 'string'
+    && typeof candidate.client_phone === 'string'
+    && typeof candidate.client_dni === 'string'
+    && typeof candidate.package === 'string'
+    && typeof candidate.amount === 'number'
+    && typeof candidate.status === 'string';
 };

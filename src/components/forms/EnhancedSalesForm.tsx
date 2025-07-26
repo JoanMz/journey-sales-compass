@@ -14,8 +14,8 @@ import {
 import ImageUpload from '../ui/image-upload';
 import TravelerForm from './TravelerForm';
 import { SalesFormData, TravelerFormData } from '@/types/sales';
-import { createTransaction } from '@/lib/api';
 import axios from 'axios';
+import endpoints from '@/lib/endpoints';
 
 interface EnhancedSalesFormProps {
   onSubmit: (formData: FormData) => Promise<void> | void;
@@ -38,7 +38,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     quotedFlight: 'Vuelo 1',
     agencyCost: 10,
     amount: 120,
-    transactionType: 'Nacional',
+    transactionType: 'venta',
     startDate: '2025-05-30',
     endDate: '2025-05-30',
     travelers: [],
@@ -46,8 +46,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
   });
 
 
-  const updateField = async (field: keyof SalesFormData, value: any) => {
-    console.log(`Updating field: ${field} with value:`, value);
+  const updateField = async (field: keyof SalesFormData, value) => {
+    // console.log(`Updating field: ${field} with value:`, value);
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
@@ -86,7 +86,12 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
     // Añadir la imagen si existe
     if (formData.invoiceImage) {
-      dataToSend.append('data0', formData.invoiceImage, formData.invoiceImage.name);
+      dataToSend.append('payment_evidence', formData.invoiceImage, formData.invoiceImage.name);
+    }
+    for (const traveler of formData.travelers) {
+      if (traveler.dniImage) {
+        dataToSend.append('data_traveler_'+traveler.name, traveler.dniImage);
+      }
     }
 
     console.log("Submitting form data:", Object.fromEntries(dataToSend.entries()));
@@ -94,10 +99,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     try {
       console.log("FormData entries:", dataToSend.entries());
 
-      const formdata = new FormData();
-      formdata.append("data0", formData.invoiceImage, formData.invoiceImage.name);
-
-      const response = await axios.post("/api/transactions", dataToSend, {
+      const response = await axios.post("/api/transactions2", dataToSend, {
         headers: { "X-Target-Path": "/transactions/", method: "POST", "Content-Type": "multipart/form-data" },
       });
       console.log("Transaction created successfully:", response.data[0].imageUrl);
@@ -155,7 +157,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         "travelers": formData.travelers
       }
 
-      const responseTransaction = await axios.post("http://localhost:3000/api/saveTransactions",
+      // const responseTransaction = await axios.post("http://localhost:3000/api/saveTransactions",
+      const responseTransaction = await axios.post(endpoints.transactions.saveTransactions,
         BODY
       );
 
@@ -254,14 +257,14 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Tipo de transacción *</Label>
             <Select
               value={formData.transactionType}
-              onValueChange={(value: "Nacional" | "Internacional") => updateField('transactionType', value)}
+              onValueChange={(value: "venta" | "abono") => updateField('transactionType', value)}
             >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Nacional">Nacional</SelectItem>
-                <SelectItem value="Internacional">Internacional</SelectItem>
+                <SelectItem value="venta">Venta</SelectItem>
+                <SelectItem value="abono">Abono</SelectItem>
               </SelectContent>
             </Select>
           </div>
