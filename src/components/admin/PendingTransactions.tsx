@@ -7,7 +7,13 @@ import { formatCurrency } from "../../lib/utils";
 import { useData } from "@/contexts/DataContext";
 
 const PendingTransactions = () => {
-  const { transactions, loading, error, refreshTransactions, updateTransactionStatus } = useData();
+  const {
+    transactions,
+    loading,
+    error,
+    refreshTransactions,
+    updateTransactionStatus,
+  } = useData();
   const [showMoreCount, setShowMoreCount] = useState(3);
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -15,7 +21,9 @@ const PendingTransactions = () => {
     try {
       setIsProcessing(true);
       await updateTransactionStatus(id, "approved");
-      toast.success(`Transacción #${id} aprobada - El vendedor debe completar la información`);
+      toast.success(
+        `Transacción #${id} aprobada - El vendedor debe completar la información`
+      );
     } catch (err) {
       console.error("Error approving transaction:", err);
       toast.error("Error al aprobar la transacción");
@@ -38,21 +46,32 @@ const PendingTransactions = () => {
   };
 
   const handleShowMore = () => {
-    setShowMoreCount(prev => prev + 3);
+    setShowMoreCount((prev) => prev + 3);
   };
 
   // Filter pending transactions
-  const pendingTransactions = transactions.filter(t => t.status === "pending");
-  const approvedTransactions = transactions.filter(t => t.status === "approved");
-  const completedTransactions = transactions.filter(t => t.status === "terminado");
-  const displayPendingTransactions = pendingTransactions.slice(0, showMoreCount);
+  const pendingTransactions = transactions.filter(
+    (t) => t.status === "pending"
+  );
+  const approvedTransactions = transactions.filter(
+    (t) => t.status === "approved"
+  );
+  const completedTransactions = transactions.filter(
+    (t) => t.status === "terminado"
+  );
+  const displayPendingTransactions = pendingTransactions.slice(
+    0,
+    showMoreCount
+  );
 
   return (
     <div className="space-y-6">
       {/* Pending Transactions */}
       <Card className="bg-white border-blue-200">
         <CardHeader>
-          <CardTitle className="text-xl font-bold">Aprobaciones de Ventas Pendientes</CardTitle>
+          <CardTitle className="text-xl font-bold">
+            Aprobaciones de Ventas Pendientes
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -62,19 +81,28 @@ const PendingTransactions = () => {
           ) : error && pendingTransactions.length === 0 ? (
             <div className="text-center text-red-500 py-4">{error}</div>
           ) : pendingTransactions.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">No hay transacciones pendientes</div>
+            <div className="text-center text-gray-500 py-4">
+              No hay transacciones pendientes
+            </div>
           ) : (
             <div className="space-y-4">
               {displayPendingTransactions.map((transaction) => (
-                <div key={transaction.id} className="border-b border-gray-200 pb-4">
+                <div
+                  key={transaction.id}
+                  className="border-b border-gray-200 pb-4"
+                >
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <h3 className="font-medium">{transaction.client_name}</h3>
                       <p className="text-sm text-gray-500">Cliente</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{transaction.transaction_type}</p>
-                      <p className="font-bold text-lg">{formatCurrency(transaction.amount)}</p>
+                      <p className="font-semibold">
+                        {transaction.transaction_type}
+                      </p>
+                      <p className="font-bold text-lg">
+                        {formatCurrency(transaction.amount)}
+                      </p>
                     </div>
                   </div>
 
@@ -85,12 +113,16 @@ const PendingTransactions = () => {
 
                   <div className="flex justify-between items-center mb-2">
                     <p className="text-sm text-gray-500">Fecha inicio</p>
-                    <p className="text-sm">{new Date(transaction.start_date).toLocaleDateString()}</p>
+                    <p className="text-sm">
+                      {new Date(transaction.start_date).toLocaleDateString()}
+                    </p>
                   </div>
 
                   <div className="flex justify-between items-center mb-2">
                     <p className="text-sm text-gray-500">Fecha fin</p>
-                    <p className="text-sm">{new Date(transaction.end_date).toLocaleDateString()}</p>
+                    <p className="text-sm">
+                      {new Date(transaction.end_date).toLocaleDateString()}
+                    </p>
                   </div>
 
                   <div className="flex justify-between items-center mb-2">
@@ -149,18 +181,25 @@ const PendingTransactions = () => {
           ) : (
             <div className="space-y-4">
               {approvedTransactions.map((transaction) => (
-                <div key={transaction.id} className="border-b border-yellow-200 pb-4">
+                <div
+                  key={transaction.id}
+                  className="border-b border-yellow-200 pb-4"
+                >
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <h3 className="font-medium">{transaction.client_name}</h3>
                       <p className="text-sm text-gray-500">Cliente</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold">{transaction.transaction_type}</p>
-                      <p className="font-bold text-lg">{formatCurrency(transaction.amount)}</p>
+                      <p className="font-semibold">
+                        {transaction.transaction_type}
+                      </p>
+                      <p className="font-bold text-lg">
+                        {formatCurrency(transaction.amount)}
+                      </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-between items-center mb-2">
                     <p className="text-sm text-gray-500">Vendedor</p>
                     <p className="text-sm">{transaction.seller_name}</p>
@@ -173,7 +212,8 @@ const PendingTransactions = () => {
 
                   <div className="bg-yellow-50 p-2 rounded mt-2">
                     <p className="text-sm text-yellow-700">
-                      Esperando que el vendedor complete la información de vuelo y hotel.
+                      Esperando que el vendedor complete la información de vuelo
+                      y hotel.
                     </p>
                   </div>
                 </div>
@@ -192,24 +232,33 @@ const PendingTransactions = () => {
         </CardHeader>
         <CardContent>
           {completedTransactions.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">No hay ventas completadas</div>
+            <div className="text-center text-gray-500 py-4">
+              No hay ventas completadas
+            </div>
           ) : (
             <div className="space-y-4">
               {completedTransactions.slice(0, 5).map((transaction) => (
-                <div key={transaction.id} className="border-b border-green-200 pb-4">
+                <div
+                  key={transaction.id}
+                  className="border-b border-green-200 pb-4"
+                >
                   <div className="flex justify-between items-center mb-2">
                     <div>
                       <h3 className="font-medium">{transaction.client_name}</h3>
-                      <p className="text-sm text-gray-500">{transaction.seller_name}</p>
+                      <p className="text-sm text-gray-500">
+                        {transaction.seller_name}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-lg">{formatCurrency(transaction.amount)}</p>
+                      <p className="font-bold text-lg">
+                        {formatCurrency(transaction.amount)}
+                      </p>
                       <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
                         Completado
                       </span>
                     </div>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <p className="text-gray-500">Paquete:</p>
@@ -218,13 +267,19 @@ const PendingTransactions = () => {
                     {transaction.flight_info && (
                       <div>
                         <p className="text-gray-500">Vuelo:</p>
-                        <p>{transaction.flight_info.aerolinea} - {transaction.flight_info.ruta}</p>
+                        <p>
+                          {transaction.flight_info.aerolinea} -{" "}
+                          {transaction.flight_info.ruta}
+                        </p>
                       </div>
                     )}
                     {transaction.hotel_info && (
                       <div>
                         <p className="text-gray-500">Hotel:</p>
-                        <p>{transaction.hotel_info.hotel} ({transaction.hotel_info.noches} noches)</p>
+                        <p>
+                          {transaction.hotel_info.hotel} (
+                          {transaction.hotel_info.noches} noches)
+                        </p>
                       </div>
                     )}
                   </div>

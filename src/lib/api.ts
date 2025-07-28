@@ -150,26 +150,16 @@ function getDateRange(period) {
   const end = new Date();
   let start;
   if (period === "fortnight") {
-    start = new Date(
-      end.getFullYear(),
-      end.getMonth(),
-      end.getDate() - 15
-    );
+    start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - 15);
   } else if (period === "month") {
-    start = new Date(
-      end.getFullYear(),
-      end.getMonth() - 1,
-      end.getDate()
-    );
+    start = new Date(end.getFullYear(), end.getMonth() - 1, end.getDate());
   } else if (period === "all") {
     start = new Date(0);
   }
 
   // Format to "YYYY-MM-DDTHH:mm:ss"
   function formatDate(date) {
-    return date
-      .toISOString()
-      .slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
+    return date.toISOString().slice(0, 19); // "YYYY-MM-DDTHH:mm:ss"
   }
 
   return {
@@ -216,7 +206,9 @@ export const updateTransactionStatus = async (id: number, status: string) => {
     //     },
     //   }
     // );
-    const response = await axios.patch(endpoints.transactions.updateStatus(id, status));
+    const response = await axios.patch(
+      endpoints.transactions.updateStatus(id, status)
+    );
     return parseTransactionsResponse(response);
   } catch (error) {
     console.error(`Failed to update transaction ${id} status:`, error);
@@ -230,21 +222,15 @@ export const updateTransactionWithFlightHotel = async (
   hotelInfo: HotelInfo
 ) => {
   try {
-    const response = await axios.post(
-      "/api/transactions/12",
-      {
-        params: {
-          flight_info: flightInfo,
-          hotel_info: hotelInfo,
-          status: "terminado",
-        },
-      },
-      {
-        headers: {
-          "X-Target-Path": `/transactions/${id}/complete`,
-          method: "PATCH",
-        },
-      }
+    const BODY = {
+      itinerario: [flightInfo],
+      travel_info: [hotelInfo],
+      status: "terminado",
+      
+    };
+    const response = await axios.patch(
+      endpoints.transactions.saveCompleteTransaction(id),
+      BODY
     );
     return parseTransactionsResponse(response);
   } catch (error) {

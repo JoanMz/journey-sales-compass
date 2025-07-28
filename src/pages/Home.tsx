@@ -155,10 +155,36 @@ const Home = () => {
         })
       });
       console.log(response, "response");
+
+      // El response contiene un objeto con la propiedad "data" que es un string base64 de un PDF.
+      // Necesitamos abrir ese PDF en una nueva pestaña usando un Blob.
+
+      if (!response.ok) {
+        throw new Error("Error al generar la factura");
+      }
+      const result = await response.json();
+      // result.data es el string base64 del PDF
+
+      // Convertir base64 a un array de bytes
+      function base64ToUint8Array(base64) {
+        const binaryString = window.atob(base64);
+        const len = binaryString.length;
+        const bytes = new Uint8Array(len);
+        for (let i = 0; i < len; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        return bytes;
+      }
+
+      const pdfBytes = base64ToUint8Array(result.data);
+      const blob = new Blob([pdfBytes], { type: "application/pdf" });
+      const blobUrl = URL.createObjectURL(blob);
+
+      // Abrir el PDF en una nueva pestaña
+      window.open(blobUrl, "_blank");
       // if (!response.ok) {
       //   throw new Error("Error al generar la factura");
       // }
-      alert("Factura generada correctamente");
     } catch (error) {
       console.error("Error al generar la factura:", error);
       alert("Error al generar la factura");

@@ -28,7 +28,8 @@ export interface SalesFormData {
 }
 
 // Traveler form data with image upload
-export interface TravelerFormData extends Omit<Traveler, 'id' | 'dni_image'> {
+export interface TravelerFormData extends Omit<Traveler, 'id' | 'dni_image' | 'date_birth'> {
+  date_birth: string;
   dniImage?: File;
 }
 

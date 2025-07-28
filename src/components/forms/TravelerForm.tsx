@@ -21,6 +21,7 @@ const TravelerForm: React.FC<TravelerFormProps> = ({
       name: '',
       dni: '',
       age: 18,
+      date_birth: '',
       phone: '',
       dniImage: undefined
     };
@@ -92,7 +93,7 @@ const TravelerForm: React.FC<TravelerFormProps> = ({
               />
             </div>
 
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>Edad *</Label>
               <Input
                 type="number"
@@ -100,6 +101,16 @@ const TravelerForm: React.FC<TravelerFormProps> = ({
                 onChange={(e) => updateTraveler(index, 'age', parseInt(e.target.value))}
                 min="0"
                 max="120"
+                required
+              />
+            </div> */}
+
+            <div className="space-y-2">
+              <Label>Fecha de nacimiento *</Label>
+              <Input
+                type="date"
+                value={traveler.date_birth}
+                onChange={(e) => updateTraveler(index, 'date_birth', e.target.value)}
                 required
               />
             </div>

@@ -1,21 +1,20 @@
-
-import React, { useState } from 'react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
+import React, { useState } from "react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select';
-import ImageUpload from '../ui/image-upload';
-import TravelerForm from './TravelerForm';
-import { SalesFormData, TravelerFormData } from '@/types/sales';
-import axios from 'axios';
-import endpoints from '@/lib/endpoints';
+} from "../ui/select";
+import ImageUpload from "../ui/image-upload";
+import TravelerForm from "./TravelerForm";
+import { SalesFormData, TravelerFormData } from "@/types/sales";
+import axios from "axios";
+import endpoints from "@/lib/endpoints";
 
 interface EnhancedSalesFormProps {
   onSubmit: (formData: FormData) => Promise<void> | void;
@@ -26,29 +25,28 @@ interface EnhancedSalesFormProps {
 const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
   onSubmit,
   onCancel,
-  loading = false
+  loading = false,
 }) => {
   const [formData, setFormData] = useState<SalesFormData>({
-    customerName: 'Sofia',
-    customerEmail: 'sofia@sofia.com',
-    customerPhone: '123456789',
-    customerDni: '12345678',
-    customerAddress: '123 Main St',
-    package: 'Paquete 1',
-    quotedFlight: 'Vuelo 1',
+    customerName: "Sofia",
+    customerEmail: "sofia@sofia.com",
+    customerPhone: "123456789",
+    customerDni: "12345678",
+    customerAddress: "123 Main St",
+    package: "Paquete 1",
+    quotedFlight: "Vuelo 1",
     agencyCost: 10,
     amount: 120,
-    transactionType: 'venta',
-    startDate: '2025-05-30',
-    endDate: '2025-05-30',
+    transactionType: "venta",
+    startDate: "2025-05-30",
+    endDate: "2025-05-30",
     travelers: [],
-    invoiceImage: undefined
+    invoiceImage: undefined,
   });
-
 
   const updateField = async (field: keyof SalesFormData, value) => {
     // console.log(`Updating field: ${field} with value:`, value);
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -67,42 +65,79 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
     const dataToSend = new FormData();
 
+    const NEW_BODY = {
+      client_name: formData.customerName,
+      client_email: formData.customerEmail,
+      client_phone: formData.customerPhone,
+      client_dni: formData.customerDni,
+      client_address: formData.customerAddress,
+      package: formData.package,
+      quoted_flight: formData.quotedFlight,
+      agency_cost: formData.agencyCost,
+      amount: formData.amount,
+      transaction_type: formData.transactionType,
+      start_date: formData.startDate,
+      end_date: formData.endDate,
+      status: "pending",
+      seller_id: 1,
+      receipt: "mateo",
+      travelers: formData.travelers,
+    }
+
     // Añade todos los campos de texto y números al FormData
-    // dataToSend.append('customerName', formData.customerName);
-    // dataToSend.append('customerEmail', formData.customerEmail);
-    // dataToSend.append('customerPhone', formData.customerPhone);
-    // dataToSend.append('customerDni', formData.customerDni);
-    // dataToSend.append('customerAddress', formData.customerAddress);
-    // dataToSend.append('package', formData.package);
-    // dataToSend.append('quotedFlight', formData.quotedFlight);
-    // dataToSend.append('agencyCost', formData.agencyCost.toString()); // Convertir a string
-    // dataToSend.append('amount', formData.amount.toString()); // Convertir a string
-    // dataToSend.append('transactionType', formData.transactionType);
-    // dataToSend.append('startDate', formData.startDate);
-    // dataToSend.append('endDate', formData.endDate);
+    // dataToSend.append("client_name", formData.customerName);
+    // dataToSend.append("client_email", formData.customerEmail);
+    // dataToSend.append("client_phone", formData.customerPhone);
+    // dataToSend.append("client_dni", formData.customerDni);
+    // dataToSend.append("client_address", formData.customerAddress);
+    // dataToSend.append("package", formData.package);
+    // dataToSend.append("quoted_flight", formData.quotedFlight);
+    // dataToSend.append("agency_cost", formData.agencyCost.toString()); // Convertir a string
+    // dataToSend.append("amount", formData.amount.toString()); // Convertir a string
+    // dataToSend.append("transaction_type", formData.transactionType);
+    // dataToSend.append("start_date", formData.startDate);
+    // dataToSend.append("end_date", formData.endDate);
 
     // Serializar el array de viajeros como un string JSON
-    // dataToSend.append('travelers', JSON.stringify(formData.travelers));
+    // dataToSend.append("travelers", JSON.stringify(formData.travelers));
 
-    // Añadir la imagen si existe
-    if (formData.invoiceImage) {
-      dataToSend.append('payment_evidence', formData.invoiceImage, formData.invoiceImage.name);
-    }
-    for (const traveler of formData.travelers) {
-      if (traveler.dniImage) {
-        dataToSend.append('data_traveler_'+traveler.name, traveler.dniImage);
-      }
-    }
-
-    console.log("Submitting form data:", Object.fromEntries(dataToSend.entries()));
+    // // Añadir la imagen si existe
+    // if (formData.invoiceImage) {
+    //   dataToSend.append(
+    //     "payment_evidence",
+    //     formData.invoiceImage,
+    //     formData.invoiceImage.name
+    //   );
+    // }
+    // for (const traveler of formData.travelers) {
+    //   if (traveler.dniImage) {
+    //     dataToSend.append("data_traveler_" + traveler.name, traveler.dniImage);
+    //   }
+    // }
 
     try {
-      console.log("FormData entries:", dataToSend.entries());
+      // console.log(
+      //   "Submitting form data:",
+      //   Object.fromEntries(dataToSend.entries())
+      // );
+      console.log("Submitting form data:", NEW_BODY);
 
-      const response = await axios.post("/api/transactions2", dataToSend, {
-        headers: { "X-Target-Path": "/transactions/", method: "POST", "Content-Type": "multipart/form-data" },
-      });
-      console.log("Transaction created successfully:", response.data[0].imageUrl);
+      const response = await axios.post(
+        endpoints.transactions.createTransaction,
+        // dataToSend,
+        NEW_BODY,
+        {
+          headers: {
+            "X-Target-Path": "/transactions/",
+            // method: "POST",
+            // "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+      // console.log(
+      //   "Transaction created successfully:",
+      //   response.data[0].imageUrl
+      // );
 
       /* 
           {
@@ -136,42 +171,54 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
        
       */
 
-      const BODY = {
-        "client_name": formData.customerName,
-        "client_email": formData.customerEmail,
-        "client_phone": formData.customerPhone,
-        "client_dni": formData.customerDni,
-        "client_address": formData.customerAddress,
-        "invoice_image": response.data[0].imageUrl,
-        "id_image": `${response.data[0].imageUrl.split("amazonaws.com")[1]}-${new Date().getTime()}`,
-        "package": formData.package,
-        "quoted_flight": formData.quotedFlight,
-        "agency_cost": formData.agencyCost,
-        "amount": formData.amount,
-        "transaction_type": formData.transactionType,
-        "status": "pending",
-        "seller_id": 0,
-        "receipt": "",
-        "start_date": formData.startDate,
-        "end_date": formData.endDate,
-        "travelers": formData.travelers
-      }
+      // const BODY = {
+      //   client_name: formData.customerName,
+      //   client_email: formData.customerEmail,
+      //   client_phone: formData.customerPhone,
+      //   client_dni: formData.customerDni,
+      //   client_address: formData.customerAddress,
+      //   invoice_image: response.data[0].imageUrl,
+      //   id_image: `${
+      //     response.data[0].imageUrl.split("amazonaws.com")[1]
+      //   }-${new Date().getTime()}`,
+      //   package: formData.package,
+      //   quoted_flight: formData.quotedFlight,
+      //   agency_cost: formData.agencyCost,
+      //   amount: formData.amount,
+      //   transaction_type: formData.transactionType,
+      //   status: "pending",
+      //   seller_id: 0,
+      //   receipt: "",
+      //   start_date: formData.startDate,
+      //   end_date: formData.endDate,
+      //   travelers: formData.travelers,
+      // };
 
-      // const responseTransaction = await axios.post("http://localhost:3000/api/saveTransactions",
-      const responseTransaction = await axios.post(endpoints.transactions.saveTransactions,
-        BODY
+      // // const responseTransaction = await axios.post("http://localhost:3000/api/saveTransactions",
+      // const responseTransaction = await axios.post(
+      //   endpoints.transactions.saveTransactions,
+      //   BODY
+      // );
+
+      // console.log(
+      //   "Transaction created successfully:",
+      //   responseTransaction.data
+      // );
+      console.log(
+        "Transaction created successfully:",
+        response.data
       );
 
-      console.log("Transaction created successfully:", responseTransaction.data);
+      alert("Venta creada correctamente");
 
-      return
-      return response.data;
+      // onSubmit(NEW_BODY);
+      
+      // return response.data;
     } catch (error) {
-      console.error("Failed to create sale :", error);
+      console.error("Failed to creƒate sale :", error);
       throw error;
     }
 
-    // onSubmit(dataToSend);
   };
 
   return (
@@ -187,7 +234,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Nombre completo *</Label>
             <Input
               value={formData.customerName}
-              onChange={(e) => updateField('customerName', e.target.value)}
+              onChange={(e) => updateField("customerName", e.target.value)}
               placeholder="Nombre del cliente"
               required
             />
@@ -198,7 +245,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Input
               type="email"
               value={formData.customerEmail}
-              onChange={(e) => updateField('customerEmail', e.target.value)}
+              onChange={(e) => updateField("customerEmail", e.target.value)}
               placeholder="email@ejemplo.com"
               required
             />
@@ -208,7 +255,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Teléfono *</Label>
             <Input
               value={formData.customerPhone}
-              onChange={(e) => updateField('customerPhone', e.target.value)}
+              onChange={(e) => updateField("customerPhone", e.target.value)}
               placeholder="Número de teléfono"
               required
             />
@@ -218,7 +265,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Documento de identidad *</Label>
             <Input
               value={formData.customerDni}
-              onChange={(e) => updateField('customerDni', e.target.value)}
+              onChange={(e) => updateField("customerDni", e.target.value)}
               placeholder="Número de documento"
               required
             />
@@ -229,7 +276,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           <Label>Dirección *</Label>
           <Textarea
             value={formData.customerAddress}
-            onChange={(e) => updateField('customerAddress', e.target.value)}
+            onChange={(e) => updateField("customerAddress", e.target.value)}
             placeholder="Dirección completa del cliente"
             required
           />
@@ -247,7 +294,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Paquete turístico *</Label>
             <Input
               value={formData.package}
-              onChange={(e) => updateField('package', e.target.value)}
+              onChange={(e) => updateField("package", e.target.value)}
               placeholder="Nombre del paquete"
               required
             />
@@ -257,7 +304,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Tipo de transacción *</Label>
             <Select
               value={formData.transactionType}
-              onValueChange={(value: "venta" | "abono") => updateField('transactionType', value)}
+              onValueChange={(value: "venta" | "abono") =>
+                updateField("transactionType", value)
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -273,7 +322,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Vuelo cotizado</Label>
             <Input
               value={formData.quotedFlight}
-              onChange={(e) => updateField('quotedFlight', e.target.value)}
+              onChange={(e) => updateField("quotedFlight", e.target.value)}
               placeholder="Ruta del vuelo"
             />
           </div>
@@ -283,7 +332,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Input
               type="number"
               value={formData.agencyCost}
-              onChange={(e) => updateField('agencyCost', parseFloat(e.target.value))}
+              onChange={(e) =>
+                updateField("agencyCost", parseFloat(e.target.value))
+              }
               placeholder="Costo para la agencia"
               min="0"
               step="0.01"
@@ -296,7 +347,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Input
               type="number"
               value={formData.amount}
-              onChange={(e) => updateField('amount', parseFloat(e.target.value))}
+              onChange={(e) =>
+                updateField("amount", parseFloat(e.target.value))
+              }
               placeholder="Precio total del paquete"
               min="0"
               step="0.01"
@@ -309,7 +362,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Input
               type="date"
               value={formData.startDate}
-              onChange={(e) => updateField('startDate', e.target.value)}
+              onChange={(e) => updateField("startDate", e.target.value)}
               required
             />
           </div>
@@ -319,7 +372,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Input
               type="date"
               value={formData.endDate}
-              onChange={(e) => updateField('endDate', e.target.value)}
+              onChange={(e) => updateField("endDate", e.target.value)}
               required
             />
           </div>
@@ -327,7 +380,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
         <ImageUpload
           label="Factura"
-          onImageSelect={(file) => updateField('invoiceImage', file)} // Recibe el objeto File
+          onImageSelect={(file) => updateField("invoiceImage", file)} // Recibe el objeto File
           required
         />
       </div>
@@ -336,7 +389,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       <div className="bg-white p-6 rounded-lg border">
         <TravelerForm
           travelers={formData.travelers}
-          onTravelersChange={(travelers) => updateField('travelers', travelers)}
+          onTravelersChange={(travelers) => updateField("travelers", travelers)}
         />
       </div>
 
@@ -355,7 +408,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           className="bg-blue-600 hover:bg-blue-700"
           disabled={loading}
         >
-          {loading ? 'Guardando...' : 'Crear Venta'}
+          {loading ? "Guardando..." : "Crear Venta"}
         </Button>
       </div>
     </form>
