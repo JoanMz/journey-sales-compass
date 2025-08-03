@@ -31,8 +31,9 @@ export const useTransactions = () => {
   // Group transactions by status for Kanban view
   const kanbanGroups = useMemo(() => ({
     "Pendiente": filteredTransactions.filter(transaction => transaction.displayStatus === "Pendiente"),
+    "Incompleta": filteredTransactions.filter(transaction => transaction.displayStatus === "Incompleta"),
     "Aprobado": filteredTransactions.filter(transaction => transaction.displayStatus === "Aprobado"),
-    "Terminado": filteredTransactions.filter(transaction => transaction.displayStatus === "Terminado"),
+   //"Terminado": filteredTransactions.filter(transaction => transaction.displayStatus === "Terminado"),
     "Rechazado": filteredTransactions.filter(transaction => transaction.displayStatus === "Rechazado"),
   }), [filteredTransactions]);
 

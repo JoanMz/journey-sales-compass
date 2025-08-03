@@ -1,6 +1,6 @@
 import { DragEvent } from "react";
 
-type KanbanStatus = "Pendiente" | "Aprobado" | "Rechazado" | "Terminado";
+type KanbanStatus = "Pendiente" | "Aprobado" | "Rechazado" | "Incompleta" | "Terminado"; 
 
 export const useDragAndDrop = () => {
   // Handle dropping a transaction card to a new status column

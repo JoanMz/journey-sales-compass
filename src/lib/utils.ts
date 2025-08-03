@@ -20,7 +20,7 @@ export function formatCurrency(
   }).format(amount);
 }
 
-export const mapStatusToSpanish = (status: string): "Pendiente" | "Aprobado" | "Rechazado" | "Terminado" => {
+export const mapStatusToSpanish = (status: string): "Pendiente" | "Aprobado" | "Rechazado" | "Terminado" | "Incompleta" => {
   switch (status) {
     case "pending":
       return "Pendiente";
@@ -30,6 +30,8 @@ export const mapStatusToSpanish = (status: string): "Pendiente" | "Aprobado" | "
       return "Rechazado";
     case "terminado":
       return "Terminado";
+    case "incompleta":
+      return "Incompleta";
     default:
       return "Pendiente";
   }

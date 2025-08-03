@@ -1,7 +1,7 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
 import { Transaction, FlightInfo, HotelInfo } from "@/types/transactions";
-import endpoints from "./endpoints";
+import { endpoints } from "./endpoints";
 
 // Define API response type
 export interface ApiResponse {

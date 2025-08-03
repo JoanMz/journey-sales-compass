@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import ImageUpload from '../ui/image-upload';
 import { Plus, Trash2 } from 'lucide-react';
 import { TravelerFormData } from '@/types/sales';
@@ -23,7 +24,8 @@ const TravelerForm: React.FC<TravelerFormProps> = ({
       age: 18,
       date_birth: '',
       phone: '',
-      dniImage: undefined
+      dniImage: undefined,
+      tipo_documento: ''
     };
     onTravelersChange([...travelers, newTraveler]);
   };
@@ -91,6 +93,25 @@ const TravelerForm: React.FC<TravelerFormProps> = ({
                 placeholder="Número de documento"
                 required
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo de documento *</Label>
+              <Select
+                value={traveler.tipo_documento || ""}
+                onValueChange={(value) => updateTraveler(index, 'tipo_documento', value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar tipo de documento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dni">DNI</SelectItem>
+                  <SelectItem value="pasaporte">Pasaporte</SelectItem>
+                  <SelectItem value="cedula">Cédula</SelectItem>
+                  <SelectItem value="otro">Otro</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             {/* <div className="space-y-2">

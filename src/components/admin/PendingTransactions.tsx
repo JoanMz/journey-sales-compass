@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { Check, X } from "lucide-react";
+import { Check, X, Edit } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { formatCurrency } from "../../lib/utils";
 import { useData } from "@/contexts/DataContext";
+import CompleteTransactionForm from "../forms/CompleteTransactionForm";
 
 const PendingTransactions = () => {
   const {
@@ -16,6 +17,8 @@ const PendingTransactions = () => {
   } = useData();
   const [showMoreCount, setShowMoreCount] = useState(3);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showCompleteForm, setShowCompleteForm] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
 
   const handleApprove = async (id: number) => {
     try {
@@ -49,10 +52,32 @@ const PendingTransactions = () => {
     setShowMoreCount((prev) => prev + 3);
   };
 
+  const handleCompleteInfo = (transaction: any) => {
+    setSelectedTransaction(transaction);
+    setShowCompleteForm(true);
+  };
+
+  const handleCompleteSuccess = () => {
+    setShowCompleteForm(false);
+    setSelectedTransaction(null);
+    refreshTransactions();
+    toast.success("Información completada correctamente");
+  };
+
+  const handleCompleteCancel = () => {
+    setShowCompleteForm(false);
+    setSelectedTransaction(null);
+  };
+
   // Filter pending transactions
+  console.log("🔍 Todas las transacciones:", transactions);
+  console.log("🔍 Transacciones filtradas por status:", transactions.map(t => ({ id: t.id, status: t.status, client_name: t.client_name })));
+  
   const pendingTransactions = transactions.filter(
     (t) => t.status === "pending"
   );
+  
+  console.log("🔍 Transacciones pendientes:", pendingTransactions);
   const approvedTransactions = transactions.filter(
     (t) => t.status === "approved"
   );
@@ -130,21 +155,39 @@ const PendingTransactions = () => {
                     <p className="text-sm">{transaction.quoted_flight}</p>
                   </div>
 
-                  <div className="flex justify-end gap-2 mt-3">
-                    <Button
-                      className="bg-green-500 hover:bg-green-600"
-                      onClick={() => handleApprove(transaction.id)}
-                      disabled={isProcessing}
-                    >
-                      <Check className="mr-1 h-4 w-4" /> Aprobar
-                    </Button>
-                    <Button
-                      className="bg-red-500 hover:bg-red-600"
-                      onClick={() => handleReject(transaction.id)}
-                      disabled={isProcessing}
-                    >
-                      <X className="mr-1 h-4 w-4" /> Rechazar
-                    </Button>
+                  <div className="flex justify-between items-center mt-3">
+                    <div className="flex-1">
+                      {/* URL del Comprobante */}
+                      {(transaction as any).evidences && (transaction as any).evidences.length > 0 && (transaction as any).evidences[0].evidence_file && (
+                        <div>
+                          <p className="text-sm text-gray-500">Comprobante:</p>
+                          <a 
+                            href={(transaction as any).evidences[0].evidence_file}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 break-all hover:text-blue-800 underline cursor-pointer"
+                          >
+                            {(transaction as any).evidences[0].evidence_file}
+                          </a>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2 ml-4">
+                      <Button
+                        className="bg-green-500 hover:bg-green-600"
+                        onClick={() => handleApprove(transaction.id)}
+                        disabled={isProcessing}
+                      >
+                        <Check className="mr-1 h-4 w-4" /> Aprobar
+                      </Button>
+                      <Button
+                        className="bg-red-500 hover:bg-red-600"
+                        onClick={() => handleReject(transaction.id)}
+                        disabled={isProcessing}
+                      >
+                        <X className="mr-1 h-4 w-4" /> Rechazar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -289,6 +332,67 @@ const PendingTransactions = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Complete Transaction Form Modal */}
+      {showCompleteForm && selectedTransaction && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Completar Información - Transacción #{selectedTransaction.id}</h2>
+              <Button
+                variant="outline"
+                onClick={handleCompleteCancel}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ✕
+              </Button>
+            </div>
+            
+            <CompleteTransactionForm
+              transactionId={selectedTransaction.id}
+              currentData={{
+                customerName: selectedTransaction.client_name,
+                customerEmail: selectedTransaction.client_email,
+                customerPhone: selectedTransaction.client_phone,
+                customerDni: selectedTransaction.client_dni,
+                customerAddress: selectedTransaction.client_address,
+                package: selectedTransaction.package,
+                quotedFlight: selectedTransaction.quoted_flight || "",
+                agencyCost: selectedTransaction.agency_cost,
+                amount: selectedTransaction.amount,
+                paidAmount: selectedTransaction.amount, // Asumiendo que el valor pagado es igual al total
+                documentType: "dni", // Valor por defecto
+                transactionType: selectedTransaction.transaction_type || "venta",
+                startDate: selectedTransaction.start_date,
+                endDate: selectedTransaction.end_date,
+                travelers: selectedTransaction.travelers || [],
+                invoiceImage: undefined,
+                flightInfo: selectedTransaction.flight_info || {
+                  aerolinea: "",
+                  ruta: "",
+                  fecha: new Date().toISOString(),
+                  hora_salida: "",
+                  hora_llegada: "",
+                },
+                hotelInfo: selectedTransaction.hotel_info || {
+                  hotel: "",
+                  noches: 1,
+                  incluye: [],
+                  no_incluye: [],
+                  cuentas_recaudo: {
+                    banco: "",
+                    numero: "",
+                    nombre: "",
+                    nit: "",
+                  },
+                },
+              }}
+              onComplete={handleCompleteSuccess}
+              onCancel={handleCompleteCancel}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

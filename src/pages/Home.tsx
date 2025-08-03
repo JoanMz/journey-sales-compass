@@ -7,6 +7,9 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import { Textarea } from "../components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +23,12 @@ import {
   TabsList,
   TabsTrigger,
 } from "../components/ui/tabs";
-import { Badge, Plus, X } from "lucide-react";
+import { Badge, Plus, X, Download, Edit, Check } from "lucide-react";
 import EnhancedSalesForm from "../components/forms/EnhancedSalesForm";
 import FlightHotelForm from "../components/forms/FlightHotelForm";
+import CompleteTransactionForm from "../components/forms/CompleteTransactionForm";
+import InvoiceForm from "../components/forms/InvoiceForm";
+import { ContractConfirmationModal } from "../components/forms/ContractConfirmationModal";
 import { FlightInfo, HotelInfo } from "../types/sales";
 import { useTransactions } from "../hooks/useTransactions";
 import { useDialogs } from "../hooks/useDialogs";
@@ -32,11 +38,12 @@ import {
   KanbanView,
   ListView,
   RoleSpecificDashboard,
+  ApprovedSalesView,
 } from "../components/home";
-import endpoints from "@/lib/endpoints";
 import { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { mapStatusToStyle } from "@/components/dashboard/TransaccionesClientes";
+import { endpoints } from '@/lib/endpoints';
 
 const Home = () => {
   const { isAdmin, isManager } = useAuth();
@@ -56,11 +63,45 @@ const Home = () => {
     closeAddSale,
     isCompleteInfoOpen,
     selectedTransactionId,
-    openCompleteInfo,
+    openCompleteInfo: originalOpenCompleteInfo,
     closeCompleteInfo,
   } = useDialogs();
 
-  const { handleDrop, allowDrop, startDrag } = useDragAndDrop();
+  const openCompleteInfo = async (transactionId: number) => {
+    try {
+      // Buscar la transacción en las transacciones filtradas
+      const transaction = filteredTransactions.find(t => t.id === transactionId);
+      if (transaction) {
+        console.log("📋 Datos de la transacción encontrada:", transaction);
+        console.log("📋 Itinerario:", (transaction as any).itinerario);
+        console.log("📋 Travel info:", (transaction as any).travel_info);
+        setSelectedTransactionData(transaction);
+        originalOpenCompleteInfo(transactionId);
+        
+        // Log para verificar los datos que se van a mapear
+        console.log("📋 Verificando datos para mapeo:");
+        console.log("📋 Itinerario:", (transaction as any).itinerario);
+        console.log("📋 Travel info:", (transaction as any).travel_info);
+      } else {
+        console.error("Transaction not found:", transactionId);
+      }
+    } catch (error) {
+      console.error("Error opening complete info:", error);
+    }
+  };
+
+  const closeCompleteInfoSafely = () => {
+    // Limpiar todos los estados relacionados
+    setSelectedTransactionData(null);
+    closeCompleteInfo();
+  };
+
+  // Estados para el formulario de factura
+  const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
+  const [selectedInvoiceTransactionId, setSelectedInvoiceTransactionId] = useState<string | null>(null);
+
+  // Estados para la vista de ventas aprobadas
+  const [currentView, setCurrentView] = useState<'sales' | 'approved'>('sales');
 
   // Enhanced handlers
   const handleAddSaleWrapper = async (formData: FormData) => {
@@ -115,8 +156,18 @@ const Home = () => {
   const [loadingTransaction, setLoadingTransaction] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTransactionData, setSelectedTransactionData] = useState<any | null>(null);
 
-  const viewTransaction = async (transactionId: string) => {
+  const [isContractMode, setIsContractMode] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTransaction, setEditedTransaction] = useState<any>(null);
+
+  const viewTransaction = async (transactionId: string, isForContract: boolean = false) => {
+    console.log('🔍 viewTransaction llamado');
+    console.log('📋 transactionId:', transactionId);
+    console.log('📋 isForContract:', isForContract);
+    
+    setIsContractMode(isForContract);
     setLoadingTransaction(true);
     try {
       const response = await fetch(
@@ -139,12 +190,230 @@ const Home = () => {
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedTransaction(null);
+    setIsEditing(false);
+    setEditedTransaction(null);
+    setIsContractMode(false);
+  };
+
+  const handleEdit = () => {
+    console.log('🔍 Botón Editar clickeado');
+    setIsEditing(true);
+    setEditedTransaction({ ...selectedTransaction });
+  };
+
+  const handleCancelEdit = () => {
+    console.log('🔍 Botón Cancelar clickeado');
+    setIsEditing(false);
+    setEditedTransaction(null);
+  };
+
+  const updateField = (field: string, value: any) => {
+    setEditedTransaction(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const updateFlightField = (field: string, value: string) => {
+    setEditedTransaction(prev => ({
+      ...prev,
+      itinerario: [{
+        ...(prev.itinerario?.[0] || {}),
+        [field]: value
+      }]
+    }));
+  };
+
+  const updateHotelField = (field: string, value: any) => {
+    setEditedTransaction(prev => ({
+      ...prev,
+      travel_info: [{
+        ...(prev.travel_info?.[0] || {}),
+        [field]: value
+      }]
+    }));
+  };
+
+  const handleSave = async () => {
+    console.log('🔍 Botón Guardar clickeado');
+    if (!editedTransaction) return;
+
+    try {
+      // Crear una copia limpia de los datos para actualizar
+      const updatePayload = {
+        client_name: editedTransaction.client_name,
+        client_email: editedTransaction.client_email,
+        client_phone: editedTransaction.client_phone,
+        client_dni: editedTransaction.client_dni,
+        client_address: editedTransaction.client_address,
+        package: editedTransaction.package,
+        amount: editedTransaction.amount,
+        updated_at: new Date().toISOString()
+      };
+
+      console.log('📤 Actualizando transacción con payload:', updatePayload);
+      const response = await fetch(endpoints.transactions.getById(editedTransaction.id), {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatePayload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.text();
+        console.error('❌ Error en PATCH principal:', response.status, errorData);
+        throw new Error(`Error ${response.status}: ${errorData}`);
+      }
+
+      console.log('✅ Transacción actualizada correctamente');
+
+      // Actualizar itinerario si existe y cambió
+      if (editedTransaction.itinerario && editedTransaction.itinerario.length > 0) {
+        const itinerario = editedTransaction.itinerario[0];
+        console.log('📤 Datos del itinerario a actualizar:', itinerario);
+        
+        if (selectedTransaction.itinerario && selectedTransaction.itinerario.length > 0 && selectedTransaction.itinerario[0].id) {
+          // Actualizar existente
+          console.log('📤 Actualizando itinerario existente con ID:', selectedTransaction.itinerario[0].id);
+          try {
+            const itinerarioResponse = await fetch(
+              `${endpoints.transactions.getById(editedTransaction.id)}/itinerario/${selectedTransaction.itinerario[0].id}`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(itinerario),
+              }
+            );
+            
+            if (itinerarioResponse.ok) {
+              console.log('✅ Itinerario actualizado correctamente');
+            } else {
+              console.warn('⚠️ Error actualizando itinerario:', itinerarioResponse.status);
+            }
+          } catch (error) {
+            console.warn('⚠️ Error en actualización de itinerario:', error);
+          }
+        } else {
+          // Crear nuevo
+          console.log('📤 Creando nuevo itinerario');
+          try {
+            const itinerarioResponse = await fetch(
+              `${endpoints.transactions.getById(editedTransaction.id)}/itinerario`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(itinerario),
+              }
+            );
+            
+            if (itinerarioResponse.ok) {
+              console.log('✅ Nuevo itinerario creado correctamente');
+            } else {
+              console.warn('⚠️ Error creando itinerario:', itinerarioResponse.status);
+            }
+          } catch (error) {
+            console.warn('⚠️ Error en creación de itinerario:', error);
+          }
+        }
+      }
+
+      // Actualizar travel_info si existe y cambió
+      if (editedTransaction.travel_info && editedTransaction.travel_info.length > 0) {
+        const travelInfo = editedTransaction.travel_info[0];
+        console.log('📤 Datos del travel_info a actualizar:', travelInfo);
+        
+        if (selectedTransaction.travel_info && selectedTransaction.travel_info.length > 0 && selectedTransaction.travel_info[0].id) {
+          // Actualizar existente
+          console.log('📤 Actualizando travel_info existente con ID:', selectedTransaction.travel_info[0].id);
+          try {
+            const travelInfoResponse = await fetch(
+              `${endpoints.transactions.getById(editedTransaction.id)}/travel_info/${selectedTransaction.travel_info[0].id}`,
+              {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(travelInfo),
+              }
+            );
+            
+            if (travelInfoResponse.ok) {
+              console.log('✅ Travel info actualizado correctamente');
+            } else {
+              console.warn('⚠️ Error actualizando travel_info:', travelInfoResponse.status);
+            }
+          } catch (error) {
+            console.warn('⚠️ Error en actualización de travel_info:', error);
+          }
+        } else {
+          // Crear nuevo
+          console.log('📤 Creando nuevo travel_info');
+          try {
+            const travelInfoResponse = await fetch(
+              `${endpoints.transactions.getById(editedTransaction.id)}/travel_info`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(travelInfo),
+              }
+            );
+            
+            if (travelInfoResponse.ok) {
+              console.log('✅ Nuevo travel_info creado correctamente');
+            } else {
+              console.warn('⚠️ Error creando travel_info:', travelInfoResponse.status);
+            }
+          } catch (error) {
+            console.warn('⚠️ Error en creación de travel_info:', error);
+          }
+        }
+      }
+
+      // Recargar datos actualizados
+      await viewTransaction(editedTransaction.id.toString(), isContractMode);
+      setIsEditing(false);
+      setEditedTransaction(null);
+      alert('Información actualizada correctamente');
+    } catch (error) {
+      console.error('❌ Error actualizando transacción:', error);
+      alert(`Error al actualizar la información: ${error.message}`);
+    }
   };
 
 
 
-  const generateInvoice = async (transactionId: string) => {
+  const [contractModalOpen, setContractModalOpen] = useState(false);
+  const [selectedContractTransactionId, setSelectedContractTransactionId] = useState<string>('');
+
+  const openContractConfirmation = (transactionId: string) => {
+    console.log('🔍 openContractConfirmation llamado');
+    console.log('📋 transactionId:', transactionId);
+    setSelectedContractTransactionId(transactionId);
+    setContractModalOpen(true);
+    console.log('✅ Modal abierto');
+  };
+
+  const closeContractConfirmation = () => {
+    console.log('🔍 closeContractConfirmation llamado');
+    setContractModalOpen(false);
+    setSelectedContractTransactionId('');
+    console.log('✅ Modal cerrado');
+  };
+
+  const generateContract = async (transactionId: string) => {
+    console.log('🔍 generateContract llamado');
+    console.log('📋 transactionId:', transactionId);
+    console.log('📋 endpoint:', endpoints.transactions.generateInvoice);
+    
     try {
+      console.log('📤 Enviando request al webhook...');
       const response = await fetch(endpoints.transactions.generateInvoice, {
         method: 'POST',
         headers: {
@@ -154,15 +423,21 @@ const Home = () => {
           transaction_id: transactionId
         })
       });
-      console.log(response, "response");
+      console.log('📥 Response recibido:', response);
+      console.log('📥 Response status:', response.status);
+      console.log('📥 Response ok:', response.ok);
 
       // El response contiene un objeto con la propiedad "data" que es un string base64 de un PDF.
       // Necesitamos abrir ese PDF en una nueva pestaña usando un Blob.
 
       if (!response.ok) {
-        throw new Error("Error al generar la factura");
+        console.error('❌ Response no ok:', response.status, response.statusText);
+        throw new Error("Error al generar el contrato");
       }
+      
+      console.log('📥 Parseando JSON...');
       const result = await response.json();
+      console.log('📥 Result:', result);
       // result.data es el string base64 del PDF
 
       // Convertir base64 a un array de bytes
@@ -176,20 +451,106 @@ const Home = () => {
         return bytes;
       }
 
+      console.log('📥 Convirtiendo base64 a PDF...');
       const pdfBytes = base64ToUint8Array(result.data);
       const blob = new Blob([pdfBytes], { type: "application/pdf" });
       const blobUrl = URL.createObjectURL(blob);
 
+      console.log('📥 Abriendo PDF en nueva pestaña...');
       // Abrir el PDF en una nueva pestaña
       window.open(blobUrl, "_blank");
-      // if (!response.ok) {
-      //   throw new Error("Error al generar la factura");
-      // }
+      console.log('✅ PDF abierto exitosamente');
     } catch (error) {
-      console.error("Error al generar la factura:", error);
-      alert("Error al generar la factura");
+      console.error("❌ Error al generar el contrato:", error);
+      alert("Error al generar el contrato");
+      throw error;
     }
   };
+
+  // Funciones para manejar el formulario de factura
+  const openInvoiceForm = (transactionId: string) => {
+    console.log('🔍 openInvoiceForm llamado');
+    console.log('📋 transactionId:', transactionId);
+    setSelectedInvoiceTransactionId(transactionId);
+    setIsInvoiceFormOpen(true);
+    console.log('✅ Modal de factura abierto');
+  };
+
+  const closeInvoiceForm = () => {
+    console.log('🔍 closeInvoiceForm llamado');
+    setIsInvoiceFormOpen(false);
+    setSelectedInvoiceTransactionId(null);
+    console.log('✅ Modal de factura cerrado');
+  };
+
+  const handleGenerateInvoice = async (invoiceData: any) => {
+    console.log('🔍 handleGenerateInvoice llamado');
+    console.log('📋 invoiceData:', invoiceData);
+    console.log('📋 transactionId:', selectedInvoiceTransactionId);
+    
+    try {
+      console.log('📤 Enviando datos de factura al webhook...');
+      const response = await fetch('https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/382a0ee7-7fcb-415f-a5a2-aaf8c94b5c4d', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transaction_id: selectedInvoiceTransactionId,
+          ...invoiceData
+        })
+      });
+      
+      console.log('📥 Response recibido:', response);
+      console.log('📥 Response status:', response.status);
+
+      if (!response.ok) {
+        console.error('❌ Response no ok:', response.status, response.statusText);
+        throw new Error("Error al generar la factura");
+      }
+      
+      console.log('📥 Parseando JSON...');
+      const result = await response.json();
+      console.log('📥 Result:', result);
+
+      // Convertir base64 a PDF si es necesario
+      if (result.data) {
+        function base64ToUint8Array(base64) {
+          const binaryString = window.atob(base64);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          return bytes;
+        }
+
+        console.log('📥 Convirtiendo base64 a PDF...');
+        const pdfBytes = base64ToUint8Array(result.data);
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const blobUrl = URL.createObjectURL(blob);
+
+        console.log('📥 Abriendo PDF en nueva pestaña...');
+        window.open(blobUrl, "_blank");
+        console.log('✅ Factura generada y abierta exitosamente');
+      } else {
+        console.log('✅ Factura generada exitosamente');
+        alert('Factura generada exitosamente');
+      }
+      
+      closeInvoiceForm();
+    } catch (error) {
+      console.error("❌ Error al generar la factura:", error);
+      alert("Error al generar la factura");
+      throw error;
+    }
+  };
+
+  // Funciones para manejar ventas aprobadas
+
+
+  // Filtrar transacciones aprobadas
+  const approvedTransactions = filteredTransactions.filter(t => t.displayStatus === "Aprobado");
   // Regular dashboard for sellers
   return (
     <AppLayout>
@@ -200,7 +561,26 @@ const Home = () => {
         {/* Stats cards */}
         <StatsCards transactions={filteredTransactions} />
 
+        {/* View Toggle Buttons */}
+        <div className="flex justify-center space-x-4">
+          <Button
+            onClick={() => setCurrentView('sales')}
+            variant={currentView === 'sales' ? 'default' : 'outline'}
+            className="px-6 py-2"
+          >
+            Gestión de Ventas
+          </Button>
+          <Button
+            onClick={() => setCurrentView('approved')}
+            variant={currentView === 'approved' ? 'default' : 'outline'}
+            className="px-6 py-2"
+          >
+            Ventas Aprobadas
+          </Button>
+        </div>
+
         {/* Sales Management */}
+        {currentView === 'sales' && (
         <Card className="stats-card">
           <CardHeader>
             <div className="flex justify-between items-center">
@@ -225,11 +605,11 @@ const Home = () => {
                   viewTransaction={viewTransaction}
                   loadingTransaction={loadingTransaction}
                   kanbanGroups={kanbanGroups}
-                  onDrop={handleDrop}
-                  allowDrop={allowDrop}
-                  startDrag={startDrag}
+                  onDrop={() => {}} // Función vacía ya que no se usa
+                  allowDrop={() => {}} // Función vacía ya que no se usa
+                  startDrag={() => {}} // Función vacía ya que no se usa
                   onCompleteInfo={openCompleteInfo}
-                  generateInvoice={generateInvoice}
+                  generateInvoice={openInvoiceForm}
                 />
               </TabsContent>
 
@@ -239,6 +619,16 @@ const Home = () => {
             </Tabs>
           </CardContent>
         </Card>
+        )}
+
+        {/* Vista de Ventas Aprobadas */}
+        {currentView === 'approved' && (
+          <ApprovedSalesView
+            approvedTransactions={approvedTransactions}
+            viewTransaction={viewTransaction}
+            loadingTransaction={loadingTransaction}
+          />
+        )}
       </div>
 
       {/* Enhanced Add Sale Dialog */}
@@ -261,21 +651,126 @@ const Home = () => {
       </Dialog>
 
       {/* Complete Transaction Info Dialog */}
-      <Dialog open={isCompleteInfoOpen} onOpenChange={closeCompleteInfo}>
+      <Dialog open={isCompleteInfoOpen} onOpenChange={closeCompleteInfoSafely}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Completar Información de la Venta</DialogTitle>
             <DialogDescription>
-              Agrega la información de vuelo y hotel para completar la
-              transacción.
+              Completa la información de vuelo y hotel según el tipo de paquete.
             </DialogDescription>
           </DialogHeader>
 
-          <FlightHotelForm
-            onSubmit={handleCompleteTransactionWrapper}
-            onCancel={closeCompleteInfo}
-            loading={loading}
-          />
+                    {selectedTransactionData && selectedTransactionId && selectedTransactionData.client_name && (
+            <CompleteTransactionForm
+              transactionId={selectedTransactionId.toString()}
+              currentData={{
+                customerName: selectedTransactionData.client_name,
+                customerEmail: selectedTransactionData.client_email,
+                customerPhone: selectedTransactionData.client_phone,
+                customerDni: selectedTransactionData.client_dni,
+                customerAddress: selectedTransactionData.client_address,
+                package: selectedTransactionData.package,
+                quotedFlight: selectedTransactionData.quoted_flight || "",
+                agencyCost: selectedTransactionData.agency_cost,
+                amount: selectedTransactionData.amount,
+                paidAmount: selectedTransactionData.amount,
+                documentType: "dni",
+                transactionType: selectedTransactionData.transaction_type || "venta",
+                startDate: selectedTransactionData.start_date,
+                endDate: selectedTransactionData.end_date,
+                travelers: selectedTransactionData.travelers || [],
+                invoiceImage: undefined,
+                flightInfo: (selectedTransactionData as any).itinerario && (selectedTransactionData as any).itinerario.length > 0 ? 
+                  (selectedTransactionData as any).itinerario.map((flight: any) => ({
+                    id: flight.id, // Preservar el ID para PATCH
+                    aerolinea: flight.aerolinea || "",
+                    ruta: flight.ruta || "",
+                    fecha: flight.fecha || new Date().toISOString(),
+                    hora_salida: flight.hora_salida || "",
+                    hora_llegada: flight.hora_llegada || "",
+                  })) : [{
+                    aerolinea: "",
+                    ruta: "",
+                    fecha: new Date().toISOString(),
+                    hora_salida: "",
+                    hora_llegada: "",
+                  }],
+                hotelInfo: (selectedTransactionData as any).travel_info && (selectedTransactionData as any).travel_info.length > 0 ? 
+                  (selectedTransactionData as any).travel_info.map((hotel: any) => {
+                    console.log("🔍 Mapeando hotel del backend:", hotel);
+                    console.log("🔍 Campos del hotel:", {
+                      hotel: hotel.hotel,
+                      alimentacion: hotel.alimentacion,
+                      acomodacion: hotel.acomodacion,
+                      direccion_hotel: hotel.direccion_hotel,
+                      pais_destino: hotel.pais_destino,
+                      ciudad_destino: hotel.ciudad_destino
+                    });
+                    
+                    return {
+                      id: hotel.id, // Preservar el ID para PATCH
+                      hotel: hotel.hotel || "",
+                      noches: hotel.noches || 1,
+                      incluye: hotel.incluye || [],
+                      no_incluye: hotel.no_incluye || [],
+                      alimentacion: hotel.alimentacion || "",
+                      acomodacion: hotel.acomodacion || "",
+                      direccion_hotel: hotel.direccion_hotel || "",
+                      pais_destino: hotel.pais_destino || "",
+                      ciudad_destino: hotel.ciudad_destino || "",
+                      cuentas_recaudo: {
+                        banco: "",
+                        numero: "",
+                        nombre: "",
+                        nit: "",
+                      },
+                    };
+                  }) : [{
+                    hotel: "",
+                    noches: 1,
+                    incluye: [],
+                    no_incluye: [],
+                    alimentacion: "",
+                    acomodacion: "",
+                    direccion_hotel: "",
+                    pais_destino: "",
+                    ciudad_destino: "",
+                    cuentas_recaudo: {
+                      banco: "",
+                      numero: "",
+                      nombre: "",
+                      nit: "",
+                    },
+                  }],
+              }}
+              onComplete={() => {
+                closeCompleteInfoSafely();
+              }}
+              onCancel={() => {
+                closeCompleteInfoSafely();
+              }}
+            />
+          )}
+
+          {/* Contract Confirmation Modal */}
+          {(() => {
+            console.log('🔍 Renderizando modal - contractModalOpen:', contractModalOpen, 'selectedContractTransactionId:', selectedContractTransactionId);
+            console.log('🔍 Condición 1 (contractModalOpen):', contractModalOpen);
+            console.log('🔍 Condición 2 (selectedContractTransactionId):', selectedContractTransactionId);
+            console.log('🔍 Condición 3 (ambas):', contractModalOpen && selectedContractTransactionId);
+            return null;
+          })()}
+          {contractModalOpen && selectedContractTransactionId && (() => {
+            console.log('🔍 ¡Renderizando ContractConfirmationModal!');
+            return (
+              <ContractConfirmationModal
+                isOpen={contractModalOpen}
+                onClose={closeContractConfirmation}
+                transactionId={selectedContractTransactionId}
+                onGenerateContract={generateContract}
+              />
+            );
+          })()}
         </DialogContent>
       </Dialog>
 
@@ -285,9 +780,29 @@ const Home = () => {
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold">Detalles de la Transacción</h2>
+            <div className="flex gap-2">
+              {isContractMode && !isEditing && (
+                <Button onClick={handleEdit} variant="outline" size="sm">
+                  <Edit className="h-4 w-4 mr-1" />
+                  Editar
+                </Button>
+              )}
+              {isEditing && (
+                <>
+                  <Button onClick={handleCancelEdit} variant="outline" size="sm">
+                    <X className="h-4 w-4 mr-1" />
+                    Cancelar
+                  </Button>
+                  <Button onClick={handleSave} variant="outline" size="sm">
+                    <Check className="h-4 w-4 mr-1" />
+                    Guardar
+                  </Button>
+                </>
+              )}
               <Button variant="ghost" size="icon" onClick={closeModal}>
                 <X className="h-4 w-4" />
               </Button>
+            </div>
             </div>
 
             {selectedTransaction && (
@@ -299,34 +814,69 @@ const Home = () => {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">Nombre</p>
+                      <Label>Nombre</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editedTransaction?.client_name || ''}
+                          onChange={(e) => updateField('client_name', e.target.value)}
+                        />
+                      ) : (
                       <p className="font-medium">
                         {selectedTransaction.client_name}
                       </p>
+                      )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Email</p>
+                      <Label>Email</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editedTransaction?.client_email || ''}
+                          onChange={(e) => updateField('client_email', e.target.value)}
+                        />
+                      ) : (
                       <p className="font-medium">
                         {selectedTransaction.client_email}
                       </p>
+                      )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Teléfono</p>
+                      <Label>Teléfono</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editedTransaction?.client_phone || ''}
+                          onChange={(e) => updateField('client_phone', e.target.value)}
+                        />
+                      ) : (
                       <p className="font-medium">
                         {selectedTransaction.client_phone}
                       </p>
+                      )}
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">DNI</p>
+                      <Label>DNI</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editedTransaction?.client_dni || ''}
+                          onChange={(e) => updateField('client_dni', e.target.value)}
+                        />
+                      ) : (
                       <p className="font-medium">
                         {selectedTransaction.client_dni}
                       </p>
+                      )}
                     </div>
                     <div className="md:col-span-2">
-                      <p className="text-sm text-gray-600">Dirección</p>
+                      <Label>Dirección</Label>
+                      {isEditing ? (
+                        <Textarea
+                          value={editedTransaction?.client_address || ''}
+                          onChange={(e) => updateField('client_address', e.target.value)}
+                        />
+                      ) : (
                       <p className="font-medium">
                         {selectedTransaction.client_address}
                       </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -338,10 +888,17 @@ const Home = () => {
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <p className="text-sm text-gray-600">Paquete</p>
+                      <Label>Paquete</Label>
+                      {isEditing ? (
+                        <Input
+                          value={editedTransaction?.package || ''}
+                          onChange={(e) => updateField('package', e.target.value)}
+                        />
+                      ) : (
                       <p className="font-medium">
                         {selectedTransaction.package}
                       </p>
+                      )}
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">
@@ -380,10 +937,18 @@ const Home = () => {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600">Monto Total</p>
+                      <Label>Monto Total</Label>
+                      {isEditing ? (
+                        <Input
+                          type="number"
+                          value={editedTransaction?.amount || ''}
+                          onChange={(e) => updateField('amount', parseFloat(e.target.value))}
+                        />
+                      ) : (
                       <p className="font-medium">
                         {formatCurrency(selectedTransaction.amount)}
                       </p>
+                      )}
                     </div>
                     <div>
                       <p className="text-sm text-gray-600">Fecha de Inicio</p>
@@ -526,34 +1091,56 @@ const Home = () => {
                             >
                               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                                 <div>
-                                  <p className="text-sm text-gray-600">
-                                    Aerolínea
-                                  </p>
+                                  <Label>Aerolínea</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.itinerario?.[0]?.aerolinea || ''}
+                                      onChange={(e) => updateFlightField('aerolinea', e.target.value)}
+                                    />
+                                  ) : (
                                   <p className="font-medium capitalize">
                                     {itinerary.aerolinea}
                                   </p>
+                                  )}
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600">Ruta</p>
+                                  <Label>Ruta</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.itinerario?.[0]?.ruta || ''}
+                                      onChange={(e) => updateFlightField('ruta', e.target.value)}
+                                    />
+                                  ) : (
                                   <p className="font-medium">
                                     {itinerary.ruta}
                                   </p>
+                                  )}
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600">
-                                    Hora de Salida
-                                  </p>
+                                  <Label>Hora de Salida</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.itinerario?.[0]?.hora_salida || ''}
+                                      onChange={(e) => updateFlightField('hora_salida', e.target.value)}
+                                    />
+                                  ) : (
                                   <p className="font-medium">
                                     {itinerary.hora_salida || "No especificado"}
                                   </p>
+                                  )}
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600">
-                                    Hora de Llegada
-                                  </p>
+                                  <Label>Hora de Llegada</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.itinerario?.[0]?.hora_llegada || ''}
+                                      onChange={(e) => updateFlightField('hora_llegada', e.target.value)}
+                                    />
+                                  ) : (
                                   <p className="font-medium">
                                     {itinerary.hora_llegada || "No especificado"}
                                   </p>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -579,23 +1166,51 @@ const Home = () => {
                             >
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                  <p className="text-sm text-gray-600">Hotel</p>
+                                  <Label>Hotel</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.travel_info?.[0]?.hotel || ''}
+                                      onChange={(e) => updateHotelField('hotel', e.target.value)}
+                                    />
+                                  ) : (
                                   <p className="font-medium">
                                     {travelInfo.hotel}
                                   </p>
+                                  )}
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600">
-                                    Noches
-                                  </p>
+                                  <Label>Noches</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      type="number"
+                                      value={editedTransaction?.travel_info?.[0]?.noches || ''}
+                                      onChange={(e) => updateHotelField('noches', parseInt(e.target.value))}
+                                    />
+                                  ) : (
                                   <p className="font-medium">
                                     {travelInfo.noches || "No especificado"}
                                   </p>
+                                  )}
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600">
-                                    Incluye
-                                  </p>
+                                  <Label>Incluye</Label>
+                                  {isEditing ? (
+                                    <Textarea
+                                      value={
+                                        editedTransaction?.travel_info?.[0]?.incluye 
+                                          ? (Array.isArray(editedTransaction.travel_info[0].incluye) 
+                                              ? editedTransaction.travel_info[0].incluye.join(', ')
+                                              : editedTransaction.travel_info[0].incluye)
+                                          : ''
+                                      }
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        const incluyeArray = value ? value.split(',').map(item => item.trim()) : [];
+                                        updateHotelField('incluye', incluyeArray);
+                                      }}
+                                      placeholder="Separar elementos con comas"
+                                    />
+                                  ) : (
                                   <div className="font-medium">
                                     {travelInfo.incluye && Array.isArray(travelInfo.incluye) ? (
                                       <ul className="list-disc list-inside">
@@ -607,11 +1222,27 @@ const Home = () => {
                                       <p>{travelInfo.incluye || "No especificado"}</p>
                                     )}
                                   </div>
+                                  )}
                                 </div>
                                 <div>
-                                  <p className="text-sm text-gray-600">
-                                    No Incluye
-                                  </p>
+                                  <Label>No Incluye</Label>
+                                  {isEditing ? (
+                                    <Textarea
+                                      value={
+                                        editedTransaction?.travel_info?.[0]?.no_incluye 
+                                          ? (Array.isArray(editedTransaction.travel_info[0].no_incluye) 
+                                              ? editedTransaction.travel_info[0].no_incluye.join(', ')
+                                              : editedTransaction.travel_info[0].no_incluye)
+                                          : ''
+                                      }
+                                      onChange={(e) => {
+                                        const value = e.target.value;
+                                        const noIncluyeArray = value ? value.split(',').map(item => item.trim()) : [];
+                                        updateHotelField('no_incluye', noIncluyeArray);
+                                      }}
+                                      placeholder="Separar elementos con comas"
+                                    />
+                                  ) : (
                                   <div className="font-medium">
                                     {travelInfo.no_incluye && Array.isArray(travelInfo.no_incluye) ? (
                                       <ul className="list-disc list-inside">
@@ -623,6 +1254,7 @@ const Home = () => {
                                       <p>{travelInfo.no_incluye || "No especificado"}</p>
                                     )}
                                   </div>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -713,11 +1345,32 @@ const Home = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Botón Generar Contrato */}
+                {isContractMode && (
+                  <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+                    <Button 
+                      onClick={() => generateContract(selectedTransaction.id)}
+                      className="bg-green-600 hover:bg-green-700"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Generar Contrato
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       )}
+
+      {/* Invoice Form Dialog */}
+      <InvoiceForm
+        isOpen={isInvoiceFormOpen}
+        onClose={closeInvoiceForm}
+        onSubmit={handleGenerateInvoice}
+        transactionId={selectedInvoiceTransactionId || undefined}
+      />
     </AppLayout>
   );
 };

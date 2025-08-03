@@ -24,11 +24,16 @@ export interface CuentasRecaudo {
 }
 
 export interface HotelInfo {
+  id?: number;
   hotel: string;
   noches: number;
   incluye: string[];
   no_incluye: string[];
-  cuentas_recaudo: CuentasRecaudo;
+  alimentacion: string;
+  acomodacion: string;
+  direccion_hotel: string;
+  pais_destino: string;
+  ciudad_destino: string;
 }
 
 export interface Transaction {

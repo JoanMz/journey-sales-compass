@@ -6,7 +6,7 @@ const baseUrl2 = "http://127.0.0.1:3000";
 // const baseUrl = "https://medium-server3.vercel.app/api/transactions";
 // const baseUrl = "http://localhost:3000";
 
-const endpoints = {
+export const endpoints = {
   transactions: {
     // all: `${baseUrl}/api/transactions`,
     all: `${baseUrl}/transactions`,
@@ -24,6 +24,20 @@ const endpoints = {
     saveTransactions: `${baseUrl}/saveTransactions`,
     saveCompleteTransaction: (transactionId: number) => `${baseUrl}/transactions/${transactionId}`,
     createTransaction: `${baseUrl}/transactions`,
+    uploadTravelerDocument: (transactionId: string, travelerId: string) => 
+      `${baseUrl}/transactions/${transactionId}/documentos/${travelerId}`,
+    getUserUnpaid: (userId: string) => 
+      `${baseUrl}/transactions/user/unpaid/${userId}`,
+    getUserPaid: (userId: string) => 
+      `${baseUrl}/transactions/user/paid/${userId}`,
+    filterMixed: (sellerId?: number, status?: string, startDate?: string, endDate?: string) => {
+      const params = new URLSearchParams();
+      if (sellerId) params.append('seller_id', sellerId.toString());
+      if (status) params.append('status', status);
+      if (startDate) params.append('start_date', startDate);
+      if (endDate) params.append('end_date', endDate);
+      return `${baseUrl}/transactions/filter-mixed/?${params.toString()}`;
+    },
   },
   users: {
     all: `${baseUrl}/users`,
@@ -31,5 +45,3 @@ const endpoints = {
     update: (userId: number | string) => `${baseUrl}/users/${userId}`,
   },
 };
-
-export default endpoints;

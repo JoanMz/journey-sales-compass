@@ -19,7 +19,7 @@ import {
 } from "@/contexts/DataContext";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
-import endpoints from "@/lib/endpoints";
+import { endpoints } from "@/lib/endpoints";
 
 export const mapStatusToStyle = (status: TransactionStatus): string => {
   switch (status) {

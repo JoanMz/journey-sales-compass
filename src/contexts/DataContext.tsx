@@ -25,7 +25,7 @@ export type Sale = {
   customerAvatar?: string;
   package: string;
   date: string;
-  status: "Pendiente" | "Aprobado" | "Rechazado"| "Terminado";
+  status: "Pendiente" | "Aprobado" | "Rechazado"| "Terminado" | "Cancelado" | "Incompleta";
   amount: number;
   sellerName: string;
   sellerId: string;
@@ -55,7 +55,7 @@ type DataContextType = {
   loading: boolean;
   error: string | null;
   refreshTransactions: () => Promise<void>;
-  addTransaction: (formData: FormData) => Promise<Transaction>;
+      addTransaction: (formData: FormData) => Promise<Transaction>;
   updateSaleStatus: (id: string, status: Sale["status"]) => void;
   deleteSale: (id: string) => void;
   addUser: (user: Omit<User, "id">) => void;
@@ -292,6 +292,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // CRUD operations
   const addSale = (transaction: Transaction) => {
     setSales([...sales, convertTransactionToSale(transaction)]);
+    setTransactions([...transactions, transaction]);
     toast.success("Sale added successfully!");
     // Note: In a real implementation, this would also call an API to create the transaction
   };
