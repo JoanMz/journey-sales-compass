@@ -38,6 +38,7 @@ export const endpoints = {
       if (endDate) params.append('end_date', endDate);
       return `${baseUrl}/transactions/filter-mixed/?${params.toString()}`;
     },
+    postNewAbono: (transactionId: number | string = 2313) => `${baseUrl}/transactions/${transactionId}/factura`,
   },
   users: {
     all: `${baseUrl}/users`,
