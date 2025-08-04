@@ -443,7 +443,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       amount: formData.amount,
       transaction_type: formData.transactionType,
       status: "pending",
-      seller_id: 1,
+      seller_id: parseInt(localStorage.getItem("USER_ID_DATA") || "1"),
       receipt: "mateo",
       start_date: formData.startDate,
       end_date: formData.endDate,

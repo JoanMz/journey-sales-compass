@@ -167,7 +167,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If not using demo credentials, try the API
       try {
         const response = await axios.post(
-          `http://ec2-35-90-236-177.us-west-2.compute.amazonaws.com:3000/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
+          `https://fastapi-data-1-nc7j.onrender.com/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
           {},
           {
             headers: {
@@ -179,13 +179,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         const userData = response.data;
 
-        if (userData && (userData.role === "administrador" || userData.role === "admin")) {
+        if (userData && (userData.role === "administrador" || userData.role === "admin" || userData.role === "seller")) {
           const loggedInUser: User = {
             id: Number(userData.user_id),
             name: userData.name,
             email: email,
             role: userData.role as "admin" | "seller" | "administrador",
           };
+
+          localStorage.setItem("USER_ID_DATA", userData.user_id);
 
           setUser(loggedInUser);
           setCookie("crm_current_user", JSON.stringify(loggedInUser), 7);
@@ -233,6 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteCookie("crm_current_user");
     deleteCookie("crm_access_token");
     deleteCookie("crm_refresh_token");
+    localStorage.removeItem("USER_ID_DATA");
     toast.success("Logged out successfully");
   };
 

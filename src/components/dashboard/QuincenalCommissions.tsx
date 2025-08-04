@@ -11,9 +11,18 @@ import {
 } from '@/lib/financialUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTransactions } from '@/hooks/useTransactions';
+import { getUsers } from '@/lib/api';
 
 interface QuincenalCommissionsProps {
   sellers?: { id: number; name: string }[];
+}
+
+interface User {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  phone_number?: string;
 }
 
 export const QuincenalCommissions: React.FC<QuincenalCommissionsProps> = ({ sellers = [] }) => {
@@ -24,21 +33,36 @@ export const QuincenalCommissions: React.FC<QuincenalCommissionsProps> = ({ sell
   const [commissions, setCommissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [quincenas] = useState(getCurrentYearQuincenas());
+  const [sellersList, setSellersList] = useState<{ id: number; name: string }[]>([]);
 
-  // Obtener lista de vendedores únicos de las transacciones
-  const getUniqueSellers = () => {
-    const sellerMap = new Map<number, string>();
-    
-    filteredTransactions.forEach(transaction => {
-      if (transaction.seller_id && transaction.seller_name) {
-        sellerMap.set(transaction.seller_id, transaction.seller_name);
-      }
-    });
-    
-    return Array.from(sellerMap.entries()).map(([id, name]) => ({ id, name }));
+  // Obtener lista de vendedores desde el endpoint de usuarios
+  const fetchSellers = async () => {
+    try {
+      const users = await getUsers();
+      // Filtrar usuarios con rol "seller"
+      const sellers = users.filter((user: User) => user.role === 'seller');
+      const sellersFormatted = sellers.map((seller: User) => ({
+        id: seller.id,
+        name: seller.name
+      }));
+      setSellersList(sellersFormatted);
+    } catch (error) {
+      console.error('Error fetching sellers:', error);
+      // Fallback: usar vendedores únicos de las transacciones
+      const sellerMap = new Map<number, string>();
+      filteredTransactions.forEach(transaction => {
+        if (transaction.seller_id && transaction.seller_name) {
+          sellerMap.set(transaction.seller_id, transaction.seller_name);
+        }
+      });
+      const fallbackSellers = Array.from(sellerMap.entries()).map(([id, name]) => ({ id, name }));
+      setSellersList(fallbackSellers);
+    }
   };
 
-  const uniqueSellers = getUniqueSellers();
+  useEffect(() => {
+    fetchSellers();
+  }, []);
 
   // Seleccionar la quincena actual por defecto
   useEffect(() => {
@@ -74,7 +98,7 @@ export const QuincenalCommissions: React.FC<QuincenalCommissionsProps> = ({ sell
         if (selectedSeller && selectedSeller !== 'all') {
           // Calcular solo para el vendedor seleccionado
           const sellerId = parseInt(selectedSeller);
-          const seller = uniqueSellers.find(s => s.id === sellerId);
+          const seller = sellersList.find(s => s.id === sellerId);
           if (seller) {
             const result = await calculateQuincenalCommission(
               sellerId,
@@ -92,7 +116,7 @@ export const QuincenalCommissions: React.FC<QuincenalCommissionsProps> = ({ sell
         } else {
           // Calcular para todos los vendedores
           results = await calculateAllSellersQuincenalCommissions(
-            uniqueSellers,
+            sellersList,
             quincenaData.startDate,
             quincenaData.endDate
           );
@@ -177,7 +201,7 @@ export const QuincenalCommissions: React.FC<QuincenalCommissionsProps> = ({ sell
                   <SelectItem value="all">
                     Todos los vendedores
                   </SelectItem>
-                  {uniqueSellers.map((seller) => (
+                  {sellersList.map((seller) => (
                     <SelectItem key={seller.id} value={seller.id.toString()}>
                       {seller.name}
                     </SelectItem>
