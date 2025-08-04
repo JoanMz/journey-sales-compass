@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Table,
   TableBody,
@@ -10,7 +10,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Eye, Trash2, MoreHorizontal, X } from "lucide-react";
+import { Eye, Trash2, MoreHorizontal, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import {
   Sale,
   TransaccionesClientesProps,
@@ -20,6 +20,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { endpoints } from "@/lib/endpoints";
+import { Card } from "../ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const mapStatusToStyle = (status: TransactionStatus): string => {
   switch (status) {
@@ -41,7 +43,53 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
   const [loadingTransaction, setLoadingTransaction] = useState(false);
+  
+  // Estados de paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
   const { sales, loading, error } = useData();
+
+  // Cálculos de paginación
+  const totalItems = sales.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displaySales = sales.slice(startIndex, endIndex);
+
+  // Resetear a la primera página cuando cambian los datos o elementos por página
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage, itemsPerPage]);
+
+  // Funciones de paginación
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const goToFirstPage = () => {
+    setCurrentPage(1);
+  };
+
+  const goToLastPage = () => {
+    setCurrentPage(totalPages);
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    const newItemsPerPage = parseInt(value);
+    setItemsPerPage(newItemsPerPage);
+    setCurrentPage(1); // Resetear a la primera página
+  };
 
   const toggleSelectRow = (id: string) => {
     setSelectedRows((prev) =>
@@ -51,9 +99,9 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
 
   const toggleSelectAll = () => {
     setSelectedRows((prev) =>
-      prev.length === sales.length && sales.length > 0
+      prev.length === displaySales.length && displaySales.length > 0
         ? []
-        : sales.map((sale) => sale.id)
+        : displaySales.map((sale) => sale.id)
     );
   };
 
@@ -82,6 +130,142 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
     setSelectedTransaction(null);
   };
 
+  // Componente de paginación
+  const Pagination = () => {
+    if (totalItems <= 1) return null;
+
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisiblePages = 5;
+      
+      if (totalPages <= maxVisiblePages) {
+        // Mostrar todas las páginas si hay 5 o menos
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Mostrar páginas con ellipsis
+        if (currentPage <= 3) {
+          // Al inicio
+          for (let i = 1; i <= 4; i++) {
+            pages.push(i);
+          }
+          pages.push('...');
+          pages.push(totalPages);
+        } else if (currentPage >= totalPages - 2) {
+          // Al final
+          pages.push(1);
+          pages.push('...');
+          for (let i = totalPages - 3; i <= totalPages; i++) {
+            pages.push(i);
+          }
+        } else {
+          // En el medio
+          pages.push(1);
+          pages.push('...');
+          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+            pages.push(i);
+          }
+          pages.push('...');
+          pages.push(totalPages);
+        }
+      }
+      
+      return pages;
+    };
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-600">
+            Mostrando {startIndex + 1} a {Math.min(endIndex, totalItems)} de {totalItems} transacciones
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Mostrar:</span>
+            <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+              <SelectTrigger className="w-20 h-8">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="30">30</SelectItem>
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-gray-600">por página</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {/* Botón Primera página */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          
+          {/* Botón Página anterior */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          {/* Números de página */}
+          <div className="flex items-center gap-1">
+            {getPageNumbers().map((page, index) => (
+              <div key={index}>
+                {page === '...' ? (
+                  <span className="px-2 py-1 text-gray-400">...</span>
+                ) : (
+                  <Button
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => goToPage(page as number)}
+                    className="h-8 w-8 p-0"
+                  >
+                    {page}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {/* Botón Página siguiente */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          
+          {/* Botón Última página */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-6">
@@ -101,7 +285,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
   }
 
   return (
-    <>
+    <Card className="bg-white border-green-200">
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -109,7 +293,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
               <TableHead className="w-12">
                 <Checkbox
                   checked={
-                    selectedRows.length === sales.length && sales.length > 0
+                    selectedRows.length === displaySales.length && displaySales.length > 0
                   }
                   onCheckedChange={toggleSelectAll}
                 />
@@ -124,14 +308,14 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {sales.length === 0 && !loading ? (
+            {displaySales.length === 0 && !loading ? (
               <TableRow>
-                <TableCell colSpan={7} className="text-center py-4">
+                <TableCell colSpan={8} className="text-center py-4">
                   No hay transacciones disponibles.
                 </TableCell>
               </TableRow>
             ) : (
-              sales.map((sale) => {
+              displaySales.map((sale) => {
                 const status = sale.status;
                 return (
                   <TableRow key={sale.id}>
@@ -199,6 +383,9 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
           </TableBody>
         </Table>
       </div>
+
+      {/* Paginación */}
+      <Pagination />
 
       {/* Modal para mostrar detalles de la transacción */}
       {isModalOpen && (
@@ -582,7 +769,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
           </div>
         </div>
       )}
-    </>
+    </Card>
   );
 };
 

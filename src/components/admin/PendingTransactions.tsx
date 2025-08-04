@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, X, Edit } from "lucide-react";
+import { Check, X, Edit, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -15,7 +15,10 @@ const PendingTransactions = () => {
     refreshTransactions,
     updateTransactionStatus,
   } = useData();
-  const [showMoreCount, setShowMoreCount] = useState(3);
+  
+  // Paginación
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCompleteForm, setShowCompleteForm] = useState(false);
   const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
@@ -48,8 +51,25 @@ const PendingTransactions = () => {
     }
   };
 
-  const handleShowMore = () => {
-    setShowMoreCount((prev) => prev + 3);
+  // Funciones de paginación
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const goToFirstPage = () => {
+    setCurrentPage(1);
+  };
+
+  const goToLastPage = () => {
+    setCurrentPage(totalPages);
+  };
+
+  const goToPreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+
+  const goToNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
   };
 
   const handleCompleteInfo = (transaction: any) => {
@@ -84,10 +104,140 @@ const PendingTransactions = () => {
   const completedTransactions = transactions.filter(
     (t) => t.status === "terminado"
   );
-  const displayPendingTransactions = pendingTransactions.slice(
-    0,
-    showMoreCount
-  );
+
+  // Cálculos de paginación
+  const totalItems = pendingTransactions.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const displayPendingTransactions = pendingTransactions.slice(startIndex, endIndex);
+
+  // Resetear a la primera página cuando cambian los datos
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(1);
+    }
+  }, [totalPages, currentPage]);
+
+  // Componente de paginación
+  const Pagination = () => {
+    if (totalPages <= 1) return null;
+
+    const getPageNumbers = () => {
+      const pages = [];
+      const maxVisiblePages = 5;
+      
+      if (totalPages <= maxVisiblePages) {
+        // Mostrar todas las páginas si hay 5 o menos
+        for (let i = 1; i <= totalPages; i++) {
+          pages.push(i);
+        }
+      } else {
+        // Mostrar páginas con ellipsis
+        if (currentPage <= 3) {
+          // Al inicio
+          for (let i = 1; i <= 4; i++) {
+            pages.push(i);
+          }
+          pages.push('...');
+          pages.push(totalPages);
+        } else if (currentPage >= totalPages - 2) {
+          // Al final
+          pages.push(1);
+          pages.push('...');
+          for (let i = totalPages - 3; i <= totalPages; i++) {
+            pages.push(i);
+          }
+        } else {
+          // En el medio
+          pages.push(1);
+          pages.push('...');
+          for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+            pages.push(i);
+          }
+          pages.push('...');
+          pages.push(totalPages);
+        }
+      }
+      
+      return pages;
+    };
+
+    return (
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-6 p-4 bg-gray-50 rounded-lg">
+        <div className="text-sm text-gray-600">
+          Mostrando {startIndex + 1} a {Math.min(endIndex, totalItems)} de {totalItems} transacciones
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {/* Botón Primera página */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToFirstPage}
+            disabled={currentPage === 1 || isProcessing}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronsLeft className="h-4 w-4" />
+          </Button>
+          
+          {/* Botón Página anterior */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToPreviousPage}
+            disabled={currentPage === 1 || isProcessing}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          
+          {/* Números de página */}
+          <div className="flex items-center gap-1">
+            {getPageNumbers().map((page, index) => (
+              <div key={index}>
+                {page === '...' ? (
+                  <span className="px-2 py-1 text-gray-400">...</span>
+                ) : (
+                  <Button
+                    variant={currentPage === page ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => goToPage(page as number)}
+                    disabled={isProcessing}
+                    className="h-8 w-8 p-0"
+                  >
+                    {page}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+          
+          {/* Botón Página siguiente */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToNextPage}
+            disabled={currentPage === totalPages || isProcessing}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+          
+          {/* Botón Última página */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={goToLastPage}
+            disabled={currentPage === totalPages || isProcessing}
+            className="h-8 w-8 p-0"
+          >
+            <ChevronsRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -95,7 +245,7 @@ const PendingTransactions = () => {
       <Card className="bg-white border-blue-200">
         <CardHeader>
           <CardTitle className="text-xl font-bold">
-            Aprobaciones de Ventas Pendientes
+            Aprobaciones de Ventas Pendientes ({totalItems})
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -192,18 +342,8 @@ const PendingTransactions = () => {
                 </div>
               ))}
 
-              {pendingTransactions.length > showMoreCount && (
-                <div className="flex justify-center mt-4">
-                  <Button
-                    variant="outline"
-                    className="bg-indigo-600 text-white hover:bg-indigo-700"
-                    onClick={handleShowMore}
-                    disabled={isProcessing}
-                  >
-                    Ver más
-                  </Button>
-                </div>
-              )}
+              {/* Paginación */}
+              <Pagination />
             </div>
           )}
         </CardContent>
