@@ -10,7 +10,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Eye, Trash2, MoreHorizontal, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Eye, Trash2, MoreHorizontal, X, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Search, Filter } from "lucide-react";
 import {
   Sale,
   TransaccionesClientesProps,
@@ -20,8 +20,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
 import { endpoints } from "@/lib/endpoints";
-import { Card } from "../ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { CalendarIcon } from "lucide-react";
+import { format, isWithinInterval, startOfDay, endOfDay } from "date-fns";
+import { es } from "date-fns/locale";
 
 export const mapStatusToStyle = (status: TransactionStatus): string => {
   switch (status) {
@@ -48,21 +55,58 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   
+  // Estados de filtros
+  const [filters, setFilters] = useState({
+    id: "",
+    customerName: "",
+    package: "",
+    dateFrom: null as Date | null,
+    dateTo: null as Date | null,
+    amount: "",
+    status: "all",
+  });
+  
   const { sales, loading, error } = useData();
 
+  // Función para aplicar filtros
+  const applyFilters = (data: Sale[]) => {
+    return data.filter((sale) => {
+      const matchesId = filters.id === "" || sale.id.toLowerCase().includes(filters.id.toLowerCase());
+      const matchesCustomerName = filters.customerName === "" || sale.customerName.toLowerCase().includes(filters.customerName.toLowerCase());
+      const matchesPackage = filters.package === "" || sale.package.toLowerCase().includes(filters.package.toLowerCase());
+      const matchesDate = !filters.dateFrom && !filters.dateTo || (
+        filters.dateFrom && filters.dateTo && 
+        isWithinInterval(
+          new Date(sale.date), 
+          { 
+            start: startOfDay(filters.dateFrom), 
+            end: endOfDay(filters.dateTo) 
+          }
+        )
+      );
+      const matchesAmount = filters.amount === "" || sale.amount.toString().includes(filters.amount);
+      const matchesStatus = filters.status === "all" || sale.status.toLowerCase() === filters.status.toLowerCase();
+      
+      return matchesId && matchesCustomerName && matchesPackage && matchesDate && matchesAmount && matchesStatus;
+    });
+  };
+
+  // Datos filtrados
+  const filteredSales = applyFilters(sales);
+
   // Cálculos de paginación
-  const totalItems = sales.length;
+  const totalItems = filteredSales.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const displaySales = sales.slice(startIndex, endIndex);
+  const displaySales = filteredSales.slice(startIndex, endIndex);
 
-  // Resetear a la primera página cuando cambian los datos o elementos por página
+  // Resetear a la primera página cuando cambian los datos, elementos por página o filtros
   useEffect(() => {
     if (currentPage > totalPages && totalPages > 0) {
       setCurrentPage(1);
     }
-  }, [totalPages, currentPage, itemsPerPage]);
+  }, [totalPages, currentPage, itemsPerPage, filters]);
 
   // Funciones de paginación
   const goToPage = (page: number) => {
@@ -89,6 +133,25 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
     const newItemsPerPage = parseInt(value);
     setItemsPerPage(newItemsPerPage);
     setCurrentPage(1); // Resetear a la primera página
+  };
+
+  // Funciones para manejar filtros
+  const handleFilterChange = (field: keyof typeof filters, value: string | Date | null) => {
+    setFilters(prev => ({ ...prev, [field]: value }));
+    setCurrentPage(1); // Resetear a la primera página cuando cambian los filtros
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      id: "",
+      customerName: "",
+      package: "",
+      dateFrom: null,
+      dateTo: null,
+      amount: "",
+      status: "all",
+    });
+    setCurrentPage(1);
   };
 
   const toggleSelectRow = (id: string) => {
@@ -286,7 +349,168 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
 
   return (
     <Card className="bg-white border-green-200">
-      <div className="overflow-x-auto">
+      <CardHeader className="flex flex-col">
+        <CardTitle>Transacciones Clientes</CardTitle>
+
+        <CardDescription>
+          Aquí puedes ver todas las transacciones de los clientes y filtros por cada sección.
+        </CardDescription>
+
+        <div className="flex flex-col gap-4">
+          {/* Filtros - Primera fila */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Filtro ID */}
+            <div className="space-y-2">
+              <Label htmlFor="filter-id" className="text-sm font-medium">ID</Label>
+              <Input
+                id="filter-id"
+                placeholder="Buscar por ID..."
+                value={filters.id}
+                onChange={(e) => handleFilterChange("id", e.target.value)}
+                className="h-9"
+              />
+            </div>
+
+            {/* Filtro Cliente */}
+            <div className="space-y-2">
+              <Label htmlFor="filter-customer" className="text-sm font-medium">Cliente</Label>
+              <Input
+                id="filter-customer"
+                placeholder="Buscar cliente..."
+                value={filters.customerName}
+                onChange={(e) => handleFilterChange("customerName", e.target.value)}
+                className="h-9"
+              />
+            </div>
+
+            {/* Filtro Paquete */}
+            <div className="space-y-2">
+              <Label htmlFor="filter-package" className="text-sm font-medium">Paquete</Label>
+              <Input
+                id="filter-package"
+                placeholder="Buscar paquete..."
+                value={filters.package}
+                onChange={(e) => handleFilterChange("package", e.target.value)}
+                className="h-9"
+              />
+            </div>
+          </div>
+
+          {/* Filtros - Segunda fila */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* Filtro Fecha Desde */}
+            <div className="space-y-2">
+              <Label htmlFor="filter-date-from" className="text-sm font-medium">Fecha Desde</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-9 w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {filters.dateFrom ? (
+                      format(filters.dateFrom, "dd/MM/yyyy", { locale: es })
+                    ) : (
+                      <span className="text-muted-foreground">Desde</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={filters.dateFrom}
+                    onSelect={(date) => handleFilterChange("dateFrom", date)}
+                    initialFocus
+                    locale={es}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Filtro Fecha Hasta */}
+            <div className="space-y-2">
+              <Label htmlFor="filter-date-to" className="text-sm font-medium">Fecha Hasta</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="h-9 w-full justify-start text-left font-normal"
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {filters.dateTo ? (
+                      format(filters.dateTo, "dd/MM/yyyy", { locale: es })
+                    ) : (
+                      <span className="text-muted-foreground">Hasta</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={filters.dateTo}
+                    onSelect={(date) => handleFilterChange("dateTo", date)}
+                    initialFocus
+                    locale={es}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Filtro Monto */}
+            <div className="space-y-2">
+              <Label htmlFor="filter-amount" className="text-sm font-medium">Monto</Label>
+              <Input
+                id="filter-amount"
+                placeholder="Buscar monto..."
+                value={filters.amount}
+                onChange={(e) => handleFilterChange("amount", e.target.value)}
+                className="h-9"
+              />
+            </div>
+
+            {/* Filtro Estado */}
+            <div className="space-y-2">
+              <Label htmlFor="filter-status" className="text-sm font-medium">Estado</Label>
+              <Select value={filters.status} onValueChange={(value) => handleFilterChange("status", value)}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Todos los estados" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="aprobado">Aprobado</SelectItem>
+                  <SelectItem value="pendiente">Pendiente</SelectItem>
+                  <SelectItem value="rechazado">Rechazado</SelectItem>
+                  <SelectItem value="incompleta">Incompleta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Botón para limpiar filtros */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <span className="text-sm text-gray-600">
+                {filteredSales.length} de {sales.length} transacciones
+              </span>
+            </div>
+            <Button
+              variant="default"
+              size="sm"
+              onClick={clearAllFilters}
+              className="h-8"
+            >
+              Limpiar filtros
+            </Button>
+          </div>
+        </div>
+      </CardHeader>
+
+
+     
+
+
+      <CardContent className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -382,7 +606,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
             )}
           </TableBody>
         </Table>
-      </div>
+      </CardContent>
 
       {/* Paginación */}
       <Pagination />
