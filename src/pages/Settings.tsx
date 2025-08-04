@@ -146,22 +146,22 @@ const Settings = () => {
   return (
     <AppLayout>
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">Settings</h1>
+        <h1 className="text-2xl font-bold">Configuración</h1>
         
         <Tabs defaultValue="account">
           <TabsList className="mb-4">
-            <TabsTrigger value="account">Account</TabsTrigger>
-            {isAdmin && <TabsTrigger value="users">User Management</TabsTrigger>}
-            <TabsTrigger value="whatsapp">WhatsApp Integration</TabsTrigger>
-            <TabsTrigger value="notifications">Notifications</TabsTrigger>
+            <TabsTrigger value="account">Cuenta</TabsTrigger>
+            {isAdmin && <TabsTrigger value="users">Gestión de Usuarios</TabsTrigger>}
+            <TabsTrigger value="whatsapp">Integración WhatsApp</TabsTrigger>
+            <TabsTrigger value="notifications">Notificaciones</TabsTrigger>
           </TabsList>
           
           {/* Account Settings Tab */}
           <TabsContent value="account">
             <Card>
               <CardHeader>
-                <CardTitle>Account Information</CardTitle>
-                <CardDescription>Manage your account settings</CardDescription>
+                <CardTitle>Información de la Cuenta</CardTitle>
+                <CardDescription>Gestiona la configuración de tu cuenta</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="space-y-4">
@@ -181,36 +181,36 @@ const Settings = () => {
                         {user?.email} · <span className="capitalize">{user?.role}</span>
                       </p>
                       <Button size="sm" className="mt-2 bg-brand-purple hover:bg-brand-purple-dark">
-                        Change Avatar
+                        Cambiar Avatar
                       </Button>
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Full Name</label>
+                      <label className="text-sm font-medium">Nombre Completo</label>
                       <Input defaultValue={user?.name} />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Email Address</label>
+                      <label className="text-sm font-medium">Dirección de Email</label>
                       <Input defaultValue={user?.email} />
                     </div>
                   </div>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Role</label>
+                      <label className="text-sm font-medium">Rol</label>
                       <Input defaultValue={user?.role} disabled />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Password</label>
+                      <label className="text-sm font-medium">Contraseña</label>
                       <Input type="password" defaultValue="********" />
                     </div>
                   </div>
                 </div>
                 
                 <Button className="bg-brand-purple hover:bg-brand-purple-dark">
-                  Save Changes
+                  Guardar Cambios
                 </Button>
               </CardContent>
             </Card>
@@ -222,14 +222,14 @@ const Settings = () => {
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <div>
-                    <CardTitle>User Management</CardTitle>
-                    <CardDescription>Manage user accounts and permissions</CardDescription>
+                    <CardTitle>Gestión de Usuarios</CardTitle>
+                    <CardDescription>Gestiona cuentas de usuario y permisos</CardDescription>
                   </div>
                   <Button 
                     onClick={() => setIsAddUserOpen(true)}
                     className="bg-brand-purple hover:bg-brand-purple-dark"
                   >
-                    <UserPlus className="h-4 w-4 mr-2" /> Add User
+                    <UserPlus className="h-4 w-4 mr-2" /> Agregar Usuario
                   </Button>
                 </CardHeader>
                 <CardContent>
@@ -237,10 +237,10 @@ const Settings = () => {
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-gray-50">
                         <tr>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
                           <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
-                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                          <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Rol</th>
+                          <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
@@ -303,8 +303,8 @@ const Settings = () => {
           <TabsContent value="whatsapp">
             <Card>
               <CardHeader>
-                <CardTitle>WhatsApp Integration</CardTitle>
-                <CardDescription>Configure your WhatsApp Business API integration</CardDescription>
+                <CardTitle>Integración WhatsApp</CardTitle>
+                <CardDescription>Configura tu integración con WhatsApp Business API</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <div className="flex items-center justify-between p-4 bg-green-50 border border-green-200 rounded-md">
@@ -316,69 +316,69 @@ const Settings = () => {
                     </div>
                     <div>
                       <h3 className="text-sm font-medium">WhatsApp Business API</h3>
-                      <p className="text-xs text-green-600">Connected and active</p>
+                      <p className="text-xs text-green-600">Conectado y activo</p>
                     </div>
                   </div>
                   <Button variant="outline" size="sm">
-                    Disconnect
+                    Desconectar
                   </Button>
                 </div>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Phone Number ID</label>
+                      <label className="text-sm font-medium">ID del Número de Teléfono</label>
                       <Input defaultValue="123456789012345" />
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium">Business Account ID</label>
+                      <label className="text-sm font-medium">ID de la Cuenta de Negocio</label>
                       <Input defaultValue="987654321098765" />
                     </div>
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">API Access Token</label>
+                    <label className="text-sm font-medium">Token de Acceso API</label>
                     <Input type="password" defaultValue="••••••••••••••••••••••••••••••••" />
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Webhook URL</label>
+                    <label className="text-sm font-medium">URL del Webhook</label>
                     <div className="flex">
                       <Input defaultValue="https://your-domain.com/api/whatsapp/webhook" readOnly />
-                      <Button variant="outline" className="ml-2">Copy</Button>
+                      <Button variant="outline" className="ml-2">Copiar</Button>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-sm font-medium">Message Templates</label>
+                    <label className="text-sm font-medium">Plantillas de Mensajes</label>
                     <div className="border rounded-md divide-y">
                       <div className="p-3 flex justify-between items-center">
                         <div>
-                          <p className="font-medium">Welcome Message</p>
-                          <p className="text-xs text-gray-500">Sent when a new customer is added to the system</p>
+                          <p className="font-medium">Mensaje de Bienvenida</p>
+                          <p className="text-xs text-gray-500">Enviado cuando se agrega un nuevo cliente al sistema</p>
                         </div>
-                        <Button variant="outline" size="sm">Edit</Button>
+                        <Button variant="outline" size="sm">Editar</Button>
                       </div>
                       <div className="p-3 flex justify-between items-center">
                         <div>
-                          <p className="font-medium">Sale Confirmation</p>
-                          <p className="text-xs text-gray-500">Sent when a sale is marked as successful</p>
+                          <p className="font-medium">Confirmación de Venta</p>
+                          <p className="text-xs text-gray-500">Enviado cuando una venta se marca como exitosa</p>
                         </div>
-                        <Button variant="outline" size="sm">Edit</Button>
+                        <Button variant="outline" size="sm">Editar</Button>
                       </div>
                       <div className="p-3 flex justify-between items-center">
                         <div>
-                          <p className="font-medium">Travel Reminder</p>
-                          <p className="text-xs text-gray-500">Sent 3 days before the customer's trip</p>
+                          <p className="font-medium">Recordatorio de Viaje</p>
+                          <p className="text-xs text-gray-500">Enviado 3 días antes del viaje del cliente</p>
                         </div>
-                        <Button variant="outline" size="sm">Edit</Button>
+                        <Button variant="outline" size="sm">Editar</Button>
                       </div>
                     </div>
                   </div>
                 </div>
                 
                 <Button className="bg-brand-purple hover:bg-brand-purple-dark">
-                  Save Settings
+                  Guardar Configuración
                 </Button>
               </CardContent>
             </Card>
@@ -388,15 +388,15 @@ const Settings = () => {
           <TabsContent value="notifications">
             <Card>
               <CardHeader>
-                <CardTitle>Notification Preferences</CardTitle>
-                <CardDescription>Configure how you receive notifications</CardDescription>
+                <CardTitle>Preferencias de Notificaciones</CardTitle>
+                <CardDescription>Configura cómo recibes las notificaciones</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between py-3">
                     <div>
-                      <h3 className="font-medium">New Sale Notifications</h3>
-                      <p className="text-sm text-gray-500">Get notified when a new sale is added</p>
+                      <h3 className="font-medium">Notificaciones de Nuevas Ventas</h3>
+                      <p className="text-sm text-gray-500">Recibe notificaciones cuando se agrega una nueva venta</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -408,8 +408,8 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between py-3 border-t">
                     <div>
-                      <h3 className="font-medium">Sale Status Updates</h3>
-                      <p className="text-sm text-gray-500">Get notified when a sale status changes</p>
+                      <h3 className="font-medium">Actualizaciones de Estado de Venta</h3>
+                      <p className="text-sm text-gray-500">Recibe notificaciones cuando cambia el estado de una venta</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -421,8 +421,8 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between py-3 border-t">
                     <div>
-                      <h3 className="font-medium">WhatsApp Messages</h3>
-                      <p className="text-sm text-gray-500">Get notified of new WhatsApp messages from customers</p>
+                      <h3 className="font-medium">Mensajes de WhatsApp</h3>
+                      <p className="text-sm text-gray-500">Recibe notificaciones de nuevos mensajes de WhatsApp de clientes</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -434,8 +434,8 @@ const Settings = () => {
 
                   <div className="flex items-center justify-between py-3 border-t">
                     <div>
-                      <h3 className="font-medium">Email Notifications</h3>
-                      <p className="text-sm text-gray-500">Receive daily digest emails of your sales activity</p>
+                      <h3 className="font-medium">Notificaciones por Email</h3>
+                      <p className="text-sm text-gray-500">Recibe emails diarios con resumen de tu actividad de ventas</p>
                     </div>
                     <div className="flex items-center space-x-2">
                       <label className="relative inline-flex items-center cursor-pointer">
@@ -453,19 +453,19 @@ const Settings = () => {
 
       {/* Add User Dialog */}
       <Dialog open={isAddUserOpen} onOpenChange={setIsAddUserOpen}>
-        <DialogContent className="max-w-lg w-[100vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[100vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="mb-2">
-            <DialogTitle>Add New User</DialogTitle>
+            <DialogTitle>Agregar Nuevo Usuario</DialogTitle>
             <DialogDescription>
-              Add a new user to the system.
+              Agregar un nuevo usuario al sistema.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-3 py-2 overflow-y-auto">
+          <div className="p-4 overflow-y-auto">
             <div className="space-y-1">
-              <label className="text-sm font-medium">Name</label>
+              <label className="text-sm font-medium">Nombre</label>
               <Input
-                placeholder="Enter full name"
+                placeholder="Ingresa el nombre completo"
                 value={newUser.name}
                 onChange={(e) => setNewUser({...newUser, name: e.target.value})}
               />
@@ -475,42 +475,42 @@ const Settings = () => {
               <label className="text-sm font-medium">Email</label>
               <Input
                 type="email"
-                placeholder="Enter email address"
+                placeholder="Ingresa la dirección de email"
                 value={newUser.email}
                 onChange={(e) => setNewUser({...newUser, email: e.target.value})}
               />
             </div>
             
             <div className="space-y-1">
-              <label className="text-sm font-medium">Password</label>
+              <label className="text-sm font-medium">Contraseña</label>
               <Input
                 type="password"
-                placeholder="Enter password"
+                placeholder="Ingresa la contraseña"
                 value={newUser.password}
                 onChange={(e) => setNewUser({...newUser, password: e.target.value})}
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium">Phone Number (Optional)</label>
+              <label className="text-sm font-medium">Número de Teléfono (Opcional)</label>
               <Input
-                placeholder="Enter phone number"
+                placeholder="Ingresa el número de teléfono"
                 value={newUser.phone_number}
                 onChange={(e) => setNewUser({...newUser, phone_number: e.target.value})}
               />
             </div>
             
             <div className="space-y-1">
-              <label className="text-sm font-medium">Role</label>
+              <label className="text-sm font-medium">Rol</label>
               <Select
                 value={newUser.role}
                 onValueChange={(value) => setNewUser({...newUser, role: value as User["role"]})}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
+                  <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrator</SelectItem>
+                  <SelectItem value="admin">Administrador</SelectItem>
                   <SelectItem value="manager">Gerente</SelectItem>
                   <SelectItem value="seller">Vendedor</SelectItem>
                 </SelectContent>
@@ -519,13 +519,13 @@ const Settings = () => {
           </div>
           
           <DialogFooter className="mt-4 sm:mt-2">
-            <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsAddUserOpen(false)}>Cancelar</Button>
             <Button 
               onClick={handleAddUser}
               className="bg-brand-purple hover:bg-brand-purple-dark"
               disabled={isLoading}
             >
-              {isLoading ? "Adding..." : "Add User"}
+              {isLoading ? "Agregando..." : "Agregar Usuario"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -533,19 +533,19 @@ const Settings = () => {
       
       {/* Edit User Dialog */}
       <Dialog open={isEditUserOpen} onOpenChange={setIsEditUserOpen}>
-        <DialogContent className="max-w-md w-[95vw] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="w-[100vw] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="mb-2">
-            <DialogTitle>Edit User</DialogTitle>
+            <DialogTitle>Editar Usuario</DialogTitle>
             <DialogDescription>
-              Update user information.
+              Actualizar información del usuario.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-3 py-2 overflow-y-auto">
+          <div className="p-4 overflow-y-auto">
             <div className="space-y-1">
-              <label className="text-sm font-medium">Name</label>
+              <label className="text-sm font-medium">Nombre</label>
               <Input
-                placeholder="Enter full name"
+                placeholder="Ingresa el nombre completo"
                 value={editUser.name}
                 onChange={(e) => setEditUser({...editUser, name: e.target.value})}
               />
@@ -555,32 +555,32 @@ const Settings = () => {
               <label className="text-sm font-medium">Email</label>
               <Input
                 type="email"
-                placeholder="Enter email address"
+                placeholder="Ingresa la dirección de email"
                 value={editUser.email}
                 onChange={(e) => setEditUser({...editUser, email: e.target.value})}
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-sm font-medium">Phone Number (Optional)</label>
+              <label className="text-sm font-medium">Número de Teléfono (Opcional)</label>
               <Input
-                placeholder="Enter phone number"
+                placeholder="Ingresa el número de teléfono"
                 value={editUser.phone_number}
                 onChange={(e) => setEditUser({...editUser, phone_number: e.target.value})}
               />
             </div>
             
             <div className="space-y-1">
-              <label className="text-sm font-medium">Role</label>
+              <label className="text-sm font-medium">Rol</label>
               <Select
                 value={editUser.role}
                 onValueChange={(value) => setEditUser({...editUser, role: value as User["role"]})}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
+                  <SelectValue placeholder="Selecciona un rol" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">Administrator</SelectItem>
+                  <SelectItem value="admin">Administrador</SelectItem>
                   <SelectItem value="manager">Gerente</SelectItem>
                   <SelectItem value="seller">Vendedor</SelectItem>
                 </SelectContent>
@@ -589,13 +589,13 @@ const Settings = () => {
           </div>
           
           <DialogFooter className="mt-4 sm:mt-2">
-            <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setIsEditUserOpen(false)}>Cancelar</Button>
             <Button 
               onClick={handleEditUser}
               className="bg-brand-purple hover:bg-brand-purple-dark"
               disabled={isLoading}
             >
-              {isLoading ? "Updating..." : "Update User"}
+              {isLoading ? "Actualizando..." : "Actualizar Usuario"}
             </Button>
           </DialogFooter>
         </DialogContent>

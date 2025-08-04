@@ -345,7 +345,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Add a default password if not provided
       const userToCreate = {
         ...userData,
-        password: "default123", // Default password
+        password: userData.password || "default123",
+        // password: "default123", // Default password
         phone_number: userData.phone_number || ""
       };
 
