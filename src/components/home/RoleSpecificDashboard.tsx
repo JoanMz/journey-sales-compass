@@ -25,7 +25,7 @@ export const RoleSpecificDashboard = () => {
 
     return (
       <div className="space-y-6">
-        <Card className="bg-green-50 border-green-200 mb-6">
+        {/* <Card className="bg-green-50 border-green-200 mb-6">
           <CardHeader className="pb-2 border-b border-green-200">
             <CardTitle className="text-green-700">Panel de Ventas</CardTitle>
           </CardHeader>
@@ -60,7 +60,7 @@ export const RoleSpecificDashboard = () => {
               </div>
             </div>
           </CardContent>
-        </Card>
+        </Card> */}
         
         {/* Comisiones Quincenales para el vendedor */}
         <QuincenalCommissions />

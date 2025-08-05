@@ -65,13 +65,45 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
   const updateHotelField = (index: number, field: string, value: any) => {
     console.log(`🔍 updateHotelField llamado - index: ${index}, field: ${field}, value:`, value);
     setFormData((prev) => {
+      // Asegurar que hotelInfo existe y tiene el índice correcto
+      const currentHotelInfo = prev.hotelInfo || [];
+      const updatedHotelInfo = [...currentHotelInfo];
+      
+      // Si el índice no existe, crear un hotel vacío
+      if (!updatedHotelInfo[index]) {
+        updatedHotelInfo[index] = {
+          hotel: "",
+          noches: 1,
+          incluye: [],
+          no_incluye: [],
+          alimentacion: "",
+          acomodacion: "",
+          direccion_hotel: "",
+          pais_destino: "",
+          ciudad_destino: "",
+          cuentas_recaudo: {
+            banco: "",
+            numero: "",
+            nombre: "",
+            nit: "",
+          },
+        };
+      }
+      
+      // Actualizar el campo específico
+      updatedHotelInfo[index] = {
+        ...updatedHotelInfo[index],
+        [field]: value
+      };
+      
       const newData = {
         ...prev,
-        hotelInfo: prev.hotelInfo?.map((hotel, i) =>
-          i === index ? { ...hotel, [field]: value } : hotel
-        ) || [],
+        hotelInfo: updatedHotelInfo
       };
+      
       console.log(`🔍 Estado actualizado - hotelInfo[${index}].${field}:`, newData.hotelInfo[index]?.[field]);
+      console.log(`🔍 Estado completo del hotel ${index}:`, newData.hotelInfo[index]);
+      console.log(`🔍 Estado completo de hotelInfo:`, newData.hotelInfo);
       return newData;
     });
   };
@@ -161,6 +193,43 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
     }
     
     return errors;
+  };
+
+  // Función para validar y preparar datos del hotel
+  const validateAndPrepareHotelData = (hotelData: any) => {
+    console.log("🔍 Validando datos del hotel:", hotelData);
+    
+    if (!hotelData) {
+      console.error("❌ No hay datos del hotel para validar");
+      return null;
+    }
+    
+    // Validar que los campos requeridos estén presentes
+    if (!hotelData.hotel || hotelData.hotel.trim() === "") {
+      console.error("❌ Nombre del hotel es requerido");
+      return null;
+    }
+    
+    if (!hotelData.noches || hotelData.noches <= 0) {
+      console.error("❌ Número de noches debe ser mayor a 0");
+      return null;
+    }
+    
+    // Preparar datos limpios
+    const cleanData = {
+      hotel: hotelData.hotel.trim(),
+      noches: parseInt(hotelData.noches.toString()) || 0,
+      incluye: Array.isArray(hotelData.incluye) ? hotelData.incluye : [],
+      no_incluye: Array.isArray(hotelData.no_incluye) ? hotelData.no_incluye : [],
+      alimentacion: hotelData.alimentacion?.trim() || "",
+      acomodacion: hotelData.acomodacion?.trim() || "",
+      direccion_hotel: hotelData.direccion_hotel?.trim() || "",
+      pais_destino: hotelData.pais_destino?.trim() || "",
+      ciudad_destino: hotelData.ciudad_destino?.trim() || ""
+    };
+    
+    console.log("✅ Datos del hotel validados y preparados:", cleanData);
+    return cleanData;
   };
 
   // Función para verificar si el paquete está completo para envío a confirmación
@@ -344,22 +413,23 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
           console.log("📤 formData.hotelInfo completo:", formData.hotelInfo);
           console.log("📤 formData.hotelInfo[0] completo:", formData.hotelInfo[0]);
           
-          // Asegurar formato correcto del payload
-          const travelInfoPayload = {
-            hotel: formData.hotelInfo[0]?.hotel?.trim() || "",
-            noches: formData.hotelInfo[0]?.noches || 0,
-            incluye: formData.hotelInfo[0]?.incluye || [],
-            no_incluye: formData.hotelInfo[0]?.no_incluye || [],
-            alimentacion: formData.hotelInfo[0]?.alimentacion || "",
-            acomodacion: formData.hotelInfo[0]?.acomodacion || "",
-            direccion_hotel: formData.hotelInfo[0]?.direccion_hotel || "",
-            pais_destino: formData.hotelInfo[0]?.pais_destino || "",
-            ciudad_destino: formData.hotelInfo[0]?.ciudad_destino || ""
-          };
+          // Validar y preparar datos del hotel
+          const validatedHotelData = validateAndPrepareHotelData(formData.hotelInfo[0]);
+          if (!validatedHotelData) {
+            console.error("❌ Datos del hotel no válidos, saltando actualización");
+            alert("❌ Los datos del hotel no son válidos. Verifica que el nombre del hotel y número de noches estén completos.");
+            return;
+          }
+          
+          const travelInfoPayload = validatedHotelData;
           
           console.log("🔍 TravelInfoPayload que se va a enviar:", travelInfoPayload);
           console.log("🔍 formData.hotelInfo[0] actual:", formData.hotelInfo[0]);
           console.log("🔍 Verificando campos específicos:");
+          console.log("   - hotel:", formData.hotelInfo[0]?.hotel);
+          console.log("   - noches:", formData.hotelInfo[0]?.noches, "tipo:", typeof formData.hotelInfo[0]?.noches);
+          console.log("   - incluye:", formData.hotelInfo[0]?.incluye, "tipo:", typeof formData.hotelInfo[0]?.incluye);
+          console.log("   - no_incluye:", formData.hotelInfo[0]?.no_incluye, "tipo:", typeof formData.hotelInfo[0]?.no_incluye);
           console.log("   - alimentacion:", formData.hotelInfo[0]?.alimentacion);
           console.log("   - acomodacion:", formData.hotelInfo[0]?.acomodacion);
           console.log("   - direccion_hotel:", formData.hotelInfo[0]?.direccion_hotel);
@@ -920,6 +990,16 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               console.log("🔍 Debug - Tipo de paquete:", formData.package);
               console.log("🔍 Debug - Flight info:", formData.flightInfo);
               console.log("🔍 Debug - Hotel info:", formData.hotelInfo);
+              console.log("🔍 Debug - Estado completo del formulario:", formData);
+              
+              // Verificar específicamente los datos del hotel
+              if (formData.hotelInfo && formData.hotelInfo.length > 0) {
+                console.log("🔍 Debug - Primer hotel:", formData.hotelInfo[0]);
+                console.log("🔍 Debug - Campos del hotel:");
+                Object.entries(formData.hotelInfo[0]).forEach(([key, value]) => {
+                  console.log(`   ${key}:`, value, "tipo:", typeof value);
+                });
+              }
               
               // Validar que todo esté completo ANTES de procesar nada
               const validationErrors = validatePackageFields(formData);
@@ -1004,11 +1084,10 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                 for (let i = 0; i < formData.hotelInfo.length; i++) {
                   const hotel = formData.hotelInfo[i];
                   
-                  // Verificar si este hotel tiene datos válidos (no está vacío)
-                  const hasValidHotelData = hotel.hotel && hotel.hotel.trim() !== "" && hotel.noches > 0;
-                  
-                  if (!hasValidHotelData) {
-                    console.log(`⏭️ Saltando hotel ${i + 1} - datos incompletos`);
+                  // Validar datos del hotel
+                  const validatedHotelData = validateAndPrepareHotelData(hotel);
+                  if (!validatedHotelData) {
+                    console.log(`⏭️ Saltando hotel ${i + 1} - datos no válidos`);
                     continue;
                   }
                   
@@ -1016,17 +1095,12 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                   // Si el hotel viene del currentData y tiene ID, es porque ya existe
                   const existingHotel = currentData.hotelInfo && currentData.hotelInfo[i];
                   
-                  if (existingHotel && (existingHotel as any).id) {
+                                    if (existingHotel && (existingHotel as any).id) {
                     // PATCH - Actualizar hotel existente
                     console.log(`📤 Actualizando hotel existente ID: ${(existingHotel as any).id}`);
                     await axios.patch(
                       `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/travel_info/${(existingHotel as any).id}`,
-                      {
-                        hotel: hotel.hotel,
-                        noches: hotel.noches,
-                        incluye: hotel.incluye,
-                        no_incluye: hotel.no_incluye
-                      },
+                      validatedHotelData,
                       {
                         headers: { "Content-Type": "application/json" }
                       }
@@ -1036,12 +1110,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                     console.log(`📤 Creando nuevo hotel ${i + 1}`);
                     await axios.post(
                       `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/travel_info`,
-                      {
-                        hotel: hotel.hotel,
-                        noches: hotel.noches,
-                        incluye: hotel.incluye,
-                        no_incluye: hotel.no_incluye
-                      },
+                      validatedHotelData,
                       {
                         headers: { "Content-Type": "application/json" }
                       }
