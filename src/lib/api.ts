@@ -1,6 +1,6 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
-import { Transaction, FlightInfo, HotelInfo } from "@/types/transactions";
+import { Transaction, FlightInfo, HotelInfo, AccountData } from "@/types/transactions";
 import { endpoints } from "./endpoints";
 
 // Define API response type
@@ -347,6 +347,17 @@ export const getSellers = async () => {
     return response;
   } catch (error) {
     console.error("Failed to fetch sellers:", error);
+    throw error;
+  }
+};
+
+// Get account data for cuentas de recaudo
+export const getAccountData = async (): Promise<AccountData[]> => {
+  try {
+    const response = await axios.get(endpoints.transactions.getAccountData);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch account data:", error);
     throw error;
   }
 };

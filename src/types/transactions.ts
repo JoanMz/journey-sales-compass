@@ -23,6 +23,14 @@ export interface CuentasRecaudo {
   nit: string;
 }
 
+export interface AccountData {
+  id: number;
+  banco: string;
+  numero: string;
+  nombre: string;
+  nit: string;
+}
+
 export interface HotelInfo {
   id?: number;
   hotel: string;
