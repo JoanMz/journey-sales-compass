@@ -2,6 +2,7 @@ import React from "react";
 import { useData } from "../../contexts/DataContext";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import PendingTransactions from "../admin/PendingTransactions";
+import PendingEvidence from "../admin/PendingEvidence";
 import TransaccionesClientes from "./TransaccionesClientes";
 import AdminFinancialMetrics from "./AdminFinancialMetrics";
 import { QuincenalCommissions } from './QuincenalCommissions';
@@ -14,6 +15,8 @@ const AdminDashboard = () => {
       <AdminFinancialMetrics />
       <QuincenalCommissions />
       <PendingTransactions />
+      <PendingEvidence />
+      
       <TransaccionesClientes sales={sales} />
     </div>
   );
