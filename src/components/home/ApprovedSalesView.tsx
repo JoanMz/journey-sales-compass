@@ -11,18 +11,24 @@ interface ApprovedSalesViewProps {
   approvedTransactions: SalesTransaction[];
   viewTransaction: (transactionId: any) => void;
   loadingTransaction: boolean;
+  addAbono?: (transactionId: any) => void;
 }
 
 export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
   approvedTransactions,
   viewTransaction,
-  loadingTransaction
+  loadingTransaction,
+  addAbono
 }) => {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const [unpaidTransactions, setUnpaidTransactions] = useState<SalesTransaction[]>([]);
   const [paidTransactions, setPaidTransactions] = useState<SalesTransaction[]>([]);
+  const [pendingEvidence, setPendingEvidence] = useState<any[]>([]);
+  const [approvedEvidence, setApprovedEvidence] = useState<any[]>([]);
   const [loadingUnpaid, setLoadingUnpaid] = useState(false);
   const [loadingPaid, setLoadingPaid] = useState(false);
+  const [loadingEvidence, setLoadingEvidence] = useState(false);
+  const [loadingApprovedEvidence, setLoadingApprovedEvidence] = useState(false);
 
   console.log('🔍 ApprovedSalesView - Componente renderizado');
   console.log('🔍 ApprovedSalesView - user?.id:', user?.id);
@@ -183,24 +189,285 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
     console.log('🔍 useEffect paid - fetchPaidTransactions llamado');
   }, [user?.id]);
 
+  // Cargar evidencias pendientes de aprobación
+  useEffect(() => {
+    console.log('🔍 useEffect evidence - Iniciando...');
+    console.log('🔍 useEffect evidence - user?.id:', user?.id);
+    console.log('🔍 useEffect evidence - isAdmin:', isAdmin);
+    
+    const fetchPendingEvidence = async () => {
+      if (!user?.id) {
+        console.log('🔍 useEffect evidence - No hay user.id, saliendo...');
+        return;
+      }
+      
+      console.log('🔍 useEffect evidence - Iniciando fetch...');
+      setLoadingEvidence(true);
+      try {
+        // Usar el endpoint correcto con status=pending y transaction_status=approved
+        const url = endpoints.evidence.getPendingEvidence("pending", "approved");
+        console.log('🔍 URL completa para evidencias pendientes:', url);
+        console.log('🔍 Base URL esperada: https://fastapi-data-1-nc7j.onrender.com');
+        console.log('🔍 Endpoint esperado: /transactions/evidence/filter/pending?transaction_status=approved');
+        
+        const response = await fetch(url);
+        console.log('🔍 Response status (evidence):', response.status);
+        console.log('🔍 Response ok (evidence):', response.ok);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔍 Respuesta del endpoint /transactions/evidence/filter/pending:', data);
+          console.log('🔍 Tipo de data:', typeof data);
+          console.log('🔍 Es array?', Array.isArray(data));
+          console.log('🔍 Longitud del array:', Array.isArray(data) ? data.length : 'No es array');
+          console.log('🔍 JSON.stringify(data):', JSON.stringify(data, null, 2));
+          
+          // Asegurar que data sea un array y filtrar por usuario si no es admin
+          const filteredEvidence = Array.isArray(data) ? data : [];
+          console.log('🔍 Evidencias antes del filtro de usuario:', filteredEvidence.length);
+          
+          const userFilteredEvidence = isAdmin 
+            ? filteredEvidence 
+            : filteredEvidence.filter(evidence => {
+                const sellerId = evidence.transaction_info?.seller?.id?.toString();
+                const userId = user?.id?.toString();
+                const matches = sellerId === userId;
+                console.log(`🔍 Evidencia ${evidence.id}: seller_id=${sellerId}, user_id=${userId}, matches=${matches}`);
+                return matches;
+              });
+          
+          console.log('🔍 Evidencias después del filtro de usuario:', userFilteredEvidence.length);
+          setPendingEvidence(userFilteredEvidence);
+        } else {
+          console.error('Error fetching pending evidence - Status:', response.status);
+          console.error('Error fetching pending evidence - Status Text:', response.statusText);
+          try {
+            const errorText = await response.text();
+            console.error('Error response body (evidence):', errorText);
+          } catch (e) {
+            console.error('No se pudo leer el body del error (evidence)');
+          }
+          setPendingEvidence([]);
+        }
+      } catch (error) {
+        console.error('Error fetching pending evidence:', error);
+        setPendingEvidence([]);
+      } finally {
+        setLoadingEvidence(false);
+        console.log('🔍 useEffect evidence - Fetch completado');
+      }
+    };
+
+    fetchPendingEvidence();
+    console.log('🔍 useEffect evidence - fetchPendingEvidence llamado');
+  }, [user?.id, isAdmin]);
+
+  // Cargar evidencias aprobadas
+  useEffect(() => {
+    console.log('🔍 useEffect approved evidence - Iniciando...');
+    console.log('🔍 useEffect approved evidence - user?.id:', user?.id);
+    console.log('🔍 useEffect approved evidence - isAdmin:', isAdmin);
+    
+    const fetchApprovedEvidence = async () => {
+      if (!user?.id) {
+        console.log('🔍 useEffect approved evidence - No hay user.id, saliendo...');
+        return;
+      }
+      
+      console.log('🔍 useEffect approved evidence - Iniciando fetch...');
+      setLoadingApprovedEvidence(true);
+      try {
+        // Usar el endpoint correcto con status=approved y transaction_status=approved
+        const url = endpoints.evidence.getPendingEvidence("approved", "approved");
+        console.log('🔍 URL completa para evidencias aprobadas:', url);
+        console.log('🔍 Base URL esperada: https://fastapi-data-1-nc7j.onrender.com');
+        console.log('🔍 Endpoint esperado: /transactions/evidence/filter/approved?transaction_status=approved');
+        
+        const response = await fetch(url);
+        console.log('🔍 Response status (approved evidence):', response.status);
+        console.log('🔍 Response ok (approved evidence):', response.ok);
+        
+        if (response.ok) {
+          const data = await response.json();
+          console.log('🔍 Respuesta del endpoint /transactions/evidence/filter/approved:', data);
+          console.log('🔍 Tipo de data:', typeof data);
+          console.log('🔍 Es array?', Array.isArray(data));
+          console.log('🔍 Longitud del array:', Array.isArray(data) ? data.length : 'No es array');
+          console.log('🔍 JSON.stringify(data):', JSON.stringify(data, null, 2));
+          
+          // Asegurar que data sea un array y filtrar por usuario si no es admin
+          const filteredEvidence = Array.isArray(data) ? data : [];
+          console.log('🔍 Evidencias aprobadas antes del filtro de usuario:', filteredEvidence.length);
+          
+          const userFilteredEvidence = isAdmin 
+            ? filteredEvidence 
+            : filteredEvidence.filter(evidence => {
+                const sellerId = evidence.transaction_info?.seller?.id?.toString();
+                const userId = user?.id?.toString();
+                const matches = sellerId === userId;
+                console.log(`🔍 Evidencia aprobada ${evidence.id}: seller_id=${sellerId}, user_id=${userId}, matches=${matches}`);
+                return matches;
+              });
+          
+          console.log('🔍 Evidencias aprobadas después del filtro de usuario:', userFilteredEvidence.length);
+          setApprovedEvidence(userFilteredEvidence);
+        } else {
+          console.error('Error fetching approved evidence - Status:', response.status);
+          console.error('Error fetching approved evidence - Status Text:', response.statusText);
+          try {
+            const errorText = await response.text();
+            console.error('Error response body (approved evidence):', errorText);
+          } catch (e) {
+            console.error('No se pudo leer el body del error (approved evidence)');
+          }
+          setApprovedEvidence([]);
+        }
+      } catch (error) {
+        console.error('Error fetching approved evidence:', error);
+        setApprovedEvidence([]);
+      } finally {
+        setLoadingApprovedEvidence(false);
+        console.log('🔍 useEffect approved evidence - Fetch completado');
+      }
+    };
+
+    fetchApprovedEvidence();
+    console.log('🔍 useEffect approved evidence - fetchApprovedEvidence llamado');
+  }, [user?.id, isAdmin]);
+
+  // Función para generar factura
+  const generateInvoice = async (transactionId: number | string) => {
+    console.log('🔍 generateInvoice llamado');
+    console.log('📋 transactionId:', transactionId);
+    
+    try {
+      console.log('📤 Enviando transaction_id al webhook...');
+      const response = await fetch('https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/382a0ee7-7fcb-415f-a5a2-aaf8c94b5c4d', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          transaction_id: transactionId
+        })
+      });
+      
+      console.log('📥 Response recibido:', response);
+      console.log('📥 Response status:', response.status);
+
+      if (!response.ok) {
+        console.error('❌ Response no ok:', response.status, response.statusText);
+        throw new Error("Error al generar la factura");
+      }
+      
+      console.log('📥 Parseando JSON...');
+      const result = await response.json();
+      console.log('📥 Result:', result);
+
+      // Convertir base64 a PDF si es necesario
+      if (result.data) {
+        function base64ToUint8Array(base64) {
+          const binaryString = window.atob(base64);
+          const len = binaryString.length;
+          const bytes = new Uint8Array(len);
+          for (let i = 0; i < len; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          return bytes;
+        }
+
+        console.log('📥 Convirtiendo base64 a PDF...');
+        const pdfBytes = base64ToUint8Array(result.data);
+        const blob = new Blob([pdfBytes], { type: "application/pdf" });
+        const blobUrl = URL.createObjectURL(blob);
+
+        console.log('📥 Abriendo PDF en nueva pestaña...');
+        window.open(blobUrl, "_blank");
+        console.log('✅ Factura generada y abierta exitosamente');
+      } else {
+        console.log('✅ Factura generada exitosamente');
+        alert('Factura generada exitosamente');
+      }
+      
+    } catch (error) {
+      console.error("❌ Error al generar la factura:", error);
+      alert("Error al generar la factura");
+      throw error;
+    }
+  };
+
+  // Función para aprobar evidencia
+  const approveEvidence = async (evidenceId: number | string) => {
+    console.log('🔍 approveEvidence llamado');
+    console.log('📋 evidenceId:', evidenceId);
+    
+    try {
+      const url = endpoints.evidence.updateStatus(evidenceId, "approved");
+      console.log('🔍 URL para aprobar evidencia:', url);
+      
+      const response = await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        }
+      });
+      
+      console.log('🔍 Response status (approve):', response.status);
+      console.log('🔍 Response ok (approve):', response.ok);
+      
+      if (response.ok) {
+        console.log('✅ Evidencia aprobada exitosamente');
+        // Recargar las evidencias pendientes con filtro de usuario
+        const refreshResponse = await fetch(endpoints.evidence.getPending("approved", "pending"));
+        if (refreshResponse.ok) {
+          const refreshData = await refreshResponse.json();
+          const filteredEvidence = Array.isArray(refreshData) ? refreshData : [];
+          const userFilteredEvidence = isAdmin 
+            ? filteredEvidence 
+            : filteredEvidence.filter(evidence => 
+                evidence.transaction_info?.seller?.id?.toString() === user?.id?.toString()
+              );
+          setPendingEvidence(userFilteredEvidence);
+        }
+      } else {
+        console.error('❌ Error al aprobar evidencia - Status:', response.status);
+        console.error('❌ Error al aprobar evidencia - Status Text:', response.statusText);
+      }
+    } catch (error) {
+      console.error('❌ Error al aprobar evidencia:', error);
+    }
+  };
+
   // Asegurar que las transacciones sean siempre arrays
   const safeUnpaidTransactions = Array.isArray(unpaidTransactions) ? unpaidTransactions : [];
   const safePaidTransactions = Array.isArray(paidTransactions) ? paidTransactions : [];
 
   const kanbanGroups = {
     "Pendiente por Pago": safeUnpaidTransactions,
+    "Abonos Pendientes Por Aprobación": pendingEvidence,
+    "Abonos Aprobados": approvedEvidence,
     "Ventas Pagas": safePaidTransactions
   };
 
   // Logs para debugging del renderizado
   console.log('🔍 Debug - Estado actual:');
+  console.log('🔍 isAdmin:', isAdmin);
+  console.log('🔍 user?.id:', user?.id);
   console.log('🔍 safeUnpaidTransactions:', safeUnpaidTransactions);
   console.log('🔍 safePaidTransactions:', safePaidTransactions);
+  console.log('🔍 pendingEvidence:', pendingEvidence);
+  console.log('🔍 approvedEvidence:', approvedEvidence);
   console.log('🔍 loadingUnpaid:', loadingUnpaid);
   console.log('🔍 loadingPaid:', loadingPaid);
+  console.log('🔍 loadingEvidence:', loadingEvidence);
+  console.log('🔍 loadingApprovedEvidence:', loadingApprovedEvidence);
   console.log('🔍 kanbanGroups["Pendiente por Pago"]:', kanbanGroups["Pendiente por Pago"]);
+  console.log('🔍 kanbanGroups["Abonos Pendientes Por Aprobación"]:', kanbanGroups["Abonos Pendientes Por Aprobación"]);
+  console.log('🔍 kanbanGroups["Abonos Aprobados"]:', kanbanGroups["Abonos Aprobados"]);
   console.log('🔍 kanbanGroups["Ventas Pagas"]:', kanbanGroups["Ventas Pagas"]);
   console.log('🔍 Longitud de Pendiente por Pago:', kanbanGroups["Pendiente por Pago"].length);
+  console.log('🔍 Longitud de Abonos Pendientes Por Aprobación:', kanbanGroups["Abonos Pendientes Por Aprobación"].length);
+  console.log('🔍 Longitud de Abonos Aprobados:', kanbanGroups["Abonos Aprobados"].length);
   console.log('🔍 Longitud de Ventas Pagas:', kanbanGroups["Ventas Pagas"].length);
 
   return (
@@ -235,7 +502,7 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
       </div>
 
       {/* Kanban Board */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Pendiente por Pago Column */}
         <div className="kanban-column border-t-4 border-yellow-400">
           <div className="flex items-center mb-4">
@@ -280,14 +547,152 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
                         Pendiente
                       </Badge>
                     </div>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-yellow-600 hover:bg-yellow-700"
+                        onClick={() => viewTransaction(transaction.id)}
+                        disabled={loadingTransaction}
+                      >
+                        Ver Detalles
+                      </Button>
+                      {addAbono && (
+                        <Button
+                          size="sm"
+                          className="flex-1 bg-green-600 hover:bg-green-700"
+                          onClick={() => addAbono(transaction.id)}
+                        >
+                          Agregar Abono
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Abonos Pendientes Por Aprobación Column */}
+        <div className="kanban-column border-t-4 border-orange-400">
+          <div className="flex items-center mb-4">
+            <Clock className="h-5 w-5 mr-2 text-orange-500" />
+            <h3 className="font-semibold">Abonos Pendientes Por Aprobación</h3>
+            <span className="ml-2 bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded">
+              {loadingEvidence ? '...' : kanbanGroups["Abonos Pendientes Por Aprobación"].length}
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {loadingEvidence ? (
+              <div className="text-center py-4 text-gray-500">Cargando evidencias pendientes...</div>
+            ) : !kanbanGroups["Abonos Pendientes Por Aprobación"] || kanbanGroups["Abonos Pendientes Por Aprobación"].length === 0 ? (
+              <div className="text-center py-4 text-gray-500">No hay evidencias pendientes</div>
+            ) : (
+              kanbanGroups["Abonos Pendientes Por Aprobación"].map((evidence) => (
+                <div
+                  key={evidence.id}
+                  className="kanban-card border-l-orange-400 bg-orange-50"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mr-2">
+                        {evidence.transaction_info?.client_name?.charAt(0) || '?'}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{evidence.transaction_info?.client_name || 'Sin nombre'}</h4>
+                        <span className="text-xs text-gray-500">Vendedor: {evidence.transaction_info?.seller?.name || 'Sin vendedor'}</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold">${evidence.amount || 0}</span>
+                  </div>
+
+                  <div className="mt-3">
+                    <p className="text-sm">{evidence.transaction_info?.package || 'Sin paquete'}</p>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-gray-500">
+                        {evidence.transaction_info?.start_date ? new Date(evidence.transaction_info.start_date).toLocaleDateString() : 'Sin fecha'}
+                      </span>
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-800">
+                        Pendiente Aprobación
+                      </Badge>
+                    </div>
                     <Button
                       size="sm"
-                      className="w-full mt-2 bg-yellow-600 hover:bg-yellow-700"
-                      onClick={() => viewTransaction(transaction.id)}
+                      className="w-full mt-2 bg-orange-600 hover:bg-orange-700"
+                      onClick={() => viewTransaction(evidence.transaction_id)}
                       disabled={loadingTransaction}
                     >
                       Ver Detalles
                     </Button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Abonos Aprobados Column */}
+        <div className="kanban-column border-t-4 border-purple-400">
+          <div className="flex items-center mb-4">
+            <CheckCircle className="h-5 w-5 mr-2 text-purple-500" />
+            <h3 className="font-semibold">Abonos Aprobados</h3>
+            <span className="ml-2 bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded">
+              {loadingApprovedEvidence ? '...' : kanbanGroups["Abonos Aprobados"].length}
+            </span>
+          </div>
+
+          <div className="space-y-3">
+            {loadingApprovedEvidence ? (
+              <div className="text-center py-4 text-gray-500">Cargando abonos aprobados...</div>
+            ) : !kanbanGroups["Abonos Aprobados"] || kanbanGroups["Abonos Aprobados"].length === 0 ? (
+              <div className="text-center py-4 text-gray-500">No hay abonos aprobados</div>
+            ) : (
+              kanbanGroups["Abonos Aprobados"].map((evidence) => (
+                <div
+                  key={evidence.id}
+                  className="kanban-card border-l-purple-400 bg-purple-50"
+                >
+                  <div className="flex justify-between items-start">
+                    <div className="flex items-center">
+                      <div className="h-8 w-8 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mr-2">
+                        {evidence.transaction_info?.client_name?.charAt(0) || '?'}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{evidence.transaction_info?.client_name || 'Sin nombre'}</h4>
+                        <span className="text-xs text-gray-500">Vendedor: {evidence.transaction_info?.seller?.name || 'Sin vendedor'}</span>
+                      </div>
+                    </div>
+                    <span className="text-sm font-semibold">${evidence.amount || 0}</span>
+                  </div>
+
+                  <div className="mt-3">
+                    <p className="text-sm">{evidence.transaction_info?.package || 'Sin paquete'}</p>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="text-xs text-gray-500">
+                        {evidence.transaction_info?.start_date ? new Date(evidence.transaction_info.start_date).toLocaleDateString() : 'Sin fecha'}
+                      </span>
+                      <Badge variant="default" className="bg-purple-100 text-purple-800">
+                        Abono Aprobado
+                      </Badge>
+                    </div>
+                    <div className="flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-purple-600 hover:bg-purple-700"
+                        onClick={() => viewTransaction(evidence.transaction_id)}
+                        disabled={loadingTransaction}
+                      >
+                        Ver Detalles
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="flex-1 bg-blue-600 hover:bg-blue-700"
+                        onClick={() => generateInvoice(evidence.transaction_id)}
+                      >
+                        Generar Factura
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))

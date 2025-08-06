@@ -28,6 +28,8 @@ import EnhancedSalesForm from "../components/forms/EnhancedSalesForm";
 import FlightHotelForm from "../components/forms/FlightHotelForm";
 import CompleteTransactionForm from "../components/forms/CompleteTransactionForm";
 import InvoiceForm from "../components/forms/InvoiceForm";
+import AbonoForm from "../components/forms/AbonoForm";
+import EvidenceForm from "../components/forms/EvidenceForm";
 import { ContractConfirmationModal } from "../components/forms/ContractConfirmationModal";
 import { FlightInfo, HotelInfo } from "../types/sales";
 import { useTransactions } from "../hooks/useTransactions";
@@ -44,6 +46,7 @@ import { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { mapStatusToStyle } from "@/components/dashboard/TransaccionesClientes";
 import { endpoints } from '@/lib/endpoints';
+import { toast } from "sonner";
 
 const Home = () => {
   const { isAdmin, isManager } = useAuth();
@@ -55,6 +58,7 @@ const Home = () => {
     loading,
     handleAddSale,
     handleCompleteTransaction,
+    refreshTransactions,
   } = useTransactions();
 
   const {
@@ -99,6 +103,16 @@ const Home = () => {
   // Estados para el formulario de factura
   const [isInvoiceFormOpen, setIsInvoiceFormOpen] = useState(false);
   const [selectedInvoiceTransactionId, setSelectedInvoiceTransactionId] = useState<string | null>(null);
+  
+  // Estados para el formulario de abono
+  const [isAbonoFormOpen, setIsAbonoFormOpen] = useState(false);
+  const [selectedAbonoTransactionId, setSelectedAbonoTransactionId] = useState<string | null>(null);
+  const [loadingAbono, setLoadingAbono] = useState(false);
+  
+  // Estados para el formulario de evidencia
+  const [isEvidenceFormOpen, setIsEvidenceFormOpen] = useState(false);
+  const [selectedEvidenceTransactionId, setSelectedEvidenceTransactionId] = useState<string | null>(null);
+  const [loadingEvidence, setLoadingEvidence] = useState(false);
 
   // Estados para la vista de ventas aprobadas
   const [currentView, setCurrentView] = useState<'sales' | 'approved'>('sales');
@@ -476,6 +490,119 @@ const Home = () => {
     console.log('✅ Modal de factura abierto');
   };
 
+  // Funciones para manejar abonos
+  const openAbonoForm = (transactionId: string) => {
+    console.log('🔍 openAbonoForm llamado');
+    console.log('📋 transactionId:', transactionId);
+    setSelectedEvidenceTransactionId(transactionId);
+    setIsEvidenceFormOpen(true);
+    console.log('✅ Modal de evidencia abierto');
+  };
+
+  const closeAbonoForm = () => {
+    console.log('🔍 closeAbonoForm llamado');
+    setIsAbonoFormOpen(false);
+    setSelectedAbonoTransactionId(null);
+    console.log('✅ Modal de abono cerrado');
+  };
+
+  const closeEvidenceForm = () => {
+    console.log('🔍 closeEvidenceForm llamado');
+    setIsEvidenceFormOpen(false);
+    setSelectedEvidenceTransactionId(null);
+    console.log('✅ Modal de evidencia cerrado');
+  };
+
+  const handleAddEvidence = async (evidenceData: any) => {
+    console.log('🔍 handleAddEvidence llamado');
+    console.log('📋 evidenceData:', evidenceData);
+    console.log('📋 transactionId:', selectedEvidenceTransactionId);
+    
+    setLoadingEvidence(true);
+    
+    try {
+      console.log('📤 Enviando datos de evidencia al endpoint...');
+      const response = await fetch(endpoints.transactions.addEvidence(selectedEvidenceTransactionId!), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(evidenceData)
+      });
+      
+      console.log('📥 Response recibido:', response);
+      console.log('📥 Response status:', response.status);
+
+      if (!response.ok) {
+        console.error('❌ Response no ok:', response.status, response.statusText);
+        throw new Error("Error al agregar la evidencia");
+      }
+      
+      console.log('📥 Parseando JSON...');
+      const result = await response.json();
+      console.log('📥 Result:', result);
+
+      console.log('✅ Evidencia agregada exitosamente');
+      toast.success('Evidencia agregada exitosamente');
+      
+      closeEvidenceForm();
+      
+      // Refrescar las transacciones para mostrar los cambios
+      await refreshTransactions();
+      
+    } catch (error) {
+      console.error("❌ Error al agregar la evidencia:", error);
+      toast.error("Error al agregar la evidencia");
+    } finally {
+      setLoadingEvidence(false);
+    }
+  };
+
+  const handleAddAbono = async (abonoData: any) => {
+    console.log('🔍 handleAddAbono llamado');
+    console.log('📋 abonoData:', abonoData);
+    console.log('📋 transactionId:', selectedAbonoTransactionId);
+    
+    setLoadingAbono(true);
+    
+    try {
+      console.log('📤 Enviando datos de abono al endpoint...');
+      const response = await fetch(endpoints.transactions.postNewAbono(selectedAbonoTransactionId!), {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(abonoData)
+      });
+      
+      console.log('📥 Response recibido:', response);
+      console.log('📥 Response status:', response.status);
+
+      if (!response.ok) {
+        console.error('❌ Response no ok:', response.status, response.statusText);
+        throw new Error("Error al agregar el abono");
+      }
+      
+      console.log('📥 Parseando JSON...');
+      const result = await response.json();
+      console.log('📥 Result:', result);
+
+      console.log('✅ Abono agregado exitosamente');
+      toast.success('Abono agregado exitosamente');
+      
+      closeAbonoForm();
+      
+      // Refrescar las transacciones para mostrar los cambios
+      await refreshTransactions();
+      
+    } catch (error) {
+      console.error("❌ Error al agregar el abono:", error);
+      toast.error("Error al agregar el abono");
+    } finally {
+      setLoadingAbono(false);
+    }
+  };
+
   const closeInvoiceForm = () => {
     console.log('🔍 closeInvoiceForm llamado');
     setIsInvoiceFormOpen(false);
@@ -577,6 +704,7 @@ const Home = () => {
           >
             Ventas Aprobadas
           </Button>
+
         </div>
 
         {/* Sales Management */}
@@ -627,8 +755,11 @@ const Home = () => {
             approvedTransactions={approvedTransactions}
             viewTransaction={viewTransaction}
             loadingTransaction={loadingTransaction}
+            addAbono={openAbonoForm}
           />
         )}
+
+
       </div>
 
       {/* Enhanced Add Sale Dialog */}
@@ -1371,6 +1502,48 @@ const Home = () => {
         onSubmit={handleGenerateInvoice}
         transactionId={selectedInvoiceTransactionId || undefined}
       />
+
+      {/* Abono Form Dialog */}
+      <Dialog open={isAbonoFormOpen} onOpenChange={closeAbonoForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Agregar Abono</DialogTitle>
+            <DialogDescription>
+              Completa los datos para agregar un abono a la transacción.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedAbonoTransactionId && (
+            <AbonoForm
+              transactionId={selectedAbonoTransactionId}
+              onSubmit={handleAddAbono}
+              onCancel={closeAbonoForm}
+              loading={loadingAbono}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Evidence Form Dialog */}
+      <Dialog open={isEvidenceFormOpen} onOpenChange={closeEvidenceForm}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Agregar Evidencia de Abono</DialogTitle>
+            <DialogDescription>
+              Sube una imagen del comprobante de pago y completa los datos del abono.
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedEvidenceTransactionId && (
+            <EvidenceForm
+              transactionId={selectedEvidenceTransactionId}
+              onSubmit={handleAddEvidence}
+              onCancel={closeEvidenceForm}
+              loading={loadingEvidence}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 };

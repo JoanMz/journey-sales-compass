@@ -40,10 +40,13 @@ export const endpoints = {
     },
     getAccountData: `${baseUrl}/cuentas-recaudo/`,
     postNewAbono: (transactionId: number | string = 2313) => `${baseUrl}/transactions/${transactionId}/factura`,
+    addEvidence: (transactionId: number | string) => `${baseUrl}/transactions/${transactionId}/evidence`,
   },
   evidence: {
-    getPending: (transactionStatus: string = "approved") => 
-      `${baseUrl}/transactions/evidence/filter/pending?transaction_status=${transactionStatus}`,
+    getPending: (transactionStatus: string = "approved", status: string = "pending") => 
+      `${baseUrl}/transactions/evidence/filter/${status}?transaction_status=${transactionStatus}`,
+    getPendingEvidence: (status: string = "pending", transactionStatus: string = "approved") => 
+      `${baseUrl}/transactions/evidence/filter/${status}?transaction_status=${transactionStatus}`,
     updateStatus: (evidenceId: number | string, status: string) =>
       `${baseUrl}/transactions/evidence/${evidenceId}/status?status=${status}`,
   },

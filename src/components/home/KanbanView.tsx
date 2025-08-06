@@ -135,6 +135,7 @@ export const KanbanView = ({
                   </span>
                   <span className="status-badge status-process">Pendiente</span>
                 </div>
+
               </div>
             </div>
           ))}

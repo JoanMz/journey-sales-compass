@@ -32,7 +32,7 @@ const PendingEvidence = () => {
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [isProcessing, setIsProcessing] = useState(false);
-  const itemsPerPage = 3;
+  const itemsPerPage = 5; // Aumentado para mostrar más evidencias por página
 
   // Fetch pending evidence
   const fetchPendingEvidence = async () => {
@@ -277,84 +277,89 @@ const PendingEvidence = () => {
             {displayEvidences.map((evidence) => (
               <div
                 key={evidence.id}
-                className="border-b border-gray-200 pb-4"
+                className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow"
               >
-                <div className="flex justify-between items-center mb-2">
-                  <div>
-                    <h3 className="font-medium">{evidence.transaction_info.client_name}</h3>
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-gray-900">{evidence.transaction_info.client_name}</h3>
                     <p className="text-sm text-gray-500">Cliente</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold">
+                    <p className="font-semibold text-gray-700">
                       {evidence.transaction_info.package}
                     </p>
-                    <p className="font-bold text-lg">
+                    <p className="font-bold text-xl text-green-600">
                       {formatCurrency(evidence.amount)}
                     </p>
                   </div>
                 </div>
 
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-500">Vendedor</p>
-                  <p className="text-sm">{evidence.transaction_info.seller.name}</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Vendedor:</span>
+                      <span className="text-sm font-medium">{evidence.transaction_info.seller.name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Paquete:</span>
+                      <span className="text-sm font-medium">{evidence.transaction_info.package}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Fecha inicio:</span>
+                      <span className="text-sm font-medium">
+                        {new Date(evidence.transaction_info.start_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Fecha fin:</span>
+                      <span className="text-sm font-medium">
+                        {new Date(evidence.transaction_info.end_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Fecha de carga:</span>
+                      <span className="text-sm font-medium">
+                        {new Date(evidence.upload_date).toLocaleDateString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">ID Transacción:</span>
+                      <span className="text-sm font-medium">#{evidence.transaction_id}</span>
+                    </div>
+                  </div>
                 </div>
 
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-500">Paquete</p>
-                  <p className="text-sm">{evidence.transaction_info.package}</p>
-                </div>
-
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-500">Fecha inicio</p>
-                  <p className="text-sm">
-                    {new Date(evidence.transaction_info.start_date).toLocaleDateString()}
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-500">Fecha fin</p>
-                  <p className="text-sm">
-                    {new Date(evidence.transaction_info.end_date).toLocaleDateString()}
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm text-gray-500">Fecha de carga</p>
-                  <p className="text-sm">
-                    {new Date(evidence.upload_date).toLocaleDateString()}
-                  </p>
-                </div>
-
-                <div className="flex justify-between items-center mt-3">
-                  <div className="flex-1">
-                    {/* Evidence file URL */}
-                    <div>
-                      <p className="text-sm text-gray-500">Comprobante:</p>
+                <div className="border-t border-gray-200 pt-4">
+                  <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div className="flex-1">
+                      <p className="text-sm text-gray-500 mb-2">Comprobante de Pago:</p>
                       <a 
                         href={evidence.evidence_file}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-blue-600 break-all hover:text-blue-800 underline cursor-pointer"
+                        className="text-sm text-blue-600 break-all hover:text-blue-800 underline cursor-pointer bg-blue-50 px-2 py-1 rounded"
                       >
                         {evidence.evidence_file}
                       </a>
                     </div>
-                  </div>
-                  <div className="flex gap-2 ml-4">
-                    <Button
-                      className="bg-green-500 hover:bg-green-600"
-                      onClick={() => handleApprove(evidence.id)}
-                      disabled={isProcessing}
-                    >
-                      <Check className="mr-1 h-4 w-4" /> Aprobar
-                    </Button>
-                    <Button
-                      className="bg-red-500 hover:bg-red-600"
-                      onClick={() => handleReject(evidence.id)}
-                      disabled={isProcessing}
-                    >
-                      <X className="mr-1 h-4 w-4" /> Rechazar
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        className="bg-green-500 hover:bg-green-600"
+                        onClick={() => handleApprove(evidence.id)}
+                        disabled={isProcessing}
+                      >
+                        <Check className="mr-1 h-4 w-4" /> Aprobar
+                      </Button>
+                      <Button
+                        className="bg-red-500 hover:bg-red-600"
+                        onClick={() => handleReject(evidence.id)}
+                        disabled={isProcessing}
+                      >
+                        <X className="mr-1 h-4 w-4" /> Rechazar
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>

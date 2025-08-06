@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BarChart3, Settings, LogOut, Users, ChevronLeft, MessageSquare, Code, ChevronRight, Map } from "lucide-react";
+import { Home, BarChart3, Settings, LogOut, Users, ChevronLeft, MessageSquare, Code, ChevronRight, Map, Plane, FileText } from "lucide-react";
 import { useAuth } from "../../contexts/AuthContext";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
@@ -18,6 +18,8 @@ const Sidebar = () => {
 
   const navItems = [
     { name: "Dashboard", icon: Home, path: "/", adminOnly: false },
+    { name: "Gestión de Viajes", icon: Plane, path: "/flights", adminOnly: false, sellerOnly: true },
+    { name: "Evidencias Pendientes", icon: FileText, path: "/pending-evidence", adminOnly: true },
     // { name: "Business Intelligence", icon: Map, path: "/business-intelligence", adminOnly: true },
     // { name: "Support Stats", icon: BarChart3, path: "/metrics", adminOnly: true },
     { name: "Team", icon: Users, path: "/team", adminOnly: true },
@@ -69,7 +71,13 @@ const Sidebar = () => {
         )}
         <nav className="space-y-1">
           {navItems
-            .filter(item => !item.adminOnly || isAdmin)
+            .filter(item => {
+              // Si es adminOnly, solo mostrar si es admin
+              if (item.adminOnly && !isAdmin) return false;
+              // Si es sellerOnly, solo mostrar si NO es admin (es decir, es seller)
+              if (item.sellerOnly && isAdmin) return false;
+              return true;
+            })
             .map(item => (
               <Link
                 key={item.name}

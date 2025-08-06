@@ -98,12 +98,6 @@ const PendingTransactions = () => {
   );
   
   console.log("🔍 Transacciones pendientes:", pendingTransactions);
-  const approvedTransactions = transactions.filter(
-    (t) => t.status === "approved"
-  );
-  const completedTransactions = transactions.filter(
-    (t) => t.status === "terminado"
-  );
 
   // Cálculos de paginación
   const totalItems = pendingTransactions.length;
@@ -308,17 +302,29 @@ const PendingTransactions = () => {
                   <div className="flex justify-between items-center mt-3">
                     <div className="flex-1">
                       {/* URL del Comprobante */}
-                      {(transaction as any).evidences && (transaction as any).evidences.length > 0 && (transaction as any).evidences[0].evidence_file && (
-                        <div>
-                          <p className="text-sm text-gray-500">Comprobante:</p>
-                          <a 
-                            href={(transaction as any).evidences[0].evidence_file}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-xs text-blue-600 break-all hover:text-blue-800 underline cursor-pointer"
-                          >
-                            {(transaction as any).evidences[0].evidence_file}
-                          </a>
+                      {(transaction as any).evidence && (transaction as any).evidence.length > 0 && (transaction as any).evidence[0].evidence_file && (
+                        <div className="mb-2">
+                          <p className="text-sm text-gray-500 mb-1">Comprobante de Pago:</p>
+                          <div className="flex items-center gap-4">
+                            <a 
+                              href={(transaction as any).evidence[0].evidence_file}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-sm text-blue-600 hover:text-blue-800 underline cursor-pointer bg-blue-50 px-2 py-1 rounded"
+                            >
+                              Ver Comprobante
+                            </a>
+                            <span className="inline-block bg-green-100 text-green-800 text-lg font-bold px-4 py-1 rounded shadow border border-green-300">
+                              {formatCurrency((transaction as any).evidence[0].amount)}
+                            </span>
+                            <span className="text-xs text-gray-400 font-semibold">Pago del cliente</span>
+                          </div>
+                        </div>
+                      )}
+                      {(!(transaction as any).evidence || (transaction as any).evidence.length === 0 || !(transaction as any).evidence[0].evidence_file) && (
+                        <div className="mb-2">
+                          <p className="text-sm text-gray-500 mb-1">Comprobante de Pago:</p>
+                          <span className="text-sm text-red-500">No hay comprobante disponible</span>
                         </div>
                       )}
                     </div>
@@ -349,129 +355,9 @@ const PendingTransactions = () => {
         </CardContent>
       </Card>
 
-      {/* Approved Transactions Waiting for Completion */}
-      <Card className="bg-white border-yellow-200">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-yellow-700">
-            Ventas Aprobadas - Esperando Información del Vendedor
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {approvedTransactions.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">
-              No hay ventas esperando información del vendedor
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {approvedTransactions.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="border-b border-yellow-200 pb-4"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <h3 className="font-medium">{transaction.client_name}</h3>
-                      <p className="text-sm text-gray-500">Cliente</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold">
-                        {transaction.transaction_type}
-                      </p>
-                      <p className="font-bold text-lg">
-                        {formatCurrency(transaction.amount)}
-                      </p>
-                    </div>
-                  </div>
 
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm text-gray-500">Vendedor</p>
-                    <p className="text-sm">{transaction.seller_name}</p>
-                  </div>
 
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-sm text-gray-500">Paquete</p>
-                    <p className="text-sm">{transaction.package}</p>
-                  </div>
 
-                  <div className="bg-yellow-50 p-2 rounded mt-2">
-                    <p className="text-sm text-yellow-700">
-                      Esperando que el vendedor complete la información de vuelo
-                      y hotel.
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Completed Transactions */}
-      <Card className="bg-white border-green-200">
-        <CardHeader>
-          <CardTitle className="text-xl font-bold text-green-700">
-            Ventas Completadas ({completedTransactions.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {completedTransactions.length === 0 ? (
-            <div className="text-center text-gray-500 py-4">
-              No hay ventas completadas
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {completedTransactions.slice(0, 5).map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="border-b border-green-200 pb-4"
-                >
-                  <div className="flex justify-between items-center mb-2">
-                    <div>
-                      <h3 className="font-medium">{transaction.client_name}</h3>
-                      <p className="text-sm text-gray-500">
-                        {transaction.seller_name}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-lg">
-                        {formatCurrency(transaction.amount)}
-                      </p>
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
-                        Completado
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <p className="text-gray-500">Paquete:</p>
-                      <p>{transaction.package}</p>
-                    </div>
-                    {transaction.flight_info && (
-                      <div>
-                        <p className="text-gray-500">Vuelo:</p>
-                        <p>
-                          {transaction.flight_info.aerolinea} -{" "}
-                          {transaction.flight_info.ruta}
-                        </p>
-                      </div>
-                    )}
-                    {transaction.hotel_info && (
-                      <div>
-                        <p className="text-gray-500">Hotel:</p>
-                        <p>
-                          {transaction.hotel_info.hotel} (
-                          {transaction.hotel_info.noches} noches)
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
 
       {/* Complete Transaction Form Modal */}
       {showCompleteForm && selectedTransaction && (

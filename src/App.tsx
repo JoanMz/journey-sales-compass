@@ -13,6 +13,8 @@ import Settings from "./pages/Settings";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Team from "./pages/Team";
+import TravelManagement from "./pages/TravelManagement";
+import PendingEvidencePage from "./pages/PendingEvidencePage";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +33,8 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/login" element={<Login />} />
               <Route path="/team" element={<Team />} />
+              <Route path="/flights" element={<TravelManagement />} />
+              <Route path="/pending-evidence" element={<PendingEvidencePage />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
