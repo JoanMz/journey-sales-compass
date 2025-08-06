@@ -76,16 +76,11 @@ const Home = () => {
       // Buscar la transacción en las transacciones filtradas
       const transaction = filteredTransactions.find(t => t.id === transactionId);
       if (transaction) {
-        console.log("📋 Datos de la transacción encontrada:", transaction);
-        console.log("📋 Itinerario:", (transaction as any).itinerario);
-        console.log("📋 Travel info:", (transaction as any).travel_info);
+
         setSelectedTransactionData(transaction);
         originalOpenCompleteInfo(transactionId);
         
-        // Log para verificar los datos que se van a mapear
-        console.log("📋 Verificando datos para mapeo:");
-        console.log("📋 Itinerario:", (transaction as any).itinerario);
-        console.log("📋 Travel info:", (transaction as any).travel_info);
+
       } else {
         console.error("Transaction not found:", transactionId);
       }
@@ -177,9 +172,7 @@ const Home = () => {
   const [editedTransaction, setEditedTransaction] = useState<any>(null);
 
   const viewTransaction = async (transactionId: string, isForContract: boolean = false) => {
-    console.log('🔍 viewTransaction llamado');
-    console.log('📋 transactionId:', transactionId);
-    console.log('📋 isForContract:', isForContract);
+
     
     setIsContractMode(isForContract);
     setLoadingTransaction(true);
@@ -210,13 +203,13 @@ const Home = () => {
   };
 
   const handleEdit = () => {
-    console.log('🔍 Botón Editar clickeado');
+
     setIsEditing(true);
     setEditedTransaction({ ...selectedTransaction });
   };
 
   const handleCancelEdit = () => {
-    console.log('🔍 Botón Cancelar clickeado');
+
     setIsEditing(false);
     setEditedTransaction(null);
   };
@@ -249,7 +242,7 @@ const Home = () => {
   };
 
   const handleSave = async () => {
-    console.log('🔍 Botón Guardar clickeado');
+
     if (!editedTransaction) return;
 
     try {
@@ -265,7 +258,7 @@ const Home = () => {
         updated_at: new Date().toISOString()
       };
 
-      console.log('📤 Actualizando transacción con payload:', updatePayload);
+
       const response = await fetch(endpoints.transactions.getById(editedTransaction.id), {
         method: 'PATCH',
         headers: {
@@ -280,16 +273,16 @@ const Home = () => {
         throw new Error(`Error ${response.status}: ${errorData}`);
       }
 
-      console.log('✅ Transacción actualizada correctamente');
+
 
       // Actualizar itinerario si existe y cambió
       if (editedTransaction.itinerario && editedTransaction.itinerario.length > 0) {
         const itinerario = editedTransaction.itinerario[0];
-        console.log('📤 Datos del itinerario a actualizar:', itinerario);
+
         
         if (selectedTransaction.itinerario && selectedTransaction.itinerario.length > 0 && selectedTransaction.itinerario[0].id) {
           // Actualizar existente
-          console.log('📤 Actualizando itinerario existente con ID:', selectedTransaction.itinerario[0].id);
+
           try {
             const itinerarioResponse = await fetch(
               `${endpoints.transactions.getById(editedTransaction.id)}/itinerario/${selectedTransaction.itinerario[0].id}`,
@@ -303,7 +296,7 @@ const Home = () => {
             );
             
             if (itinerarioResponse.ok) {
-              console.log('✅ Itinerario actualizado correctamente');
+
             } else {
               console.warn('⚠️ Error actualizando itinerario:', itinerarioResponse.status);
             }
@@ -312,7 +305,7 @@ const Home = () => {
           }
         } else {
           // Crear nuevo
-          console.log('📤 Creando nuevo itinerario');
+          
           try {
             const itinerarioResponse = await fetch(
               `${endpoints.transactions.getById(editedTransaction.id)}/itinerario`,
@@ -326,7 +319,7 @@ const Home = () => {
             );
             
             if (itinerarioResponse.ok) {
-              console.log('✅ Nuevo itinerario creado correctamente');
+
             } else {
               console.warn('⚠️ Error creando itinerario:', itinerarioResponse.status);
             }

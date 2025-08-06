@@ -17,6 +17,7 @@ import { SalesFormData, TravelerFormData } from "@/types/sales";
 import axios from "axios";
 import { endpoints } from "@/lib/endpoints";
 import { useData } from "@/contexts/DataContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface EnhancedSalesFormProps {
   onSubmit: (formData: FormData) => Promise<void> | void;
@@ -31,6 +32,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addTransaction, refreshTransactions } = useData();
+  const { user } = useAuth();
   
   console.log("📋 EnhancedSalesForm montado");
   
@@ -443,7 +445,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       amount: formData.amount,
       transaction_type: formData.transactionType,
       status: "pending",
-      seller_id: parseInt(localStorage.getItem("USER_ID_DATA") || "1"),
+      seller_id: user?.id || 1,
       receipt: "mateo",
       start_date: formData.startDate,
       end_date: formData.endDate,
@@ -527,7 +529,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
       // Crear la transacción usando axios directamente (como antes)
       const response = await axios.post(
-        "https://fastapi-data-1-nc7j.onrender.com/transactions/",
+        endpoints.transactions.postTransaction,
         NEW_BODY,
         {
           headers: {

@@ -18,6 +18,7 @@ export const endpoints = {
       `${baseUrl}/transactions/date-range/?start_date=${startDate}&end_date=${endDate}&date_field=${dateField}`,
     updateStatus: (transactionId: number | string, status: string) =>
       `${baseUrl}/transactions/${transactionId}/status?status=${status}`,
+    postTransaction:  `${baseUrl}/transactions/`,
     getById: (transactionId: number | string) =>
       `${baseUrl}/transactions/${transactionId}`,
     generateInvoice: `https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/dbed831e-3512-49a5-a50c-add211cc645f`,

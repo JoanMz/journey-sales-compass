@@ -186,9 +186,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: email,
             role: userData.role as "admin" | "seller" | "administrador",
           };
-
-          localStorage.setItem("USER_ID_DATA", userData.user_id);
-
           setUser(loggedInUser);
           setCookie("crm_current_user", JSON.stringify(loggedInUser), 7);
           setCookie("crm_access_token", userData.access_token, 7);
@@ -235,7 +232,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     deleteCookie("crm_current_user");
     deleteCookie("crm_access_token");
     deleteCookie("crm_refresh_token");
-    localStorage.removeItem("USER_ID_DATA");
     toast.success("Logged out successfully");
   };
 
