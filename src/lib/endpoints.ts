@@ -22,33 +22,49 @@ export const endpoints = {
       `${baseUrl}/transactions/${transactionId}`,
     generateInvoice: `https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/dbed831e-3512-49a5-a50c-add211cc645f`,
     saveTransactions: `${baseUrl}/saveTransactions`,
-    saveCompleteTransaction: (transactionId: number) => `${baseUrl}/transactions/${transactionId}`,
+    saveCompleteTransaction: (transactionId: number) =>
+      `${baseUrl}/transactions/${transactionId}`,
     createTransaction: `${baseUrl}/transactions`,
-    uploadTravelerDocument: (transactionId: string, travelerId: string) => 
+    uploadTravelerDocument: (transactionId: string, travelerId: string) =>
       `${baseUrl}/transactions/${transactionId}/documentos/${travelerId}`,
-    getUserUnpaid: (userId: string) => 
+    getUserUnpaid: (userId: string) =>
       `${baseUrl}/transactions/user/unpaid/${userId}`,
-    getUserPaid: (userId: string) => 
+    getUserPaid: (userId: string) =>
       `${baseUrl}/transactions/user/paid/${userId}`,
-    filterMixed: (sellerId?: number, status?: string, startDate?: string, endDate?: string) => {
+    filterMixed: (
+      sellerId?: number,
+      status?: string,
+      startDate?: string,
+      endDate?: string
+    ) => {
       const params = new URLSearchParams();
-      if (sellerId) params.append('seller_id', sellerId.toString());
-      if (status) params.append('status', status);
-      if (startDate) params.append('start_date', startDate);
-      if (endDate) params.append('end_date', endDate);
+      if (sellerId) params.append("seller_id", sellerId.toString());
+      if (status) params.append("status", status);
+      if (startDate) params.append("start_date", startDate);
+      if (endDate) params.append("end_date", endDate);
       return `${baseUrl}/transactions/filter-mixed/?${params.toString()}`;
     },
     getAccountData: `${baseUrl}/cuentas-recaudo/`,
-    postNewAbono: (transactionId: number | string = 2313) => `${baseUrl}/transactions/${transactionId}/factura`,
-    addEvidence: (transactionId: number | string) => `${baseUrl}/transactions/${transactionId}/evidence`,
+    postNewAbono: (transactionId: number | string = 2313) =>
+      `${baseUrl}/transactions/${transactionId}/factura`,
+    addEvidence: (transactionId: number | string) =>
+      `${baseUrl}/transactions/${transactionId}/evidence`,
   },
   evidence: {
-    getPending: (transactionStatus: string = "approved", status: string = "pending") => 
+    getPending: (
+      transactionStatus: string = "approved",
+      status: string = "pending"
+    ) =>
       `${baseUrl}/transactions/evidence/filter/${status}?transaction_status=${transactionStatus}`,
-    getPendingEvidence: (status: string = "pending", transactionStatus: string = "approved") => 
-      `${baseUrl}/transactions/evidence/filter/${status}?transaction_status=${transactionStatus}`,
+    getPendingToApproved: `${baseUrl}/transactions/evidence/filter/pending?transaction_status=approved`,
+    getPendingEvidence: `${baseUrl}/transactions/evidence/filter/approved/not-invoiced?transaction_status=approved&payment_status=pago_incompleto`,
+    getInvoicedEvidence: `${baseUrl}/transactions/evidence/filter/approved/not-invoiced?transaction_status=approved&payment_status=pago_incompleto&invoice=facturado`,
     updateStatus: (evidenceId: number | string, status: string) =>
       `${baseUrl}/transactions/evidence/${evidenceId}/status?status=${status}`,
+  },
+  travelManagement: {
+    getManageFliesBySeller: (sellerId: number, currentDate: string) =>
+      `${baseUrl}/transactions/manageFlies/by-seller/${sellerId}?current_date=${currentDate}`,
   },
   users: {
     all: `${baseUrl}/users`,

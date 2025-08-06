@@ -46,7 +46,7 @@ const PendingEvidence = () => {
       }
       
       const data = await response.json();
-      setEvidences(data);
+      setEvidences(data.reverse());
     } catch (err) {
       console.error("Error fetching pending evidence:", err);
       setError("Error al cargar las evidencias pendientes");

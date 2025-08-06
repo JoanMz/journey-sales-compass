@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { Plane, Clock, CheckCircle, XCircle, AlertCircle, ArrowLeft, X } from "lucide-react";
+import { Input } from "../components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Plane, Clock, CheckCircle, XCircle, AlertCircle, ArrowLeft, X, RefreshCw, Search, Filter } from "lucide-react";
 import { useAuth } from "../contexts/AuthContext";
 import { endpoints } from "../lib/endpoints";
 import { useNavigate } from "react-router-dom";
@@ -13,60 +15,179 @@ interface FlightTransaction {
   client_name: string;
   package: string;
   start_date: string;
-  end_date: string;
+  daysLeave: number;
   amount: number;
+  payment_status: number;
+}
+
+interface TravelGroupsResponse {
+  proximos: FlightTransaction[];
+  por_comenzar: FlightTransaction[];
+  a_punto: FlightTransaction[];
+  en_viaje: FlightTransaction[];
+  regresando: FlightTransaction[];
+  finalizados: FlightTransaction[];
+}
+
+interface DetailedTransaction {
+  id: number;
+  client_name: string;
+  client_email: string;
+  client_phone: string;
+  client_dni: string;
+  client_address: string;
+  package: string;
+  quoted_flight: string;
+  agency_cost: number;
+  amount: number;
+  transaction_type: string;
   status: string;
-  itinerario?: any[];
-  seller_name?: string;
+  payment_status: string;
+  total_paid: number;
+  pending_amount: number;
+  seller_id: number;
+  seller_name: string;
+  receipt: string;
+  created_at: string;
+  updated_at: string;
+  start_date: string;
+  end_date: string;
+  travelers: Array<{
+    name: string;
+    id: number;
+    phone: string;
+    transaction_id: number;
+    dni: string;
+    date_birth: string;
+  }>;
+  itinerario: Array<{
+    id: number;
+    transaction_id: number;
+    aerolinea: string;
+    ruta: string;
+    hora_salida: string;
+    hora_llegada: string;
+  }>;
+  travel_info: any[];
+  documentos: Array<{
+    viajero_id: number;
+    id: number;
+    transaction_id: number;
+    document_url: string;
+    tipo_documento: string;
+  }>;
+  evidence: Array<{
+    id: number;
+    transaction_id: number;
+    evidence_file: string;
+    upload_date: string;
+    amount: number;
+    status: string;
+    invoice_status: string;
+  }>;
 }
 
 const TravelManagement = () => {
   const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
-  const [flightTransactions, setFlightTransactions] = useState<FlightTransaction[]>([]);
+  const [travelGroups, setTravelGroups] = useState<TravelGroupsResponse>({
+    proximos: [],
+    por_comenzar: [],
+    a_punto: [],
+    en_viaje: [],
+    regresando: [],
+    finalizados: []
+  });
   const [loading, setLoading] = useState(true);
   const [loadingTransaction, setLoadingTransaction] = useState(false);
-  const [selectedTransaction, setSelectedTransaction] = useState<any>(null);
+  const [selectedTransaction, setSelectedTransaction] = useState<DetailedTransaction | null>(null);
   const [showTransactionModal, setShowTransactionModal] = useState(false);
+  const [transactionCache, setTransactionCache] = useState<Map<number, DetailedTransaction>>(new Map());
+  const [refreshingTransaction, setRefreshingTransaction] = useState(false);
+  
+  // Estados para filtros
+  const [nameFilter, setNameFilter] = useState("");
+  const [packageFilter, setPackageFilter] = useState("all");
+  const [paymentStatusFilter, setPaymentStatusFilter] = useState("all");
 
   useEffect(() => {
-    const fetchFlightTransactions = async () => {
+    const fetchTravelGroups = async () => {
       try {
         setLoading(true);
-        // Filtrar transacciones que tengan información de vuelo
-        const response = await fetch(endpoints.transactions.all);
-        const allTransactions = await response.json();
         
-        // Filtrar transacciones con itinerario
-        const flights = allTransactions.filter((t: any) => 
-          t.itinerario && t.itinerario.length > 0
+        if (!user?.id) {
+          console.error("No user ID available");
+          return;
+        }
+
+        // Obtener fecha actual en formato YYYY-MM-DD
+        const currentDate = new Date().toISOString().split('T')[0];
+        
+        // Usar el endpoint específico para el seller
+        const response = await fetch(
+          endpoints.travelManagement.getManageFliesBySeller(user.id, currentDate)
         );
-
-        // Aplicar filtro por usuario si no es admin
-        const filteredFlights = isAdmin 
-          ? flights 
-          : flights.filter((t: any) => t.seller_id === user?.id);
-
-        console.log("Todas las transacciones con itinerario:", flights);
-        console.log("Transacciones filtradas por usuario:", filteredFlights);
-        setFlightTransactions(filteredFlights);
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const groupedData: TravelGroupsResponse = await response.json();
+        console.log("Datos agrupados recibidos:", groupedData);
+        setTravelGroups(groupedData);
       } catch (error) {
-        console.error("Error fetching flight transactions:", error);
+        console.error("Error fetching travel groups:", error);
+        // En caso de error, mantener la estructura vacía
+        setTravelGroups({
+          proximos: [],
+          por_comenzar: [],
+          a_punto: [],
+          en_viaje: [],
+          regresando: [],
+          finalizados: []
+        });
       } finally {
         setLoading(false);
       }
     };
 
-    fetchFlightTransactions();
-  }, [user, isAdmin]);
+    fetchTravelGroups();
+  }, [user?.id]);
 
-  const viewTransaction = async (transactionId: any) => {
+  const fetchTransactionDetails = async (transactionId: number, forceRefresh: boolean = false): Promise<DetailedTransaction | null> => {
+    try {
+      // Check cache first unless forcing refresh
+      if (!forceRefresh && transactionCache.has(transactionId)) {
+        console.log("Using cached transaction data for ID:", transactionId);
+        return transactionCache.get(transactionId)!;
+      }
+
+      console.log("Fetching transaction details from API for ID:", transactionId);
+      const response = await fetch(endpoints.transactions.getById(transactionId));
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const detailedTransaction: DetailedTransaction = await response.json();
+      
+      // Update cache
+      setTransactionCache(prev => new Map(prev.set(transactionId, detailedTransaction)));
+      
+      return detailedTransaction;
+    } catch (error) {
+      console.error("Error fetching transaction details:", error);
+      return null;
+    }
+  };
+
+  const viewTransaction = async (transactionId: number) => {
     setLoadingTransaction(true);
     try {
-      // Buscar la transacción completa
-      const transaction = flightTransactions.find(t => t.id === transactionId);
-      if (transaction) {
-        setSelectedTransaction(transaction);
+      const detailedTransaction = await fetchTransactionDetails(transactionId);
+      
+      if (detailedTransaction) {
+        setSelectedTransaction(detailedTransaction);
         setShowTransactionModal(true);
       }
     } catch (error) {
@@ -76,112 +197,70 @@ const TravelManagement = () => {
     }
   };
 
-  // Función para calcular días hasta la fecha de inicio
-  const getDaysUntilStart = (startDate: string) => {
-    const today = new Date();
-    let start: Date;
+  const refreshTransaction = async () => {
+    if (!selectedTransaction) return;
     
-    // Manejar diferentes formatos de fecha
-    if (startDate.includes('/')) {
-      // Formato DD/MM/YYYY o MM/DD/YYYY
-      const parts = startDate.split('/');
-      if (parts.length === 3) {
-        // Asumir formato DD/MM/YYYY
-        const day = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1; // Meses en JS van de 0-11
-        const year = parseInt(parts[2]);
-        start = new Date(year, month, day);
-      } else {
-        start = new Date(startDate);
+    setRefreshingTransaction(true);
+    try {
+      const refreshedTransaction = await fetchTransactionDetails(selectedTransaction.id, true);
+      
+      if (refreshedTransaction) {
+        setSelectedTransaction(refreshedTransaction);
       }
-    } else {
-      start = new Date(startDate);
+    } catch (error) {
+      console.error("Error refreshing transaction:", error);
+    } finally {
+      setRefreshingTransaction(false);
     }
+  };
+
+  // Función para limpiar filtros
+  const clearFilters = () => {
+    setNameFilter("");
+    setPackageFilter("all");
+    setPaymentStatusFilter("all");
+  };
+
+  // Función para filtrar transacciones
+  const filterTransactions = (transactions: FlightTransaction[]) => {
+    return transactions.filter(transaction => {
+      const matchesName = nameFilter === "" || 
+        transaction.client_name.toLowerCase().includes(nameFilter.toLowerCase());
+      
+      const matchesPackage = packageFilter === "all" || packageFilter === "" || 
+        transaction.package === packageFilter;
+      
+      const matchesPaymentStatus = paymentStatusFilter === "all" || paymentStatusFilter === "" || 
+        transaction.payment_status.toString() === paymentStatusFilter;
+      
+      return matchesName && matchesPackage && matchesPaymentStatus;
+    });
+  };
+
+  // Obtener paquetes únicos para el select
+  const uniquePackages = useMemo(() => {
+    const allTransactions = [
+      ...travelGroups.proximos,
+      ...travelGroups.por_comenzar,
+      ...travelGroups.a_punto,
+      ...travelGroups.en_viaje,
+      ...travelGroups.regresando,
+      ...travelGroups.finalizados
+    ];
     
-    console.log('Fecha de inicio:', startDate, 'Parseada como:', start);
-    const diffTime = start.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    console.log('Días hasta inicio:', diffDays);
-    return diffDays;
-  };
+    const packages = Array.from(new Set(allTransactions.map(t => t.package)));
+    return packages.filter(pkg => pkg && pkg.trim() !== "");
+  }, [travelGroups]);
 
-  // Función para calcular días hasta una fecha específica
-  const getDaysUntilDate = (date: string) => {
-    const today = new Date();
-    let targetDate: Date;
-    
-    // Manejar diferentes formatos de fecha
-    if (date.includes('/')) {
-      const parts = date.split('/');
-      if (parts.length === 3) {
-        const day = parseInt(parts[0]);
-        const month = parseInt(parts[1]) - 1;
-        const year = parseInt(parts[2]);
-        targetDate = new Date(year, month, day);
-      } else {
-        targetDate = new Date(date);
-      }
-    } else {
-      targetDate = new Date(date);
-    }
-    
-    const diffTime = targetDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
-  };
-
-  // Función para verificar si una fecha está entre dos fechas
-  const isDateBetween = (currentDate: Date, startDate: string, endDate: string) => {
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    return currentDate >= start && currentDate <= end;
-  };
-
-  // Función para verificar si una fecha es igual al día actual
-  const isDateToday = (date: string) => {
-    const today = new Date();
-    const targetDate = new Date(date);
-    return today.toDateString() === targetDate.toDateString();
-  };
-
-  // Agrupar transacciones por estado
-  const kanbanGroups = {
-    "Próximos Viajes": flightTransactions.filter(t => {
-      const days = getDaysUntilDate(t.start_date);
-      const isIncluded = t.status === "approved" && days > 30;
-      console.log(`Transacción ${t.id} (${t.client_name}): status=${t.status}, días=${days}, incluida en Próximos=${isIncluded}`);
-      return isIncluded;
-    }),
-    "Por Comenzar": flightTransactions.filter(t => {
-      const days = getDaysUntilDate(t.start_date);
-      const isIncluded = t.status === "approved" && days <= 30 && days > 4;
-      console.log(`Transacción ${t.id} (${t.client_name}): status=${t.status}, días=${days}, incluida en Por Comenzar=${isIncluded}`);
-      return isIncluded;
-    }),
-    "A Punto de Salir": flightTransactions.filter(t => {
-      const days = getDaysUntilDate(t.start_date);
-      const isIncluded = t.status === "approved" && days <= 3 && days > 0;
-      console.log(`Transacción ${t.id} (${t.client_name}): status=${t.status}, días=${days}, incluida en A Punto=${isIncluded}`);
-      return isIncluded;
-    }),
-    "En Viaje": flightTransactions.filter(t => {
-      const today = new Date();
-      const isIncluded = t.status === "terminado" && isDateBetween(today, t.start_date, t.end_date);
-      console.log(`Transacción ${t.id} (${t.client_name}): status=${t.status}, incluida en En Viaje=${isIncluded}`);
-      return isIncluded;
-    }),
-    "Regresando": flightTransactions.filter(t => {
-      const isIncluded = t.status === "terminado" && isDateToday(t.end_date);
-      console.log(`Transacción ${t.id} (${t.client_name}): status=${t.status}, incluida en Regresando=${isIncluded}`);
-      return isIncluded;
-    }),
-    "Finalizados": flightTransactions.filter(t => {
-      const days = getDaysUntilDate(t.end_date);
-      const isIncluded = t.status === "terminado" && days < 0;
-      console.log(`Transacción ${t.id} (${t.client_name}): status=${t.status}, días fin=${days}, incluida en Finalizados=${isIncluded}`);
-      return isIncluded;
-    }),
-  };
+  // Mapear los grupos de la API a etiquetas en español con filtros aplicados
+  const kanbanGroups = useMemo(() => ({
+    "Próximos Viajes": filterTransactions(travelGroups.proximos),
+    "Por Comenzar": filterTransactions(travelGroups.por_comenzar),
+    "A Punto de Salir": filterTransactions(travelGroups.a_punto),
+    "En Viaje": filterTransactions(travelGroups.en_viaje),
+    "Regresando": filterTransactions(travelGroups.regresando),
+    "Finalizados": filterTransactions(travelGroups.finalizados),
+  }), [travelGroups, nameFilter, packageFilter, paymentStatusFilter]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -248,6 +327,82 @@ const TravelManagement = () => {
             </div>
           </div>
         </div>
+
+        {/* Filtros */}
+        <Card className="bg-white border-gray-200">
+          <CardHeader className="pb-4">
+            <div className="flex items-center gap-2">
+              <Filter className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-lg">Filtros</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              {/* Filtro por nombre */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Buscar por nombre</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Nombre del cliente..."
+                    value={nameFilter}
+                    onChange={(e) => setNameFilter(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {/* Filtro por paquete */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Paquete</label>
+                <Select value={packageFilter} onValueChange={setPackageFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar paquete..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los paquetes</SelectItem>
+                    {uniquePackages.map((pkg) => (
+                      <SelectItem key={pkg} value={pkg}>
+                        {pkg}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Filtro por estado de pago */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">Estado de Pago</label>
+                <Select value={paymentStatusFilter} onValueChange={setPaymentStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Estado de pago..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los estados</SelectItem>
+                    <SelectItem value="1">Pagado Completo</SelectItem>
+                    <SelectItem value="0">No Pagado Completo</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Botón limpiar filtros */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-700">&nbsp;</label>
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="w-full flex items-center gap-2"
+                  disabled={nameFilter === "" && packageFilter === "all" && paymentStatusFilter === "all"}
+                >
+                  <X className="h-4 w-4" />
+                  Limpiar Filtros
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
@@ -352,16 +507,16 @@ const TravelManagement = () => {
                   transactions.map((transaction) => (
                     <div
                       key={transaction.id}
-                      className="bg-gray-50 p-4 rounded-lg border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => viewTransaction(transaction.id)}
+                      className={`p-4 rounded-lg border hover:shadow-md transition-shadow ${
+                        transaction.payment_status === 1
+                          ? 'bg-green-50 border-green-300'
+                          : 'bg-red-50 border-red-300'
+                      }`}
                     >
                       <div className="flex justify-between items-start mb-2">
                         <h4 className="font-medium text-gray-900 truncate">
                           {transaction.client_name}
                         </h4>
-                        <Badge className={getStatusColor(transaction.status)}>
-                          {transaction.status}
-                        </Badge>
                       </div>
                       
                       <div className="space-y-1 text-sm text-gray-600">
@@ -369,8 +524,6 @@ const TravelManagement = () => {
                           <span>Paquete:</span>
                           <span className="font-medium">{transaction.package}</span>
                         </div>
-                        
-
                         
                         <div className="flex justify-between">
                           <span>Fecha:</span>
@@ -381,15 +534,15 @@ const TravelManagement = () => {
                         
                         <div className="flex justify-between">
                           <span>Días:</span>
-                          <span className={`font-medium ${
-                            getDaysUntilDate(transaction.start_date) <= 3 ? 'text-red-600' : 
-                            getDaysUntilDate(transaction.start_date) <= 30 ? 'text-orange-600' : 'text-green-600'
+                          <span className={`font-bold ${
+                            transaction.daysLeave <= 3 ? 'text-red-600' : 
+                            transaction.daysLeave <= 30 ? 'text-orange-600' : 'text-green-600'
                           }`}>
-                            {getDaysUntilDate(transaction.start_date) > 0 
-                              ? `${getDaysUntilDate(transaction.start_date)} días` 
-                              : getDaysUntilDate(transaction.start_date) === 0 
-                                ? 'Hoy' 
-                                : `${Math.abs(getDaysUntilDate(transaction.start_date))} días atrás`
+                            {transaction.daysLeave > 0 
+                              ? `${transaction.daysLeave} días` 
+                              : transaction.daysLeave === 0 
+                                ? (status === "Finalizados" ? '0 días' : 'Hoy')
+                                : `${Math.abs(transaction.daysLeave)} días atrás`
                             }
                           </span>
                         </div>
@@ -434,12 +587,24 @@ const TravelManagement = () => {
                 <h2 className="text-2xl font-bold text-gray-800">
                   Detalles de Transacción #{selectedTransaction.id}
                 </h2>
-                <button
-                  onClick={() => setShowTransactionModal(false)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="h-6 w-6" />
-                </button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshTransaction}
+                    disabled={refreshingTransaction}
+                    className="flex items-center gap-2"
+                  >
+                    <RefreshCw className={`h-4 w-4 ${refreshingTransaction ? 'animate-spin' : ''}`} />
+                    Actualizar
+                  </Button>
+                  <button
+                    onClick={() => setShowTransactionModal(false)}
+                    className="text-gray-500 hover:text-gray-700"
+                  >
+                    <X className="h-6 w-6" />
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -460,11 +625,42 @@ const TravelManagement = () => {
                   <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información del Viaje</h3>
                   <div className="space-y-2">
                     <div><strong>Paquete:</strong> {selectedTransaction.package}</div>
+                    <div><strong>Vuelo Cotizado:</strong> {selectedTransaction.quoted_flight}</div>
                     <div><strong>Fecha de Inicio:</strong> {new Date(selectedTransaction.start_date).toLocaleDateString()}</div>
                     <div><strong>Fecha de Fin:</strong> {new Date(selectedTransaction.end_date).toLocaleDateString()}</div>
                     <div><strong>Monto:</strong> ${selectedTransaction.amount?.toLocaleString()}</div>
-                    <div><strong>Estado:</strong> {selectedTransaction.status}</div>
-                    <div><strong>Número de Viajeros:</strong> {selectedTransaction.number_of_travelers}</div>
+                    <div><strong>Costo Agencia:</strong> ${selectedTransaction.agency_cost?.toLocaleString()}</div>
+                    <div><strong>Estado:</strong> 
+                      <Badge className={`ml-2 ${getStatusColor(selectedTransaction.status)}`}>
+                        {selectedTransaction.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Información de Pago */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información de Pago</h3>
+                  <div className="space-y-2">
+                    <div><strong>Estado de Pago:</strong> 
+                      <Badge className={`ml-2 ${selectedTransaction.payment_status === 'pago_completo' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
+                        {selectedTransaction.payment_status}
+                      </Badge>
+                    </div>
+                    <div><strong>Total Pagado:</strong> <span className="text-green-600">${selectedTransaction.total_paid?.toLocaleString()}</span></div>
+                    <div><strong>Monto Pendiente:</strong> <span className="text-red-600">${selectedTransaction.pending_amount?.toLocaleString()}</span></div>
+                  </div>
+                </div>
+
+                {/* Información del Vendedor */}
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información del Vendedor</h3>
+                  <div className="space-y-2">
+                    <div><strong>Vendedor:</strong> {selectedTransaction.seller_name}</div>
+                    <div><strong>Tipo de Transacción:</strong> {selectedTransaction.transaction_type}</div>
+                    <div><strong>Recibo:</strong> {selectedTransaction.receipt}</div>
+                    <div><strong>Fecha de Creación:</strong> {new Date(selectedTransaction.created_at).toLocaleDateString()}</div>
+                    <div><strong>Última Actualización:</strong> {new Date(selectedTransaction.updated_at).toLocaleDateString()}</div>
                   </div>
                 </div>
 
@@ -473,12 +669,11 @@ const TravelManagement = () => {
                   <div className="space-y-4 md:col-span-2">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Itinerario</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedTransaction.itinerario.map((item: any, index: number) => (
+                      {selectedTransaction.itinerario.map((item, index) => (
                         <div key={index} className="bg-gray-50 p-4 rounded-lg">
                           <div className="space-y-2">
                             <div><strong>Aerolínea:</strong> {item.aerolinea}</div>
                             <div><strong>Ruta:</strong> {item.ruta}</div>
-                            <div><strong>Fecha:</strong> {item.fecha}</div>
                             <div><strong>Hora Salida:</strong> {item.hora_salida}</div>
                             <div><strong>Hora Llegada:</strong> {item.hora_llegada}</div>
                           </div>
@@ -493,7 +688,7 @@ const TravelManagement = () => {
                   <div className="space-y-4 md:col-span-2">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Viajeros</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedTransaction.travelers.map((traveler: any, index: number) => (
+                      {selectedTransaction.travelers.map((traveler, index) => (
                         <div key={index} className="bg-gray-50 p-4 rounded-lg">
                           <div className="space-y-2">
                             <div><strong>Nombre:</strong> {traveler.name}</div>
@@ -507,16 +702,49 @@ const TravelManagement = () => {
                   </div>
                 )}
 
+                {/* Documentos */}
+                {selectedTransaction.documentos && selectedTransaction.documentos.length > 0 && (
+                  <div className="space-y-4 md:col-span-2">
+                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Documentos</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {selectedTransaction.documentos.map((documento, index) => (
+                        <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                          <div className="space-y-2">
+                            <div><strong>Tipo:</strong> {documento.tipo_documento}</div>
+                            <div><strong>Viajero ID:</strong> {documento.viajero_id}</div>
+                            <div>
+                              <strong>Documento:</strong>
+                              <a 
+                                href={documento.document_url} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline ml-2"
+                              >
+                                Ver documento
+                              </a>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 {/* Evidencias */}
                 {selectedTransaction.evidence && selectedTransaction.evidence.length > 0 && (
                   <div className="space-y-4 md:col-span-2">
                     <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Evidencias de Pago</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedTransaction.evidence.map((evidence: any, index: number) => (
+                      {selectedTransaction.evidence.map((evidence, index) => (
                         <div key={index} className="bg-gray-50 p-4 rounded-lg">
                           <div className="space-y-2">
-                            <div><strong>Monto:</strong> ${evidence.amount}</div>
-                            <div><strong>Estado:</strong> {evidence.status}</div>
+                            <div><strong>Monto:</strong> ${evidence.amount?.toLocaleString()}</div>
+                            <div><strong>Estado:</strong> 
+                              <Badge className={`ml-2 ${getStatusColor(evidence.status)}`}>
+                                {evidence.status}
+                              </Badge>
+                            </div>
+                            <div><strong>Estado Factura:</strong> {evidence.invoice_status}</div>
                             <div><strong>Fecha:</strong> {new Date(evidence.upload_date).toLocaleDateString()}</div>
                             {evidence.evidence_file && (
                               <div>
