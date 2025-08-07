@@ -30,6 +30,7 @@ interface ApprovedSalesViewProps {
   viewTransaction: (transactionId: any) => void;
   loadingTransaction: boolean;
   addAbono?: (transactionId: any) => void;
+  onRefreshPendingEvidence?: (fn: () => Promise<void>) => void;
 }
 
 export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
@@ -37,6 +38,7 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
   viewTransaction,
   loadingTransaction,
   addAbono,
+  onRefreshPendingEvidence,
 }) => {
   const { user, isAdmin } = useAuth();
   const [unpaidTransactions, setUnpaidTransactions] = useState<
@@ -148,49 +150,57 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
     fetchPaidTransactions();
   }, [user?.id]);
 
+  
+  const fetchPendingEvidence = async () => {
+    if (!user?.id) {
+      return;
+    }
+
+    setLoadingEvidence(true);
+    try {
+      // Usar el endpoint getPendingToApproved para evidencias pendientes de aprobación
+      const url = endpoints.evidence.getPendingToApproved;
+      const response = await fetch(url);
+
+      if (response.ok) {
+        const data = await response.json();
+        // Asegurar que data sea un array y filtrar por usuario si no es admin
+        const filteredEvidence = Array.isArray(data) ? data : [];
+
+        const userFilteredEvidence = isAdmin
+          ? filteredEvidence
+          : filteredEvidence.filter((evidence) => {
+              const sellerId =
+                evidence.transaction_info?.seller?.id?.toString();
+              const userId = user?.id?.toString();
+              return sellerId === userId;
+            });
+
+        setPendingEvidence(userFilteredEvidence.reverse());
+      } else {
+        console.error(
+          "Error fetching pending evidence - Status:",
+          response.status
+        );
+        setPendingEvidence([]);
+      }
+    } catch (error) {
+      console.error("Error fetching pending evidence:", error);
+      setPendingEvidence([]);
+    } finally {
+      setLoadingEvidence(false);
+    }
+  };
+
+  // Exponer la función de actualización al padre
+  React.useEffect(() => {
+    if (onRefreshPendingEvidence) {
+      onRefreshPendingEvidence(fetchPendingEvidence);
+    }
+  }, [onRefreshPendingEvidence]);
+
   // Cargar evidencias pendientes de aprobación
   useEffect(() => {
-    const fetchPendingEvidence = async () => {
-      if (!user?.id) {
-        return;
-      }
-
-      setLoadingEvidence(true);
-      try {
-        // Usar el endpoint getPendingToApproved para evidencias pendientes de aprobación
-        const url = endpoints.evidence.getPendingToApproved;
-        const response = await fetch(url);
-
-        if (response.ok) {
-          const data = await response.json();
-          // Asegurar que data sea un array y filtrar por usuario si no es admin
-          const filteredEvidence = Array.isArray(data) ? data : [];
-
-          const userFilteredEvidence = isAdmin
-            ? filteredEvidence
-            : filteredEvidence.filter((evidence) => {
-                const sellerId =
-                  evidence.transaction_info?.seller?.id?.toString();
-                const userId = user?.id?.toString();
-                return sellerId === userId;
-              });
-
-          setPendingEvidence(userFilteredEvidence.reverse());
-        } else {
-          console.error(
-            "Error fetching pending evidence - Status:",
-            response.status
-          );
-          setPendingEvidence([]);
-        }
-      } catch (error) {
-        console.error("Error fetching pending evidence:", error);
-        setPendingEvidence([]);
-      } finally {
-        setLoadingEvidence(false);
-      }
-    };
-
     fetchPendingEvidence();
   }, [user?.id, isAdmin]);
 
@@ -328,49 +338,6 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
       console.error("Error al generar la factura:", error);
       alert("Error al generar la factura");
       throw error;
-    }
-  };
-
-  // Función para aprobar evidencia
-  const approveEvidence = async (evidenceId: number | string) => {
-    try {
-      const url = endpoints.evidence.updateStatus(evidenceId, "approved");
-
-      const response = await fetch(url, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        // Recargar las evidencias pendientes con filtro de usuario usando getPendingToApproved
-        const refreshResponse = await fetch(
-          endpoints.evidence.getPendingToApproved
-        );
-        if (refreshResponse.ok) {
-          const refreshData = await refreshResponse.json();
-          const filteredEvidence = Array.isArray(refreshData)
-            ? refreshData
-            : [];
-          const userFilteredEvidence = isAdmin
-            ? filteredEvidence
-            : filteredEvidence.filter(
-                (evidence) =>
-                  evidence.transaction_info?.seller?.id?.toString() ===
-                  user?.id?.toString()
-              );
-
-          setPendingEvidence(userFilteredEvidence);
-        }
-      } else {
-        console.error(
-          "Error al aprobar evidencia - Status:",
-          response.status
-        );
-      }
-    } catch (error) {
-      console.error("Error al aprobar evidencia:", error);
     }
   };
 

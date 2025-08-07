@@ -42,7 +42,7 @@ import {
   RoleSpecificDashboard,
   ApprovedSalesView,
 } from "../components/home";
-import { useState } from "react";
+import React, { useState } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { mapStatusToStyle } from "@/components/dashboard/TransaccionesClientes";
 import { endpoints } from '@/lib/endpoints';
@@ -108,6 +108,7 @@ const Home = () => {
   const [isEvidenceFormOpen, setIsEvidenceFormOpen] = useState(false);
   const [selectedEvidenceTransactionId, setSelectedEvidenceTransactionId] = useState<string | null>(null);
   const [loadingEvidence, setLoadingEvidence] = useState(false);
+  const refreshPendingEvidenceRef = React.useRef<() => Promise<void>>();
 
   // Estados para la vista de ventas aprobadas
   const [currentView, setCurrentView] = useState<'sales' | 'approved'>('sales');
@@ -514,7 +515,6 @@ const Home = () => {
     setLoadingEvidence(true);
     
     try {
-      console.log('📤 Enviando datos de evidencia al endpoint...');
       const response = await fetch(endpoints.transactions.addEvidence(selectedEvidenceTransactionId!), {
         method: 'POST',
         headers: {
@@ -522,26 +522,24 @@ const Home = () => {
         },
         body: JSON.stringify(evidenceData)
       });
-      
-      console.log('📥 Response recibido:', response);
-      console.log('📥 Response status:', response.status);
 
       if (!response.ok) {
         console.error('❌ Response no ok:', response.status, response.statusText);
         throw new Error("Error al agregar la evidencia");
       }
-      
-      console.log('📥 Parseando JSON...');
       const result = await response.json();
       console.log('📥 Result:', result);
-
-      console.log('✅ Evidencia agregada exitosamente');
       toast.success('Evidencia agregada exitosamente');
       
       closeEvidenceForm();
       
       // Refrescar las transacciones para mostrar los cambios
       await refreshTransactions();
+      
+      // Refrescar la lista de evidencias pendientes
+      if (refreshPendingEvidenceRef.current) {
+        await refreshPendingEvidenceRef.current();
+      }
       
     } catch (error) {
       console.error("❌ Error al agregar la evidencia:", error);
@@ -749,6 +747,9 @@ const Home = () => {
             viewTransaction={viewTransaction}
             loadingTransaction={loadingTransaction}
             addAbono={openAbonoForm}
+            onRefreshPendingEvidence={(fn) => {
+              refreshPendingEvidenceRef.current = fn;
+            }}
           />
         )}
 
