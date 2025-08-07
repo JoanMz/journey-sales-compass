@@ -68,22 +68,13 @@ export const endpoints = {
       `${baseUrl}/transactions/manageFlies/by-seller/${sellerId}?current_date=${currentDate}`,
   },
   metrics: {
-    getTotalIncome: (fecha_inicio?: string, fecha_fin?: string) => {
-      let url = `${baseUrl}/transactions/ingresos-totales/`;
-      if (fecha_inicio && fecha_fin) {
-        url += `?fecha_inicio=${encodeURIComponent(fecha_inicio)}&fecha_fin=${encodeURIComponent(fecha_fin)}`;
-      }
-      return url;
-    },
-    getTotalIncomeBySeller: (userId: number | string, fecha_inicio?: string, fecha_fin?: string) => {
-      let url = `${baseUrl}/transactions/ingresos-totales-usuario/?user_id=${encodeURIComponent(userId)}`;
-      if (fecha_inicio) {
-        url += `&fecha_inicio=${encodeURIComponent(fecha_inicio)}`;
-      }
-      if (fecha_fin) {
-        url += `&fecha_fin=${encodeURIComponent(fecha_fin)}`;
-      }
-      return url;
+    getTotalIncome: (fecha_inicio?: string, fecha_fin?: string, user_id?: number | string) => {
+      const params = new URLSearchParams();
+      if (fecha_inicio) params.append("fecha_inicio", fecha_inicio);
+      if (fecha_fin) params.append("fecha_fin", fecha_fin);
+      if (user_id) params.append("user_id", user_id.toString());
+      const query = params.toString();
+      return `${baseUrl}/transactions/ingresos-totales/${query ? "?" + query : ""}`;
     },
     getMonthlyIncomeByPeriod: (fecha_inicio: string, fecha_fin: string) => {
       return `${baseUrl}/transactions/ingresos-totales-mensual/?fecha_inicio=${encodeURIComponent(fecha_inicio)}&fecha_fin=${encodeURIComponent(fecha_fin)}`;

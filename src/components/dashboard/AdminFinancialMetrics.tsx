@@ -10,7 +10,6 @@ import {
 import SellerFilter from "./SellerFilter";
 import {
   getTotalIncomeMetrics,
-  getTotalIncomeBySeller,
   getMonthlyIncomeByPeriod,
   getCommissionsByUser,
 } from "@/lib/api";
@@ -75,14 +74,30 @@ const AdminFinancialMetrics: React.FC = () => {
   ]);
   const [bottomStartDate, bottomEndDate] = bottomDateRange;
 
+  // useEffect para el primer endpoint (getTotalIncome) - se ejecuta al montar y cuando cambia el seller
   useEffect(() => {
-    fetchMetricsData(undefined, undefined, selectedSellerId);
-    // Fetch bottom widgets data with default 3 months
-    const fecha_inicio = moment(bottomStartDate).format("YYYY-MM-DD");
-    const fecha_fin = moment(bottomEndDate).format("YYYY-MM-DD");
-    fetchMonthlyIncomeData(fecha_inicio, fecha_fin);
-    fetchCommissionsData(fecha_inicio, fecha_fin);
-  }, []);
+    // Usar las fechas actuales del datepicker superior si están seleccionadas
+    if (!startDate && !endDate) {
+      // No hay fechas seleccionadas, obtener todos los datos
+      fetchMetricsData(undefined, undefined, selectedSellerId);
+    } else if (startDate && endDate) {
+      // Usar las fechas seleccionadas
+      const fecha_inicio = moment(startDate).format("YYYY-MM-DD");
+      const fecha_fin = moment(endDate).format("YYYY-MM-DD");
+      fetchMetricsData(fecha_inicio, fecha_fin, selectedSellerId);
+    }
+  }, [selectedSellerId, startDate, endDate]); // Se ejecuta cuando cambia el seller o las fechas
+
+  // useEffect para los endpoints de abajo (getMonthlyIncomeByPeriod y getCommissionsByUser)
+  useEffect(() => {
+    // Solo hacer llamadas si ambas fechas están seleccionadas
+    if (bottomStartDate && bottomEndDate) {
+      const fecha_inicio = moment(bottomStartDate).format("YYYY-MM-DD");
+      const fecha_fin = moment(bottomEndDate).format("YYYY-MM-DD");
+      fetchMonthlyIncomeData(fecha_inicio, fecha_fin);
+      fetchCommissionsData(fecha_inicio, fecha_fin);
+    }
+  }, [bottomStartDate, bottomEndDate]); // Solo cuando cambian las fechas del datepicker inferior
 
   const fetchMetricsData = async (
     fecha_inicio?: string,
@@ -91,16 +106,8 @@ const AdminFinancialMetrics: React.FC = () => {
   ) => {
     try {
       setLoading(true);
-      let data;
-
-      if (sellerId !== null && sellerId !== undefined) {
-        // Use seller-specific metrics when a seller is selected
-        data = await getTotalIncomeMetrics(fecha_inicio, fecha_fin);
-      } else {
-        // Use general metrics when no seller is selected
-        data = await getTotalIncomeMetrics(fecha_inicio, fecha_fin);
-      }
-
+      // Use single endpoint with all optional parameters
+      const data = await getTotalIncomeMetrics(fecha_inicio, fecha_fin, sellerId || undefined);
       setMetricsData(data);
       setError(null);
     } catch (err) {
@@ -204,17 +211,7 @@ const AdminFinancialMetrics: React.FC = () => {
 
   const handleSellerChange = (sellerId: number | null) => {
     setSelectedSellerId(sellerId);
-
-    // Fetch metrics data with the new seller selection
-    if (!startDate && !endDate) {
-      // No date range selected, fetch all data
-      fetchMetricsData(undefined, undefined, sellerId);
-    } else if (startDate && endDate) {
-      // Date range is selected, use it
-      const fecha_inicio = moment(startDate).format("YYYY-MM-DD");
-      const fecha_fin = moment(endDate).format("YYYY-MM-DD");
-      fetchMetricsData(fecha_inicio, fecha_fin, sellerId);
-    }
+    // No hacer llamada directa aquí, se manejará en handleDateRangeChange o useEffect
   };
 
   const isLoading = contextLoading || loading;
@@ -226,21 +223,8 @@ const AdminFinancialMetrics: React.FC = () => {
    */
   const handleDateRangeChange = (update) => {
     const [start, end] = update;
-
-    // Actualizar el estado del rango de fechas
+    // Solo actualizar el estado, el useEffect se encargará de hacer la llamada
     setDateRange([start, end]);
-
-    // Solo hacer búsqueda si ambas fechas están seleccionadas o si no hay fechas
-    if (!start && !end) {
-      // No hay fechas seleccionadas, obtener todos los datos
-      fetchMetricsData(undefined, undefined, selectedSellerId);
-    } else if (start && end) {
-      // Usar exactamente las fechas seleccionadas por el usuario
-      const fecha_inicio = moment(start).format("YYYY-MM-DD");
-      const fecha_fin = moment(end).format("YYYY-MM-DD");
-      fetchMetricsData(fecha_inicio, fecha_fin, selectedSellerId);
-    }
-    // Si solo hay una fecha seleccionada, NO hacer búsqueda (esperar a la segunda fecha)
   };
 
   /**
@@ -249,17 +233,8 @@ const AdminFinancialMetrics: React.FC = () => {
    */
   const handleBottomDateRangeChange = (update) => {
     const [start, end] = update;
-
-    // Actualizar el estado del rango de fechas
+    // Solo actualizar el estado, el useEffect se encargará de hacer la llamada
     setBottomDateRange([start, end]);
-
-    // Solo hacer búsqueda si ambas fechas están seleccionadas
-    if (start && end) {
-      const fecha_inicio = moment(start).format("YYYY-MM-DD");
-      const fecha_fin = moment(end).format("YYYY-MM-DD");
-      fetchMonthlyIncomeData(fecha_inicio, fecha_fin);
-      fetchCommissionsData(fecha_inicio, fecha_fin);
-    }
   };
 
   return (

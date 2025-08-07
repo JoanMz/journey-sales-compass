@@ -363,25 +363,13 @@ export const getAccountData = async (): Promise<AccountData[]> => {
 };
 
 // Get total income metrics
-export const getTotalIncomeMetrics = async (fecha_inicio?: string, fecha_fin?: string): Promise<TotalIncomeMetrics> => {
+export const getTotalIncomeMetrics = async (fecha_inicio?: string, fecha_fin?: string, user_id?: number | string): Promise<TotalIncomeMetrics> => {
   try {
-    const url = endpoints.metrics.getTotalIncome(fecha_inicio, fecha_fin);
+    const url = endpoints.metrics.getTotalIncome(fecha_inicio, fecha_fin, user_id);
     const response = await axios.get(url);
     return response.data;
   } catch (error) {
     console.error("Failed to fetch total income metrics:", error);
-    throw error;
-  }
-};
-
-// Get total income metrics by seller
-export const getTotalIncomeBySeller = async (userId: number, fecha_inicio?: string, fecha_fin?: string): Promise<TotalIncomeMetrics> => {
-  try {
-    const url = endpoints.metrics.getTotalIncomeBySeller(userId, fecha_inicio, fecha_fin);
-    const response = await axios.get(url);
-    return response.data;
-  } catch (error) {
-    console.error("Failed to fetch total income metrics by seller:", error);
     throw error;
   }
 };
