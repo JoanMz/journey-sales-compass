@@ -16,6 +16,7 @@ import ImageUpload from "../ui/image-upload";
 import TravelerForm from "./TravelerForm";
 import { useData } from "@/contexts/DataContext";
 import axios from "axios";
+import { endpoints } from "@/lib/endpoints";
 
 interface CompleteTransactionFormProps {
   transactionId: string;
@@ -1122,7 +1123,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               // Actualizar estado a "pending"
               console.log("📤 Actualizando estado a 'pending'...");
               const statusResponse = await axios.patch(
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/status?status=pending`,
+                endpoints.transactions.patchStatus(transactionId),
                 {},
                 {
                   headers: {

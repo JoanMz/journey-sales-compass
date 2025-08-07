@@ -678,7 +678,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           
           try {
             const statusResponse = await axios.patch(
-              `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/status?status=incompleta`,
+              endpoints.transactions.patchStatusIncomplete(transactionId),
               {},
               {
                 headers: {
