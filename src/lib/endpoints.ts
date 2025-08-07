@@ -67,6 +67,25 @@ export const endpoints = {
     getManageFliesBySeller: (sellerId: number, currentDate: string) =>
       `${baseUrl}/transactions/manageFlies/by-seller/${sellerId}?current_date=${currentDate}`,
   },
+  metrics: {
+    getTotalIncome: (fecha_inicio?: string, fecha_fin?: string) => {
+      let url = `${baseUrl}/transactions/ingresos-totales/`;
+      if (fecha_inicio && fecha_fin) {
+        url += `?fecha_inicio=${encodeURIComponent(fecha_inicio)}&fecha_fin=${encodeURIComponent(fecha_fin)}`;
+      }
+      return url;
+    },
+    getTotalIncomeBySeller: (userId: number | string, fecha_inicio?: string, fecha_fin?: string) => {
+      let url = `${baseUrl}/transactions/ingresos-totales-usuario/?user_id=${encodeURIComponent(userId)}`;
+      if (fecha_inicio) {
+        url += `&fecha_inicio=${encodeURIComponent(fecha_inicio)}`;
+      }
+      if (fecha_fin) {
+        url += `&fecha_fin=${encodeURIComponent(fecha_fin)}`;
+      }
+      return url;
+    },
+  },
   users: {
     all: `${baseUrl}/users`,
     delete: (userId: number | string) => `${baseUrl}/users/${userId}`,

@@ -12,13 +12,16 @@ import SellerFilter from "./SellerFilter";
 import {
   getTransactionsByMixedFilters,
   getTransactionsByPeriod,
+  getTotalIncomeMetrics,
+  getTotalIncomeBySeller,
 } from "@/lib/api";
-import {
-  calculateTotalRevenue,
-  calculateTotalProfit,
-  calculateTotalCommission,
-} from "@/lib/financialUtils";
-import { Transaction } from "@/types/transactions";
+import DatePicker from "react-datepicker";
+import { registerLocale } from "react-datepicker";
+import { es } from "date-fns/locale/es";
+registerLocale("es", es);
+import "react-datepicker/dist/react-datepicker.css";
+import moment from "moment";
+import { Transaction, TotalIncomeMetrics } from "@/types/transactions";
 import { formatCurrency, mapStatusToSpanish } from "@/lib/utils";
 import { useData } from "@/contexts/DataContext";
 import {
@@ -53,15 +56,46 @@ const AdminFinancialMetrics: React.FC = () => {
   >([]);
   const [timePeriod, setTimePeriod] = useState<TimePeriod>("month");
   const [selectedSellerId, setSelectedSellerId] = useState<number | null>(null);
+  const [metricsData, setMetricsData] = useState<TotalIncomeMetrics | null>(null);
   const isMobile = useIsMobile();
 
   useEffect(() => {
     if (transactions.length > 0) {
       fetchFilteredData();
     }
-    // }, [timePeriod, selectedSellerId, transactions]);
-    // }, [timePeriod, selectedSellerId]);
+    fetchMetricsData(undefined, undefined, selectedSellerId);
   }, []);
+
+  const [dateRange, setDateRange] = useState([
+    // moment().subtract(3, "months").startOf("month").toDate(),
+    null,
+    // moment().endOf("month").toDate(),
+    null,
+  ]);
+  const [startDate, endDate] = dateRange;
+
+  const fetchMetricsData = async (fecha_inicio?: string, fecha_fin?: string, sellerId?: number | null) => {
+    try {
+      setLoading(true);
+      let data;
+      
+      if (sellerId !== null && sellerId !== undefined) {
+        // Use seller-specific metrics when a seller is selected
+        data = await getTotalIncomeBySeller(sellerId, fecha_inicio, fecha_fin);
+      } else {
+        // Use general metrics when no seller is selected
+        data = await getTotalIncomeMetrics(fecha_inicio, fecha_fin);
+      }
+      
+      setMetricsData(data);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching metrics data:", err);
+      setError("Error al cargar las métricas");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchFilteredData = async () => {
     try {
@@ -128,11 +162,11 @@ const AdminFinancialMetrics: React.FC = () => {
   const displayTransactions =
     filteredTransactions.length > 0 ? filteredTransactions : transactions;
 
-  // Calculate key metrics
-  const totalRevenue = calculateTotalRevenue(displayTransactions);
-  const totalProfit = calculateTotalProfit(totalRevenue);
-  const totalCommission = calculateTotalCommission(displayTransactions);
-  const totalSales = displayTransactions.length;
+  // Calculate key metrics from API data
+  const totalRevenue = metricsData?.total_ingresos || 0;
+  const totalProfit = metricsData?.total_ganancias || 0;
+  const totalCommission = metricsData?.total_comision || 0;
+  const totalSales = metricsData?.estadisticas_ventas?.total_ventas || 0;
 
   // Prepare data for charts
   const prepareMonthlyData = () => {
@@ -161,17 +195,25 @@ const AdminFinancialMetrics: React.FC = () => {
   };
 
   const prepareStatusData = () => {
-    const statusCounts: { [key: string]: number } = {};
+    if (!metricsData?.estadisticas_ventas) {
+      return [];
+    }
 
-    displayTransactions.forEach((transaction) => {
-      const status = transaction.status;
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
+    const { estadisticas_ventas } = metricsData;
+    const statusMapping = {
+      pending: "Pendiente",
+      approved: "Aprobado", 
+      incompleta: "Incompleta",
+      rejected: "Rechazado",
+      terminado: "Terminado"
+    };
 
-    return Object.entries(statusCounts).map(([name, value]) => ({
-      name: mapStatusToSpanish(name),
-      value,
-    }));
+    return Object.entries(estadisticas_ventas)
+      .filter(([key]) => key !== "total_ventas")
+      .map(([key, value]) => ({
+        name: statusMapping[key as keyof typeof statusMapping] || key,
+        value,
+      }));
   };
 
   const prepareSellerCommissionData = () => {
@@ -205,10 +247,44 @@ const AdminFinancialMetrics: React.FC = () => {
 
   const handleSellerChange = (sellerId: number | null) => {
     setSelectedSellerId(sellerId);
+    
+    // Fetch metrics data with the new seller selection
+    if (!startDate && !endDate) {
+      // No date range selected, fetch all data
+      fetchMetricsData(undefined, undefined, sellerId);
+    } else if (startDate && endDate) {
+      // Date range is selected, use it
+      const fecha_inicio = moment(startDate).format("YYYY-MM-DD");
+      const fecha_fin = moment(endDate).format("YYYY-MM-DD");
+      fetchMetricsData(fecha_inicio, fecha_fin, sellerId);
+    }
   };
 
-  const isLoading = contextLoading && loading;
+  const isLoading = contextLoading || loading;
   const displayError = contextError || error;
+
+  /**
+   * Esta funcion se llama cuando se selecciona un rango de fechas
+   * @param {Array} update - El rango de fechas seleccionado
+   */
+  const handleDateRangeChange = (update) => {
+    const [start, end] = update;
+    
+    // Actualizar el estado del rango de fechas
+    setDateRange([start, end]);
+
+    // Solo hacer búsqueda si ambas fechas están seleccionadas o si no hay fechas
+    if (!start && !end) {
+      // No hay fechas seleccionadas, obtener todos los datos
+      fetchMetricsData(undefined, undefined, selectedSellerId);
+    } else if (start && end) {
+      // Usar exactamente las fechas seleccionadas por el usuario
+      const fecha_inicio = moment(start).format("YYYY-MM-DD");
+      const fecha_fin = moment(end).format("YYYY-MM-DD");
+      fetchMetricsData(fecha_inicio, fecha_fin, selectedSellerId);
+    }
+    // Si solo hay una fecha seleccionada, NO hacer búsqueda (esperar a la segunda fecha)
+  };
 
   return (
     <Card className="bg-white border-blue-200 mb-6">
@@ -222,18 +298,43 @@ const AdminFinancialMetrics: React.FC = () => {
         <>
           <CardHeader className="pb-2 border-b border-blue-200">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <CardTitle className="text-blue-700">
-                Métricas de Ventas
-              </CardTitle>
+              <div>
+                <CardTitle className="text-blue-700">
+                  Métricas de Ventas
+                </CardTitle>
+                {metricsData?.titulo_periodo && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    {metricsData.titulo_periodo}
+                  </p>
+                )}
+              </div>
               <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
                 <SellerFilter
-                  transactions={displayTransactions}
                   selectedSellerId={selectedSellerId}
                   onSellerChange={handleSellerChange}
                 />
-                <TimePeriodFilter
-                  currentPeriod={timePeriod}
-                  onPeriodChange={handlePeriodChange}
+
+                <DatePicker
+                  locale="es"
+                  selectsRange={true}
+                  // showMonthYearPicker
+                  startDate={startDate}
+                  endDate={endDate}
+                  onChange={handleDateRangeChange}
+                  isClearable={true}
+                  placeholderText="Selecciona un rango de fechas"
+                  dateFormat="MM/dd/yyyy"
+                  showDisabledMonthNavigation
+                  className="w-[300px] h-[30px] border-2 border-blue-200 rounded-md px-2 py-5"
+                  // className="form-control custom-datepicker-range"
+                  // minDate={moment().subtract(5, "months").startOf("month").toDate()}
+                  // maxDate={
+                  //   startDate
+                  //     ? moment().endOf("month").isBefore(addMonths(startDate, 5))
+                  //       ? moment().endOf("month").toDate()
+                  //       : addMonths(startDate, 5)
+                  //     : moment().endOf("month").toDate()
+                  // }
                 />
               </div>
             </div>
@@ -249,106 +350,156 @@ const AdminFinancialMetrics: React.FC = () => {
               </div>
             ) : (
               <>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <Card className="bg-white shadow-md border border-gray-200">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-700">
-                          Ingresos Totales
-                        </h3>
-                        <div className="p-2 bg-blue-500 text-white rounded-md">
-                          <TrendingUp size={20} />
-                        </div>
-                      </div>
-                      <div className="text-3xl font-bold text-gray-900">
-                        {formatCurrency(totalRevenue)}
-                      </div>
-                      <div className="flex items-center mt-2 text-sm">
-                        <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
-                        <span className="text-green-500 font-medium">
-                          +12.5%
-                        </span>
-                        <span className="text-gray-500 ml-1">
-                          (vs mes anterior)
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card className="bg-white shadow-md border border-gray-200">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-700">
-                          Ganancia (15%)
-                        </h3>
-                        <div className="p-2 bg-green-500 text-white rounded-md">
-                          <DollarSign size={20} />
-                        </div>
-                      </div>
-                      <div className="text-3xl font-bold text-green-600">
-                        {formatCurrency(totalProfit)}
-                      </div>
-                      <div className="flex items-center mt-2 text-sm">
-                        <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
-                        <span className="text-green-500 font-medium">
-                          +5.1%
-                        </span>
-                        <span className="text-gray-500 ml-1">
-                          (vs mes anterior)
-                        </span>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                  {/* Sales Status Distribution - Left side taking full height */}
+                  <Card className="bg-white shadow-md border border-gray-200 lg:col-span-2">
+                    <CardHeader className="pb-2 border-b border-gray-200">
+                      <CardTitle className="text-gray-700 text-lg">
+                        Distribución de ventas por estado
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4">
+                      <div className="h-[500px] flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={statusData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={isMobile ? 40 : 60}
+                              outerRadius={isMobile ? 80 : 100}
+                              fill="#8884d8"
+                              paddingAngle={5}
+                              dataKey="value"
+                              label={({ name, percent }) =>
+                                `${name}: ${(percent * 100).toFixed(0)}%`
+                              }
+                            >
+                              {statusData.map((entry, index) => (
+                                <Cell
+                                  key={`cell-${index}`}
+                                  fill={
+                                    CHART_COLORS[index % CHART_COLORS.length]
+                                  }
+                                />
+                              ))}
+                            </Pie>
+                            <Legend verticalAlign="bottom" height={36} />
+                            <Tooltip
+                              formatter={(value, name) => [
+                                `${value} ventas`,
+                                name,
+                              ]}
+                              labelFormatter={() => "Estado"}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card className="bg-white shadow-md border border-gray-200">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-700">
-                          Comisión a Vendedores
-                        </h3>
-                        <div className="p-2 bg-purple-500 text-white rounded-md">
-                          <Users size={20} />
+                  {/* KPIs - Right side in vertical column */}
+                  <div className="space-y-6">
+                    <Card className="bg-white shadow-md border border-gray-200">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-700">
+                            Ingresos Totales
+                          </h3>
+                          <div className="p-2 bg-blue-500 text-white rounded-md">
+                            <TrendingUp size={20} />
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-3xl font-bold text-gray-900">
-                        {formatCurrency(totalCommission)}
-                      </div>
-                      <div className="flex items-center mt-2 text-sm">
-                        <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
-                        <span className="text-green-500 font-medium">
-                          +2.3%
-                        </span>
-                        <span className="text-gray-500 ml-1">
-                          (vs mes anterior)
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                        <div className="text-3xl font-bold text-gray-900">
+                          {formatCurrency(totalRevenue)}
+                        </div>
+                        <div className="flex items-center mt-2 text-sm">
+                          <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
+                          <span className="text-green-500 font-medium">
+                            +12.5%
+                          </span>
+                          <span className="text-gray-500 ml-1">
+                            (vs mes anterior)
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
 
-                  <Card className="bg-white shadow-md border border-gray-200">
-                    <CardContent className="p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-gray-700">
-                          Total Ventas
-                        </h3>
-                        <div className="p-2 bg-orange-500 text-white rounded-md">
-                          <ShoppingBag size={20} />
+                    <Card className="bg-white shadow-md border border-gray-200">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-700">
+                            Ganancia (15%)
+                          </h3>
+                          <div className="p-2 bg-green-500 text-white rounded-md">
+                            <DollarSign size={20} />
+                          </div>
                         </div>
-                      </div>
-                      <div className="text-3xl font-bold text-gray-900">
-                        {totalSales}
-                      </div>
-                      <div className="flex items-center mt-2 text-sm">
-                        <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
-                        <span className="text-green-500 font-medium">
-                          +8.2%
-                        </span>
-                        <span className="text-gray-500 ml-1">
-                          (vs mes anterior)
-                        </span>
-                      </div>
-                    </CardContent>
-                  </Card>
+                        <div className="text-3xl font-bold text-green-600">
+                          {formatCurrency(totalProfit)}
+                        </div>
+                        <div className="flex items-center mt-2 text-sm">
+                          <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
+                          <span className="text-green-500 font-medium">
+                            +5.1%
+                          </span>
+                          <span className="text-gray-500 ml-1">
+                            (vs mes anterior)
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white shadow-md border border-gray-200">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-700">
+                            Comisión a Vendedores
+                          </h3>
+                          <div className="p-2 bg-purple-500 text-white rounded-md">
+                            <Users size={20} />
+                          </div>
+                        </div>
+                        <div className="text-3xl font-bold text-gray-900">
+                          {formatCurrency(totalCommission)}
+                        </div>
+                        <div className="flex items-center mt-2 text-sm">
+                          <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
+                          <span className="text-green-500 font-medium">
+                            +2.3%
+                          </span>
+                          <span className="text-gray-500 ml-1">
+                            (vs mes anterior)
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    <Card className="bg-white shadow-md border border-gray-200">
+                      <CardContent className="p-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="text-lg font-semibold text-gray-700">
+                            Total Ventas
+                          </h3>
+                          <div className="p-2 bg-orange-500 text-white rounded-md">
+                            <ShoppingBag size={20} />
+                          </div>
+                        </div>
+                        <div className="text-3xl font-bold text-gray-900">
+                          {totalSales}
+                        </div>
+                        <div className="flex items-center mt-2 text-sm">
+                          <ArrowUp className="h-4 w-4 text-green-500 mr-1" />
+                          <span className="text-green-500 font-medium">
+                            +8.2%
+                          </span>
+                          <span className="text-gray-500 ml-1">
+                            (vs mes anterior)
+                          </span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
@@ -402,55 +553,8 @@ const AdminFinancialMetrics: React.FC = () => {
                     </CardContent>
                   </Card>
 
-                  {/* Sales Status Distribution */}
-                  <Card className="bg-white shadow-md border border-gray-200">
-                    <CardHeader className="pb-2 border-b border-gray-200">
-                      <CardTitle className="text-gray-700 text-lg">
-                        Distribución de ventas por estado
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="h-72 flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={statusData}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={isMobile ? 40 : 60}
-                              outerRadius={isMobile ? 80 : 100}
-                              fill="#8884d8"
-                              paddingAngle={5}
-                              dataKey="value"
-                              label={({ name, percent }) =>
-                                `${name}: ${(percent * 100).toFixed(0)}%`
-                              }
-                            >
-                              {statusData.map((entry, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={
-                                    CHART_COLORS[index % CHART_COLORS.length]
-                                  }
-                                />
-                              ))}
-                            </Pie>
-                            <Legend verticalAlign="bottom" height={36} />
-                            <Tooltip
-                              formatter={(value, name) => [
-                                `${value} ventas`,
-                                name,
-                              ]}
-                              labelFormatter={() => "Estado"}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
-
                   {/* Commission Distribution */}
-                  <Card className="bg-white shadow-md border border-gray-200 lg:col-span-2">
+                  <Card className="bg-white shadow-md border border-gray-200">
                     <CardHeader className="pb-2 border-b border-gray-200">
                       <CardTitle className="text-gray-700 text-lg">
                         Distribución de comisiones por vendedor

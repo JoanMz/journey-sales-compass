@@ -7,43 +7,51 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Transaction } from "@/types/transactions";
+import { getUsers } from "@/lib/api";
 
 interface SellerFilterProps {
-  transactions: Transaction[];
   selectedSellerId: number | null;
   onSellerChange: (sellerId: number | null) => void;
 }
 
-interface Seller {
+interface User {
   id: number;
+  role: string;
+  phone_number: string | null;
   name: string;
+  email: string;
+  password: string;
 }
 
 const SellerFilter: React.FC<SellerFilterProps> = ({
-  transactions,
   selectedSellerId,
   onSellerChange,
 }) => {
-  const [sellers, setSellers] = useState<Seller[]>([]);
+  const [sellers, setSellers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Extract unique sellers from transactions
-    const uniqueSellers = new Map<number, string>();
-    
-    transactions.forEach((transaction) => {
-      if (transaction.seller_id && transaction.seller_name) {
-        uniqueSellers.set(transaction.seller_id, transaction.seller_name);
+    const fetchSellers = async () => {
+      try {
+        setLoading(true);
+        const users = await getUsers();
+        
+        // Filter users with role "seller" or "vendedor"
+        const sellersList = users.filter((user: User) => 
+          user.role === "seller" || user.role === "vendedor"
+        );
+        
+        setSellers(sellersList);
+      } catch (error) {
+        console.error("Failed to fetch sellers:", error);
+        setSellers([]);
+      } finally {
+        setLoading(false);
       }
-    });
-    
-    const sellersList = Array.from(uniqueSellers).map(([id, name]) => ({
-      id,
-      name,
-    }));
-    
-    setSellers(sellersList);
-  }, [transactions]);
+    };
+
+    fetchSellers();
+  }, []);
 
   const handleSellerChange = (value: string) => {
     if (value === "all") {
@@ -58,9 +66,10 @@ const SellerFilter: React.FC<SellerFilterProps> = ({
       <Select
         value={selectedSellerId ? selectedSellerId.toString() : "all"}
         onValueChange={handleSellerChange}
+        disabled={loading}
       >
         <SelectTrigger className="w-full bg-white border-blue-200 focus:ring-blue-500">
-          <SelectValue placeholder="Todos los vendedores" />
+          <SelectValue placeholder={loading ? "Cargando..." : "Todos los vendedores"} />
         </SelectTrigger>
         <SelectContent className="bg-white">
           <SelectItem value="all">Todos los vendedores</SelectItem>

@@ -68,3 +68,21 @@ export interface Transaction {
   flight_info?: FlightInfo;
   hotel_info?: HotelInfo;
 }
+
+export interface TotalIncomeMetrics {
+  titulo_periodo: string;
+  fecha_inicio: string | null;
+  fecha_fin: string | null;
+  total_ingresos: number;
+  total_ganancias: number;
+  total_comision: number;
+  cantidad_evidencias: number;
+  estadisticas_ventas: {
+    total_ventas: number;
+    pending: number;
+    approved: number;
+    incompleta: number;
+    rejected: number;
+    terminado: number;
+  };
+}

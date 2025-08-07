@@ -1,6 +1,6 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
-import { Transaction, FlightInfo, HotelInfo, AccountData } from "@/types/transactions";
+import { Transaction, FlightInfo, HotelInfo, AccountData, TotalIncomeMetrics } from "@/types/transactions";
 import { endpoints } from "./endpoints";
 
 // Define API response type
@@ -358,6 +358,30 @@ export const getAccountData = async (): Promise<AccountData[]> => {
     return response.data;
   } catch (error) {
     console.error("Failed to fetch account data:", error);
+    throw error;
+  }
+};
+
+// Get total income metrics
+export const getTotalIncomeMetrics = async (fecha_inicio?: string, fecha_fin?: string): Promise<TotalIncomeMetrics> => {
+  try {
+    const url = endpoints.metrics.getTotalIncome(fecha_inicio, fecha_fin);
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch total income metrics:", error);
+    throw error;
+  }
+};
+
+// Get total income metrics by seller
+export const getTotalIncomeBySeller = async (userId: number, fecha_inicio?: string, fecha_fin?: string): Promise<TotalIncomeMetrics> => {
+  try {
+    const url = endpoints.metrics.getTotalIncomeBySeller(userId, fecha_inicio, fecha_fin);
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch total income metrics by seller:", error);
     throw error;
   }
 };
