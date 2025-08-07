@@ -86,3 +86,82 @@ export interface TotalIncomeMetrics {
     terminado: number;
   };
 }
+
+// New types for monthly income API
+export interface MonthlyIncomeData {
+  año: number;
+  mes: number;
+  nombre_mes: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  ingresos: number;
+  ganancias: number;
+  comision: number;
+  cantidad_evidencias: number;
+  estadisticas_ventas: {
+    total_ventas: number;
+    pending: number;
+    approved: number;
+    incompleta: number;
+    rejected: number;
+    terminado: number;
+  };
+}
+
+export interface MonthlyIncomeResponse {
+  rango_fechas: {
+    fecha_inicio: string;
+    fecha_fin: string;
+  };
+  cantidad_meses: number;
+  datos_mensuales: MonthlyIncomeData[];
+  total_acumulado: {
+    ingresos: number;
+    ganancias: number;
+    comision: number;
+    cantidad_evidencias: number;
+    estadisticas_ventas: {
+      total_ventas: number;
+      pending: number;
+      approved: number;
+      incompleta: number;
+      rejected: number;
+      terminado: number;
+    };
+  };
+}
+
+// New types for commissions by user API
+export interface UserCommissionData {
+  user_id: number;
+  email: string;
+  nombre: string;
+  ingresos: number;
+  ganancias: number;
+  comision: number;
+  cantidad_evidencias: number;
+  estadisticas_ventas: {
+    total_ventas: number;
+    pending: number;
+    approved: number;
+    incompleta: number;
+    rejected: number;
+    terminado: number;
+  };
+}
+
+export interface CommissionsByUserResponse {
+  rango_fechas: {
+    fecha_inicio: string;
+    fecha_fin: string;
+  };
+  cantidad_usuarios: number;
+  usuarios: UserCommissionData[];
+  total_general: {
+    ingresos: number;
+    ganancias: number;
+    comision: number;
+    cantidad_evidencias: number;
+    total_ventas: number;
+  };
+}

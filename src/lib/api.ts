@@ -1,6 +1,6 @@
 import axios from "axios";
 import { parseTransactionsResponse } from "./utils";
-import { Transaction, FlightInfo, HotelInfo, AccountData, TotalIncomeMetrics } from "@/types/transactions";
+import { Transaction, FlightInfo, HotelInfo, AccountData, TotalIncomeMetrics, MonthlyIncomeResponse, CommissionsByUserResponse } from "@/types/transactions";
 import { endpoints } from "./endpoints";
 
 // Define API response type
@@ -382,6 +382,30 @@ export const getTotalIncomeBySeller = async (userId: number, fecha_inicio?: stri
     return response.data;
   } catch (error) {
     console.error("Failed to fetch total income metrics by seller:", error);
+    throw error;
+  }
+};
+
+// Get monthly income by period
+export const getMonthlyIncomeByPeriod = async (fecha_inicio: string, fecha_fin: string): Promise<MonthlyIncomeResponse> => {
+  try {
+    const url = endpoints.metrics.getMonthlyIncomeByPeriod(fecha_inicio, fecha_fin);
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch monthly income by period:", error);
+    throw error;
+  }
+};
+
+// Get commissions by user
+export const getCommissionsByUser = async (fecha_inicio: string, fecha_fin: string): Promise<CommissionsByUserResponse> => {
+  try {
+    const url = endpoints.metrics.getCommissionsByUser(fecha_inicio, fecha_fin);
+    const response = await axios.get(url);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to fetch commissions by user:", error);
     throw error;
   }
 };

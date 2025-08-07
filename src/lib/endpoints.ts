@@ -85,6 +85,12 @@ export const endpoints = {
       }
       return url;
     },
+    getMonthlyIncomeByPeriod: (fecha_inicio: string, fecha_fin: string) => {
+      return `${baseUrl}/transactions/ingresos-totales-mensual/?fecha_inicio=${encodeURIComponent(fecha_inicio)}&fecha_fin=${encodeURIComponent(fecha_fin)}`;
+    },
+    getCommissionsByUser: (fecha_inicio: string, fecha_fin: string) => {
+      return `${baseUrl}/transactions/comisiones-por-usuario/?fecha_inicio=${encodeURIComponent(fecha_inicio)}&fecha_fin=${encodeURIComponent(fecha_fin)}`;
+    },
   },
   users: {
     all: `${baseUrl}/users`,

@@ -7,13 +7,12 @@ import {
   ShoppingBag,
   ArrowUp,
 } from "lucide-react";
-import TimePeriodFilter, { TimePeriod } from "./TimePeriodFilter";
 import SellerFilter from "./SellerFilter";
 import {
-  getTransactionsByMixedFilters,
-  getTransactionsByPeriod,
   getTotalIncomeMetrics,
   getTotalIncomeBySeller,
+  getMonthlyIncomeByPeriod,
+  getCommissionsByUser,
 } from "@/lib/api";
 import DatePicker from "react-datepicker";
 import { registerLocale } from "react-datepicker";
@@ -21,7 +20,12 @@ import { es } from "date-fns/locale/es";
 registerLocale("es", es);
 import "react-datepicker/dist/react-datepicker.css";
 import moment from "moment";
-import { Transaction, TotalIncomeMetrics } from "@/types/transactions";
+import {
+  Transaction,
+  TotalIncomeMetrics,
+  MonthlyIncomeResponse,
+  CommissionsByUserResponse,
+} from "@/types/transactions";
 import { formatCurrency, mapStatusToSpanish } from "@/lib/utils";
 import { useData } from "@/contexts/DataContext";
 import {
@@ -51,42 +55,52 @@ const AdminFinancialMetrics: React.FC = () => {
   } = useData();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [filteredTransactions, setFilteredTransactions] = useState<
-    Transaction[]
-  >([]);
-  const [timePeriod, setTimePeriod] = useState<TimePeriod>("month");
   const [selectedSellerId, setSelectedSellerId] = useState<number | null>(null);
-  const [metricsData, setMetricsData] = useState<TotalIncomeMetrics | null>(null);
+  const [metricsData, setMetricsData] = useState<TotalIncomeMetrics | null>(
+    null
+  );
+  const [monthlyIncomeData, setMonthlyIncomeData] =
+    useState<MonthlyIncomeResponse | null>(null);
+  const [commissionsData, setCommissionsData] =
+    useState<CommissionsByUserResponse | null>(null);
   const isMobile = useIsMobile();
 
-  useEffect(() => {
-    if (transactions.length > 0) {
-      fetchFilteredData();
-    }
-    fetchMetricsData(undefined, undefined, selectedSellerId);
-  }, []);
-
-  const [dateRange, setDateRange] = useState([
-    // moment().subtract(3, "months").startOf("month").toDate(),
-    null,
-    // moment().endOf("month").toDate(),
-    null,
-  ]);
+  const [dateRange, setDateRange] = useState([null, null]);
   const [startDate, endDate] = dateRange;
 
-  const fetchMetricsData = async (fecha_inicio?: string, fecha_fin?: string, sellerId?: number | null) => {
+  // New date range for bottom widgets (last 3 months by default)
+  const [bottomDateRange, setBottomDateRange] = useState([
+    moment().subtract(3, "months").startOf("month").toDate(),
+    moment().endOf("month").toDate(),
+  ]);
+  const [bottomStartDate, bottomEndDate] = bottomDateRange;
+
+  useEffect(() => {
+    fetchMetricsData(undefined, undefined, selectedSellerId);
+    // Fetch bottom widgets data with default 3 months
+    const fecha_inicio = moment(bottomStartDate).format("YYYY-MM-DD");
+    const fecha_fin = moment(bottomEndDate).format("YYYY-MM-DD");
+    fetchMonthlyIncomeData(fecha_inicio, fecha_fin);
+    fetchCommissionsData(fecha_inicio, fecha_fin);
+  }, []);
+
+  const fetchMetricsData = async (
+    fecha_inicio?: string,
+    fecha_fin?: string,
+    sellerId?: number | null
+  ) => {
     try {
       setLoading(true);
       let data;
-      
+
       if (sellerId !== null && sellerId !== undefined) {
         // Use seller-specific metrics when a seller is selected
-        data = await getTotalIncomeBySeller(sellerId, fecha_inicio, fecha_fin);
+        data = await getTotalIncomeMetrics(fecha_inicio, fecha_fin);
       } else {
         // Use general metrics when no seller is selected
         data = await getTotalIncomeMetrics(fecha_inicio, fecha_fin);
       }
-      
+
       setMetricsData(data);
       setError(null);
     } catch (err) {
@@ -97,70 +111,37 @@ const AdminFinancialMetrics: React.FC = () => {
     }
   };
 
-  const fetchFilteredData = async () => {
+  const [bottomLoading, setBottomLoading] = useState(false);
+
+  const fetchMonthlyIncomeData = async (
+    fecha_inicio: string,
+    fecha_fin: string
+  ) => {
     try {
-      setLoading(true);
-      if (selectedSellerId === null && timePeriod === "all") {
-        // Use transactions from context for "all" period with no seller filter
-        setFilteredTransactions(transactions);
-      } else if (selectedSellerId === null) {
-        const response = await getTransactionsByPeriod(timePeriod);
-        const data = response;
-        setFilteredTransactions(Array.isArray(data) ? data : []);
-      } else {
-        const response = await getTransactionsByMixedFilters(
-          timePeriod,
-          selectedSellerId
-        );
-        const data = response;
-        setFilteredTransactions(Array.isArray(data) ? data : []);
-      }
-      setError(null);
+      setBottomLoading(true);
+      const data = await getMonthlyIncomeByPeriod(fecha_inicio, fecha_fin);
+      setMonthlyIncomeData(data);
     } catch (err) {
-      console.error("Error fetching filtered transactions:", err);
-      setError("No se pudieron cargar las transacciones filtradas");
-      // Fallback to context transactions
-      setFilteredTransactions(transactions);
+      console.error("Error fetching monthly income data:", err);
     } finally {
-      setLoading(false);
+      setBottomLoading(false);
     }
   };
 
-  const fetchFilteredDatav2 = async (timePeriod2: TimePeriod) => {
+  const fetchCommissionsData = async (
+    fecha_inicio: string,
+    fecha_fin: string
+  ) => {
     try {
-      setLoading(true);
-      if (selectedSellerId === null && timePeriod2 === "all") {
-        // Use transactions from context for "all" period with no seller filter
-        setFilteredTransactions(transactions);
-        setLoading(false);
-      } else if (selectedSellerId === null) {
-        const response = await getTransactionsByPeriod(timePeriod2);
-        const data = response;
-        setFilteredTransactions(Array.isArray(data) ? data : []);
-        setLoading(false);
-      } else {
-        const response = await getTransactionsByMixedFilters(
-          timePeriod2,
-          selectedSellerId
-        );
-        const data = response;
-        setFilteredTransactions(Array.isArray(data) ? data : []);
-        setLoading(false);
-      }
-      setError(null);
+      setBottomLoading(true);
+      const data = await getCommissionsByUser(fecha_inicio, fecha_fin);
+      setCommissionsData(data);
     } catch (err) {
-      console.error("Error fetching filtered transactions:", err);
-      setError("No se pudieron cargar las transacciones filtradas");
-      // Fallback to context transactions
-      setFilteredTransactions(transactions);
+      console.error("Error fetching commissions data:", err);
     } finally {
-      setLoading(false);
+      setBottomLoading(false);
     }
   };
-
-  // Use context transactions as fallback when no filtered data
-  const displayTransactions =
-    filteredTransactions.length > 0 ? filteredTransactions : transactions;
 
   // Calculate key metrics from API data
   const totalRevenue = metricsData?.total_ingresos || 0;
@@ -168,30 +149,18 @@ const AdminFinancialMetrics: React.FC = () => {
   const totalCommission = metricsData?.total_comision || 0;
   const totalSales = metricsData?.estadisticas_ventas?.total_ventas || 0;
 
-  // Prepare data for charts
+  // Prepare data for charts using new API data
   const prepareMonthlyData = () => {
-    const monthlyData: {
-      [key: string]: { month: string; revenue: number; sales: number };
-    } = {};
+    if (!monthlyIncomeData?.datos_mensuales) {
+      return [];
+    }
 
-    displayTransactions.forEach((transaction) => {
-      const date = new Date(transaction.start_date);
-      const monthYear = date.toLocaleString("default", {
-        month: "short",
-        year: "2-digit",
-      });
-
-      if (!monthlyData[monthYear]) {
-        monthlyData[monthYear] = { month: monthYear, revenue: 0, sales: 0 };
-      }
-
-      monthlyData[monthYear].revenue += transaction.amount;
-      monthlyData[monthYear].sales += 1;
-    });
-
-    return Object.values(monthlyData).sort((a, b) => {
-      return a.month.localeCompare(b.month);
-    });
+    return monthlyIncomeData.datos_mensuales.map((item) => ({
+      month: `${item.nombre_mes} ${item.año}`,
+      revenue: item.ingresos,
+      profit: item.ganancias,
+      commission: item.comision,
+    }));
   };
 
   const prepareStatusData = () => {
@@ -202,10 +171,10 @@ const AdminFinancialMetrics: React.FC = () => {
     const { estadisticas_ventas } = metricsData;
     const statusMapping = {
       pending: "Pendiente",
-      approved: "Aprobado", 
+      approved: "Aprobado",
       incompleta: "Incompleta",
       rejected: "Rechazado",
-      terminado: "Terminado"
+      terminado: "Terminado",
     };
 
     return Object.entries(estadisticas_ventas)
@@ -216,38 +185,26 @@ const AdminFinancialMetrics: React.FC = () => {
       }));
   };
 
-  const prepareSellerCommissionData = () => {
-    const sellerCommissions: {
-      [key: string]: { name: string; value: number };
-    } = {};
+  const prepareCommissionData = () => {
+    if (!commissionsData?.usuarios) {
+      return [];
+    }
 
-    displayTransactions.forEach((transaction) => {
-      const sellerName = transaction.seller_name || "Unknown";
-      const commission = transaction.amount * 0.0225; // 2.25% commission
-
-      if (!sellerCommissions[sellerName]) {
-        sellerCommissions[sellerName] = { name: sellerName, value: 0 };
-      }
-
-      sellerCommissions[sellerName].value += commission;
-    });
-
-    return Object.values(sellerCommissions);
+    return commissionsData.usuarios.map((user) => ({
+      name: user.nombre,
+      value: user.comision,
+      ingresos: user.ingresos,
+      ganancias: user.ganancias,
+    }));
   };
 
   const monthlyData = prepareMonthlyData();
   const statusData = prepareStatusData();
-  const commissionData = prepareSellerCommissionData();
-
-  const handlePeriodChange = (period: TimePeriod) => {
-    console.log("period", period);
-    setTimePeriod(period);
-    fetchFilteredDatav2(period);
-  };
+  const commissionData = prepareCommissionData();
 
   const handleSellerChange = (sellerId: number | null) => {
     setSelectedSellerId(sellerId);
-    
+
     // Fetch metrics data with the new seller selection
     if (!startDate && !endDate) {
       // No date range selected, fetch all data
@@ -269,7 +226,7 @@ const AdminFinancialMetrics: React.FC = () => {
    */
   const handleDateRangeChange = (update) => {
     const [start, end] = update;
-    
+
     // Actualizar el estado del rango de fechas
     setDateRange([start, end]);
 
@@ -286,120 +243,133 @@ const AdminFinancialMetrics: React.FC = () => {
     // Si solo hay una fecha seleccionada, NO hacer búsqueda (esperar a la segunda fecha)
   };
 
+  /**
+   * Esta funcion se llama cuando se selecciona un rango de fechas para los widgets de abajo
+   * @param {Array} update - El rango de fechas seleccionado
+   */
+  const handleBottomDateRangeChange = (update) => {
+    const [start, end] = update;
+
+    // Actualizar el estado del rango de fechas
+    setBottomDateRange([start, end]);
+
+    // Solo hacer búsqueda si ambas fechas están seleccionadas
+    if (start && end) {
+      const fecha_inicio = moment(start).format("YYYY-MM-DD");
+      const fecha_fin = moment(end).format("YYYY-MM-DD");
+      fetchMonthlyIncomeData(fecha_inicio, fecha_fin);
+      fetchCommissionsData(fecha_inicio, fecha_fin);
+    }
+  };
+
   return (
     <Card className="bg-white border-blue-200 mb-6">
-      {loading ? (
-        <>
-          <div className="flex justify-center py-6">
-            <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
+      <CardHeader className="pb-2 border-b border-blue-200">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <CardTitle className="text-blue-700">Métricas de Ventas</CardTitle>
+            {metricsData?.titulo_periodo && (
+              <p className="text-sm text-gray-600 mt-1">
+                {metricsData.titulo_periodo}
+              </p>
+            )}
           </div>
-        </>
-      ) : (
-        <>
-          <CardHeader className="pb-2 border-b border-blue-200">
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <div>
-                <CardTitle className="text-blue-700">
-                  Métricas de Ventas
-                </CardTitle>
-                {metricsData?.titulo_periodo && (
-                  <p className="text-sm text-gray-600 mt-1">
-                    {metricsData.titulo_periodo}
-                  </p>
-                )}
-              </div>
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <SellerFilter
-                  selectedSellerId={selectedSellerId}
-                  onSellerChange={handleSellerChange}
-                />
+          <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+            <SellerFilter
+              selectedSellerId={selectedSellerId}
+              onSellerChange={handleSellerChange}
+            />
 
-                <DatePicker
-                  locale="es"
-                  selectsRange={true}
-                  // showMonthYearPicker
-                  startDate={startDate}
-                  endDate={endDate}
-                  onChange={handleDateRangeChange}
-                  isClearable={true}
-                  placeholderText="Selecciona un rango de fechas"
-                  dateFormat="MM/dd/yyyy"
-                  showDisabledMonthNavigation
-                  className="w-[300px] h-[30px] border-2 border-blue-200 rounded-md px-2 py-5"
-                  // className="form-control custom-datepicker-range"
-                  // minDate={moment().subtract(5, "months").startOf("month").toDate()}
-                  // maxDate={
-                  //   startDate
-                  //     ? moment().endOf("month").isBefore(addMonths(startDate, 5))
-                  //       ? moment().endOf("month").toDate()
-                  //       : addMonths(startDate, 5)
-                  //     : moment().endOf("month").toDate()
-                  // }
-                />
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="pt-6">
-            {isLoading ? (
-              <div className="flex justify-center py-6">
-                <div className="animate-spin h-6 w-6 border-2 border-blue-500 rounded-full border-t-transparent"></div>
-              </div>
-            ) : displayError ? (
-              <div className="text-center text-red-500 py-4">
-                {displayError}
-              </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Sales Status Distribution - Left side taking full height */}
-                  <Card className="bg-white shadow-md border border-gray-200 lg:col-span-2">
-                    <CardHeader className="pb-2 border-b border-gray-200">
-                      <CardTitle className="text-gray-700 text-lg">
-                        Distribución de ventas por estado
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="h-[500px] flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={statusData}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={isMobile ? 40 : 60}
-                              outerRadius={isMobile ? 80 : 100}
-                              fill="#8884d8"
-                              paddingAngle={5}
-                              dataKey="value"
-                              label={({ name, percent }) =>
-                                `${name}: ${(percent * 100).toFixed(0)}%`
-                              }
-                            >
-                              {statusData.map((entry, index) => (
-                                <Cell
-                                  key={`cell-${index}`}
-                                  fill={
-                                    CHART_COLORS[index % CHART_COLORS.length]
-                                  }
-                                />
-                              ))}
-                            </Pie>
-                            <Legend verticalAlign="bottom" height={36} />
-                            <Tooltip
-                              formatter={(value, name) => [
-                                `${value} ventas`,
-                                name,
-                              ]}
-                              labelFormatter={() => "Estado"}
+            <DatePicker
+              locale="es"
+              selectsRange={true}
+              startDate={startDate}
+              endDate={endDate}
+              onChange={handleDateRangeChange}
+              isClearable={true}
+              placeholderText="Selecciona un rango de fechas"
+              dateFormat="MM/dd/yyyy"
+              showDisabledMonthNavigation
+              className="w-[300px] h-[30px] border-2 border-blue-200 rounded-md px-2 py-5"
+            />
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6">
+        {displayError ? (
+          <div className="text-center text-red-500 py-4">{displayError}</div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              {/* Sales Status Distribution - Left side taking full height */}
+              <Card className="bg-white shadow-md border border-gray-200 lg:col-span-2">
+                <CardHeader className="pb-2 border-b border-gray-200">
+                  <CardTitle className="text-gray-700 text-lg">
+                    Distribución de ventas por estado
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="h-[500px] flex items-center justify-center">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={statusData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={isMobile ? 40 : 60}
+                          outerRadius={isMobile ? 80 : 100}
+                          fill="#8884d8"
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ name, percent }) =>
+                            `${name}: ${(percent * 100).toFixed(0)}%`
+                          }
+                        >
+                          {statusData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={CHART_COLORS[index % CHART_COLORS.length]}
                             />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </CardContent>
-                  </Card>
+                          ))}
+                        </Pie>
+                        <Legend verticalAlign="bottom" height={36} />
+                        <Tooltip
+                          formatter={(value, name) => [`${value} ventas`, name]}
+                          labelFormatter={() => "Estado"}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
 
-                  {/* KPIs - Right side in vertical column */}
-                  <div className="space-y-6">
+              {/* KPIs - Right side in vertical column */}
+              <div className="space-y-6">
+                {loading ? (
+                  // Loading state for KPI widgets
+                  <>
+                    {[1, 2, 3, 4].map((index) => (
+                      <Card
+                        key={index}
+                        className="bg-white shadow-md border border-gray-200"
+                      >
+                        <CardContent className="p-6">
+                          <div className="flex items-center justify-between mb-4">
+                            <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
+                            <div className="p-2 bg-gray-200 rounded-md w-10 h-10 animate-pulse"></div>
+                          </div>
+                          <div className="h-8 bg-gray-200 rounded w-24 animate-pulse mb-2"></div>
+                          <div className="flex items-center mt-2">
+                            <div className="h-4 w-4 bg-gray-200 rounded mr-1 animate-pulse"></div>
+                            <div className="h-4 bg-gray-200 rounded w-16 animate-pulse mr-1"></div>
+                            <div className="h-4 bg-gray-200 rounded w-24 animate-pulse"></div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </>
+                ) : (
+                  <>
                     <Card className="bg-white shadow-md border border-gray-200">
                       <CardContent className="p-6">
                         <div className="flex items-center justify-between mb-4">
@@ -499,120 +469,180 @@ const AdminFinancialMetrics: React.FC = () => {
                         </div>
                       </CardContent>
                     </Card>
+                  </>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+              {/* Date picker for bottom widgets */}
+              <div className="lg:col-span-2 mb-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    Filtro de fechas para gráficos
+                  </h3>
+                  <div className="w-[300px]">
+                    <DatePicker
+                      locale="es"
+                      selectsRange={true}
+                      startDate={bottomStartDate}
+                      endDate={bottomEndDate}
+                      onChange={handleBottomDateRangeChange}
+                      isClearable={false}
+                      placeholderText="Selecciona un rango de fechas"
+                      dateFormat="MM/dd/yyyy"
+                      showDisabledMonthNavigation
+                      className="w-[300px] h-[30px] border-2 border-blue-200 rounded-md px-2 py-5"
+                    />
                   </div>
                 </div>
+              </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
-                  {/* Revenue Chart */}
-                  <Card className="bg-white shadow-md border border-gray-200">
-                    <CardHeader className="pb-2 border-b border-gray-200">
-                      <CardTitle className="text-gray-700 text-lg">
-                        Ingresos por período
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={monthlyData}
-                            margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
-                          >
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="#f0f0f0"
-                            />
-                            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-                            <YAxis
-                              tickFormatter={(value) => {
-                                return new Intl.NumberFormat("es-CO", {
-                                  notation: "compact",
-                                  compactDisplay: "short",
-                                  style: "currency",
-                                  currency: "COP",
-                                  maximumFractionDigits: 1,
-                                }).format(value);
-                              }}
-                              tick={{ fontSize: 12 }}
-                            />
-                            <Tooltip
-                              formatter={(value) => [
-                                formatCurrency(value as number),
-                                "Ingresos",
-                              ]}
-                              labelFormatter={(label) => `Periodo: ${label}`}
-                            />
-                            <Bar
-                              dataKey="revenue"
-                              fill="#2563eb"
-                              name="Ingresos"
-                              radius={[4, 4, 0, 0]}
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
+              {/* Revenue Chart */}
+              <Card className="bg-white shadow-md border border-gray-200">
+                <CardHeader className="pb-2 border-b border-gray-200">
+                  <CardTitle className="text-gray-700 text-lg">
+                    Métricas por período
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  {bottomLoading ? (
+                    <div className="h-72 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                        <p className="text-gray-500">Cargando datos...</p>
                       </div>
-                    </CardContent>
-                  </Card>
-
-                  {/* Commission Distribution */}
-                  <Card className="bg-white shadow-md border border-gray-200">
-                    <CardHeader className="pb-2 border-b border-gray-200">
-                      <CardTitle className="text-gray-700 text-lg">
-                        Distribución de comisiones por vendedor
-                      </CardTitle>
-                    </CardHeader>
-                    <CardContent className="pt-4">
-                      <div className="h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <BarChart
-                            data={commissionData}
-                            layout="vertical"
-                            margin={{
-                              top: 5,
-                              right: 30,
-                              left: isMobile ? 60 : 100,
-                              bottom: 5,
+                    </div>
+                  ) : (
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={monthlyData}
+                          margin={{ top: 5, right: 30, left: 20, bottom: 25 }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#f0f0f0"
+                          />
+                          <XAxis dataKey="month" tick={{ fontSize: 12 }} />
+                          <YAxis
+                            tickFormatter={(value) => {
+                              return new Intl.NumberFormat("es-CO", {
+                                notation: "compact",
+                                compactDisplay: "short",
+                                style: "currency",
+                                currency: "COP",
+                                maximumFractionDigits: 1,
+                              }).format(value);
                             }}
-                          >
-                            <CartesianGrid
-                              strokeDasharray="3 3"
-                              stroke="#f0f0f0"
-                            />
-                            <XAxis
-                              type="number"
-                              tickFormatter={(value) =>
-                                formatCurrency(value, false)
-                              }
-                              tick={{ fontSize: 12 }}
-                            />
-                            <YAxis
-                              dataKey="name"
-                              type="category"
-                              width={80}
-                              tick={{ fontSize: 12 }}
-                            />
-                            <Tooltip
-                              formatter={(value) => [
-                                formatCurrency(value as number),
-                                "Comisión",
-                              ]}
-                              labelFormatter={(label) => `Vendedor: ${label}`}
-                            />
-                            <Bar
-                              dataKey="value"
-                              fill="#7c3aed"
-                              radius={[0, 4, 4, 0]}
-                            />
-                          </BarChart>
-                        </ResponsiveContainer>
+                            tick={{ fontSize: 12 }}
+                          />
+                          <Tooltip
+                            formatter={(value, name) => [
+                              formatCurrency(value as number),
+                              name,
+                            ]}
+                            labelFormatter={(label) => `Periodo: ${label}`}
+                          />
+                          <Bar
+                            dataKey="revenue"
+                            fill="#2563eb"
+                            name="Ingresos"
+                            radius={[4, 4, 0, 0]}
+                          />
+                          <Bar
+                            dataKey="profit"
+                            fill="#16a34a"
+                            name="Ganancias"
+                            radius={[4, 4, 0, 0]}
+                          />
+                          <Bar
+                            dataKey="commission"
+                            fill="#dc2626"
+                            name="Comisiones"
+                            radius={[4, 4, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Commission Distribution */}
+              <Card className="bg-white shadow-md border border-gray-200">
+                <CardHeader className="pb-2 border-b border-gray-200">
+                  <CardTitle className="text-gray-700 text-lg">
+                    Distribución de comisiones por vendedor
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  {bottomLoading ? (
+                    <div className="h-72 flex items-center justify-center">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto mb-4"></div>
+                        <p className="text-gray-500">Cargando datos...</p>
                       </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </>
-      )}
+                    </div>
+                  ) : (
+                    <div className="h-72">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart
+                          data={commissionData}
+                          layout="vertical"
+                          margin={{
+                            top: 5,
+                            right: 30,
+                            left: isMobile ? 60 : 100,
+                            bottom: 5,
+                          }}
+                        >
+                          <CartesianGrid
+                            strokeDasharray="3 3"
+                            stroke="#f0f0f0"
+                          />
+                          <XAxis
+                            type="number"
+                            tickFormatter={(value) =>
+                              formatCurrency(value, false)
+                            }
+                            tick={{ fontSize: 12 }}
+                          />
+                          <YAxis
+                            dataKey="name"
+                            type="category"
+                            width={80}
+                            tick={{ fontSize: 12 }}
+                          />
+                          <Tooltip
+                            formatter={(value, name) => [
+                              formatCurrency(value as number),
+                              name,
+                            ]}
+                            labelFormatter={(label) => `Vendedor: ${label}`}
+                          />
+                          <Bar
+                            dataKey="value"
+                            fill="#7c3aed"
+                            name="Comisión"
+                            radius={[0, 4, 4, 0]}
+                          />
+                          <Bar
+                            dataKey="ganancias"
+                            fill="#16a34a"
+                            name="Ganancias"
+                            radius={[0, 4, 4, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+      </CardContent>
     </Card>
   );
 };
