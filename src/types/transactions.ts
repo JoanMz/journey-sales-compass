@@ -67,6 +67,15 @@ export interface Transaction {
   travelers: Traveler[];
   flight_info?: FlightInfo;
   hotel_info?: HotelInfo;
+  evidence?: Array<{
+    id: number;
+    transaction_id: number;
+    evidence_file: string;
+    upload_date: string;
+    amount: number;
+    status: string;
+    invoice_status: string;
+  }>;
 }
 
 export interface TotalIncomeMetrics {

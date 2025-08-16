@@ -18,6 +18,7 @@ interface FlightTransaction {
   daysLeave: number;
   amount: number;
   payment_status: number;
+  status: string;
 }
 
 interface TravelGroupsResponse {
@@ -517,6 +518,20 @@ const TravelManagement = () => {
                         <h4 className="font-medium text-gray-900 truncate">
                           {transaction.client_name}
                         </h4>
+                        <Badge className={`ml-2 ${
+                          transaction.status === 'approved' 
+                            ? 'bg-green-100 text-green-800' 
+                            : transaction.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : transaction.status === 'incompleta'
+                            ? 'bg-orange-100 text-orange-800'
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {transaction.status === 'approved' ? 'Completa' : 
+                           transaction.status === 'pending' ? 'Pendiente' : 
+                           transaction.status === 'incompleta' ? 'Incompleta' : 
+                           transaction.status}
+                        </Badge>
                       </div>
                       
                       <div className="space-y-1 text-sm text-gray-600">
@@ -744,7 +759,15 @@ const TravelManagement = () => {
                                 {evidence.status}
                               </Badge>
                             </div>
-                            <div><strong>Estado Factura:</strong> {evidence.invoice_status}</div>
+                            <div><strong>Estado Factura:</strong> 
+                              <Badge className={`ml-2 ${
+                                evidence.invoice_status === 'facturado' 
+                                  ? 'bg-blue-100 text-blue-800' 
+                                  : 'bg-orange-100 text-orange-800'
+                              }`}>
+                                {evidence.invoice_status}
+                              </Badge>
+                            </div>
                             <div><strong>Fecha:</strong> {new Date(evidence.upload_date).toLocaleDateString()}</div>
                             {evidence.evidence_file && (
                               <div>

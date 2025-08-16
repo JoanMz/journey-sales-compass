@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import PendingTransactions from "../admin/PendingTransactions";
 import TransaccionesClientes from "./TransaccionesClientes";
 import AdminFinancialMetrics from "./AdminFinancialMetrics";
-import { QuincenalCommissions } from './QuincenalCommissions';
+// import { QuincenalCommissions } from './QuincenalCommissions';
 
 const AdminDashboard = () => {
   const { sales } = useData();
@@ -16,7 +16,7 @@ const AdminDashboard = () => {
   return (
     <div className="space-y-6">
       <AdminFinancialMetrics />
-      <QuincenalCommissions />
+      {/* <QuincenalCommissions /> */}
       <PendingTransactions />
       
       {/* Evidencias Pendientes Card */}

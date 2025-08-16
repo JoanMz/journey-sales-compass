@@ -1,8 +1,9 @@
 import { DragEvent } from "react";
 import { Button } from "../ui/button";
-import { Clock, Check, X } from "lucide-react";
+import { Clock, Check, X, FileText } from "lucide-react";
 import { SalesTransaction } from "../../types/sales";
 import { useAuth } from "../../contexts/AuthContext";
+import { Badge } from "../ui/badge";
 
 interface KanbanViewProps {
   kanbanGroups: {
@@ -185,6 +186,24 @@ export const KanbanView = ({
                   </span>
                   <span className="status-badge bg-yellow-100 text-yellow-800">Aprobado</span>
                 </div>
+                
+                {/* Mostrar estado de facturación si hay evidencias */}
+                {transaction.evidence && transaction.evidence.length > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <FileText className="h-3 w-3 text-gray-500" />
+                    <span className="text-xs text-gray-600">Evidencia:</span>
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ${
+                        transaction.evidence[0].invoice_status === 'facturado' 
+                          ? 'bg-green-50 text-green-700 border-green-200' 
+                          : 'bg-orange-50 text-orange-700 border-orange-200'
+                      }`}
+                    >
+                      {transaction.evidence[0].invoice_status}
+                    </Badge>
+                  </div>
+                )}
                 {isSeller && transaction.seller_id === user?.id && (
                   <Button
                     size="sm"

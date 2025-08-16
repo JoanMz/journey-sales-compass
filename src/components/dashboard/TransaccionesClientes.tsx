@@ -936,6 +936,33 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                     ).toLocaleDateString("es-ES")}
                                   </p>
                                 </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">Estado</p>
+                                  <Badge
+                                    className={`ml-2 ${
+                                      evidence.status === 'approved' 
+                                        ? 'bg-green-100 text-green-800' 
+                                        : evidence.status === 'pending'
+                                        ? 'bg-yellow-100 text-yellow-800'
+                                        : 'bg-red-100 text-red-800'
+                                    }`}
+                                  >
+                                    {evidence.status === 'approved' ? 'Aprobada' : 
+                                     evidence.status === 'pending' ? 'Pendiente' : 'Rechazada'}
+                                  </Badge>
+                                </div>
+                                <div>
+                                  <p className="text-sm text-gray-600">Estado Factura</p>
+                                  <Badge
+                                    className={`ml-2 ${
+                                      evidence.invoice_status === 'facturado' 
+                                        ? 'bg-blue-100 text-blue-800' 
+                                        : 'bg-orange-800'
+                                    }`}
+                                  >
+                                    {evidence.invoice_status}
+                                  </Badge>
+                                </div>
                                 {evidence.evidence_file ? (
                                   <div className="md:col-span-2">
                                     <p className="text-sm text-gray-600">
