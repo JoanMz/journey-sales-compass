@@ -293,7 +293,7 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
   }, [user?.id, isAdmin]);
 
   // Función para generar factura
-  const generateInvoice = async (transactionId: number | string) => {
+  const generateInvoice = async (evidenceItem: any) => {
     try {
       const response = await fetch(
         "https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/382a0ee7-7fcb-415f-a5a2-aaf8c94b5c4d",
@@ -303,7 +303,9 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            transaction_id: transactionId,
+            id_transaccion: evidenceItem.transaction_id,
+            id_evidencia: evidenceItem.id,
+            abono_evidencia: evidenceItem.amount,
           }),
         }
       );
@@ -911,7 +913,7 @@ export const ApprovedSalesView: React.FC<ApprovedSalesViewProps> = ({
                               size="sm"
                               className="flex-1 bg-blue-600 hover:bg-blue-700"
                               onClick={() =>
-                                generateInvoice(evidence.transaction_id)
+                                generateInvoice(evidence)
                               }
                             >
                               Generar Factura
