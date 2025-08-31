@@ -1078,6 +1078,18 @@ const Home = () => {
                       )}
                     </div>
                     <div>
+                      <p className="text-sm text-gray-600">Incluye</p>
+                      <p className="font-medium">
+                        {selectedTransaction.incluye || "No especificado"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">No Incluye</p>
+                      <p className="font-medium">
+                        {selectedTransaction.no_incluye || "No especificado"}
+                      </p>
+                    </div>
+                    <div>
                       <p className="text-sm text-gray-600">Fecha de Inicio</p>
                       <p className="font-medium">
                         {new Date(
@@ -1319,7 +1331,7 @@ const Home = () => {
                                   </p>
                                   )}
                                 </div>
-                                <div>
+                                {/* <div>
                                   <Label>Incluye</Label>
                                   {isEditing ? (
                                     <Textarea
@@ -1350,8 +1362,8 @@ const Home = () => {
                                     )}
                                   </div>
                                   )}
-                                </div>
-                                <div>
+                                </div> */}
+                                {/* <div>
                                   <Label>No Incluye</Label>
                                   {isEditing ? (
                                     <Textarea
@@ -1382,7 +1394,7 @@ const Home = () => {
                                     )}
                                   </div>
                                   )}
-                                </div>
+                                </div> */}
                               </div>
                             </div>
                           )

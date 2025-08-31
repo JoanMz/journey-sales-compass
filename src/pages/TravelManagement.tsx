@@ -53,6 +53,8 @@ interface DetailedTransaction {
   updated_at: string;
   start_date: string;
   end_date: string;
+  incluye?: string;
+  no_incluye?: string;
   travelers: Array<{
     name: string;
     id: number;
@@ -635,9 +637,9 @@ const TravelManagement = () => {
                   </div>
                 </div>
 
-                {/* Información del Viaje */}
+                {/* Información del Paquete */}
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información del Viaje</h3>
+                  <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información del Paquete</h3>
                   <div className="space-y-2">
                     <div><strong>Paquete:</strong> {selectedTransaction.package}</div>
                     <div><strong>Vuelo Cotizado:</strong> {selectedTransaction.quoted_flight}</div>
@@ -650,6 +652,8 @@ const TravelManagement = () => {
                         {selectedTransaction.status}
                       </Badge>
                     </div>
+                    <div><strong>Incluye:</strong> {selectedTransaction.incluye || "No especificado"}</div>
+                    <div><strong>No Incluye:</strong> {selectedTransaction.no_incluye || "No especificado"}</div>
                   </div>
                 </div>
 
@@ -679,24 +683,57 @@ const TravelManagement = () => {
                   </div>
                 </div>
 
-                {/* Itinerario */}
-                {selectedTransaction.itinerario && selectedTransaction.itinerario.length > 0 && (
-                  <div className="space-y-4 md:col-span-2">
-                    <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Itinerario</h3>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {selectedTransaction.itinerario.map((item, index) => (
-                        <div key={index} className="bg-gray-50 p-4 rounded-lg">
-                          <div className="space-y-2">
-                            <div><strong>Aerolínea:</strong> {item.aerolinea}</div>
-                            <div><strong>Ruta:</strong> {item.ruta}</div>
-                            <div><strong>Hora Salida:</strong> {item.hora_salida}</div>
-                            <div><strong>Hora Llegada:</strong> {item.hora_llegada}</div>
-                          </div>
+                {/* Itinerario y Información de Viaje */}
+                <div className="space-y-4 md:col-span-2">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Itinerario */}
+                    {selectedTransaction.itinerario && selectedTransaction.itinerario.length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Itinerario</h3>
+                        <div className="space-y-3">
+                          {selectedTransaction.itinerario.map((item, index) => (
+                            <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                              <div className="space-y-2">
+                                <div><strong>Aerolínea:</strong> {item.aerolinea}</div>
+                                <div><strong>Ruta:</strong> {item.ruta}</div>
+                                <div><strong>Hora Salida:</strong> {item.hora_salida}</div>
+                                <div><strong>Hora Llegada:</strong> {item.hora_llegada}</div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    )}
+
+                    {/* Información de Viaje */}
+                    {selectedTransaction.travel_info && selectedTransaction.travel_info.length > 0 && (
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información de Viaje</h3>
+                        <div className="space-y-3">
+                          {selectedTransaction.travel_info.map((info, index) => (
+                            <div key={index} className="bg-gray-50 p-4 rounded-lg">
+                              <div className="space-y-2">
+                                <div><strong>País Destino:</strong> {info.pais_destino}</div>
+                                <div><strong>Ciudad Destino:</strong> {info.ciudad_destino}</div>
+                                <div><strong>Hotel:</strong> {info.hotel}</div>
+                                <div><strong>Dirección Hotel:</strong> {info.direccion_hotel}</div>
+                                <div><strong>Acomodación:</strong> {info.acomodacion}</div>
+                                <div><strong>Alimentación:</strong> {info.alimentacion}</div>
+                                <div><strong>Noches:</strong> {info.noches}</div>
+                                {info.incluye && info.incluye.length > 0 && (
+                                  <div><strong>Incluye:</strong> {info.incluye.join(', ')}</div>
+                                )}
+                                {info.no_incluye && info.no_incluye.length > 0 && (
+                                  <div><strong>No Incluye:</strong> {info.no_incluye.join(', ')}</div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
 
                 {/* Viajeros */}
                 {selectedTransaction.travelers && selectedTransaction.travelers.length > 0 && (

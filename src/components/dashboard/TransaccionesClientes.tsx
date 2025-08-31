@@ -616,7 +616,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Detalles de la Transacción</h2>
+              <h2 className="text-xl font-bold">Detalles de la Transacción 2</h2>
               <Button variant="ghost" size="icon" onClick={closeModal}>
                 <X className="h-4 w-4" />
               </Button>
@@ -715,6 +715,18 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                       <p className="text-sm text-gray-600">Monto Total</p>
                       <p className="font-medium">
                         {formatCurrency(selectedTransaction.amount)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">Incluye</p>
+                      <p className="font-medium">
+                        {selectedTransaction.incluye || "No especificado"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600">No Incluye</p>
+                      <p className="font-medium">
+                        {selectedTransaction.no_incluye || "No especificado"}
                       </p>
                     </div>
                     <div>
@@ -867,7 +879,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                     {travelInfo.noches || "No especificado"}
                                   </p>
                                 </div>
-                                <div>
+                                {/* <div>
                                   <p className="text-sm text-gray-600">
                                     Incluye
                                   </p>
@@ -882,8 +894,8 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                       <p>{travelInfo.incluye || "No especificado"}</p>
                                     )}
                                   </div>
-                                </div>
-                                <div>
+                                </div> */}
+                                {/* <div>
                                   <p className="text-sm text-gray-600">
                                     No Incluye
                                   </p>
@@ -898,7 +910,7 @@ const TransaccionesClientes: React.FC<TransaccionesClientesProps> = () => {
                                       <p>{travelInfo.no_incluye || "No especificado"}</p>
                                     )}
                                   </div>
-                                </div>
+                                </div> */}
                               </div>
                             </div>
                           )
