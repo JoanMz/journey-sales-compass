@@ -803,6 +803,8 @@ const Home = () => {
                 transactionType: selectedTransactionData.transaction_type || "venta",
                 startDate: selectedTransactionData.start_date,
                 endDate: selectedTransactionData.end_date,
+                incluye: selectedTransactionData.incluye || "",
+                no_incluye: selectedTransactionData.no_incluye || "",
                 travelers: selectedTransactionData.travelers || [],
                 invoiceImage: undefined,
                 flightInfo: (selectedTransactionData as any).itinerario && (selectedTransactionData as any).itinerario.length > 0 ? 

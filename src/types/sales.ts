@@ -26,6 +26,8 @@ export interface SalesFormData {
   transactionType: "venta" | "abono";
   startDate: string;
   endDate: string;
+  incluye: string;
+  no_incluye: string;
   travelers: TravelerFormData[];
   invoiceImage: File;
   // Nuevos campos para información de vuelo (itinerario) - ahora es un array
@@ -40,8 +42,6 @@ export interface SalesFormData {
   hotelInfo?: Array<{
     hotel: string;
     noches: number;
-    incluye: string[];
-    no_incluye: string[];
     alimentacion: string;
     acomodacion: string;
     direccion_hotel: string;

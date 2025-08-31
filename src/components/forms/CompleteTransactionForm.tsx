@@ -75,19 +75,11 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
         updatedHotelInfo[index] = {
           hotel: "",
           noches: 1,
-          incluye: [],
-          no_incluye: [],
           alimentacion: "",
           acomodacion: "",
           direccion_hotel: "",
           pais_destino: "",
           ciudad_destino: "",
-          cuentas_recaudo: {
-            banco: "",
-            numero: "",
-            nombre: "",
-            nit: "",
-          },
         };
       }
       
@@ -429,8 +421,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
           console.log("🔍 Verificando campos específicos:");
           console.log("   - hotel:", formData.hotelInfo[0]?.hotel);
           console.log("   - noches:", formData.hotelInfo[0]?.noches, "tipo:", typeof formData.hotelInfo[0]?.noches);
-          console.log("   - incluye:", formData.hotelInfo[0]?.incluye, "tipo:", typeof formData.hotelInfo[0]?.incluye);
-          console.log("   - no_incluye:", formData.hotelInfo[0]?.no_incluye, "tipo:", typeof formData.hotelInfo[0]?.no_incluye);
+
           console.log("   - alimentacion:", formData.hotelInfo[0]?.alimentacion);
           console.log("   - acomodacion:", formData.hotelInfo[0]?.acomodacion);
           console.log("   - direccion_hotel:", formData.hotelInfo[0]?.direccion_hotel);
@@ -828,25 +819,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Incluye</Label>
-                <Textarea
-                  value={hotel.incluye?.join(", ") || ""}
-                  onChange={(e) => updateHotelField(index, "incluye", e.target.value.split(", ").filter(item => item.trim()))}
-                  placeholder="Servicios incluidos (separados por comas)"
-                />
-              </div>
 
-              <div className="space-y-2">
-                <Label>No incluye</Label>
-                <Textarea
-                  value={hotel.no_incluye?.join(", ") || ""}
-                  onChange={(e) => updateHotelField(index, "no_incluye", e.target.value.split(", ").filter(item => item.trim()))}
-                  placeholder="Servicios no incluidos (separados por comas)"
-                />
-              </div>
-            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

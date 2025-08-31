@@ -51,6 +51,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     transactionType: "venta",
     startDate: new Date().toISOString(),
     endDate: new Date().toISOString(),
+    incluye: "",
+    no_incluye: "",
     travelers: [],
     invoiceImage: undefined,
     flightInfo: [{
@@ -63,8 +65,6 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     hotelInfo: [{
       hotel: "",
       noches: 1,
-      incluye: [],
-      no_incluye: [],
       alimentacion: "",
       acomodacion: "",
       direccion_hotel: "",
@@ -126,8 +126,6 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         {
           hotel: "",
           noches: 1,
-          incluye: [],
-          no_incluye: [],
           alimentacion: "",
           acomodacion: "",
           direccion_hotel: "",
@@ -163,6 +161,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     if (!data.documentType) errors.push("• Tipo de documento");
     if (!data.startDate) errors.push("• Fecha de inicio");
     if (!data.endDate) errors.push("• Fecha de fin");
+    if (!data.incluye || data.incluye.trim() === "") errors.push("• Servicios incluidos");
+    if (!data.no_incluye || data.no_incluye.trim() === "") errors.push("• Servicios no incluidos");
     if (!data.invoiceImage) errors.push("• Comprobante de pago");
     if (data.travelers.length === 0) errors.push("• Al menos un viajero");
     
@@ -424,6 +424,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       receipt: "mateo",
       start_date: formData.startDate,
       end_date: formData.endDate,
+      incluye: formData.incluye || "",
+      no_incluye: formData.no_incluye || "",
         travelers: formData.travelers.map((traveler) => ({
         name: traveler.name,
         dni: traveler.dni,
@@ -435,8 +437,6 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           travel_info: (formData.hotelInfo || []).map((hotel: any) => ({
             hotel: hotel.hotel || "",
             noches: (parseInt(hotel?.noches) || 1).toString(),
-            incluye: hotel.incluye || [],
-            no_incluye: hotel.no_incluye || [],
             alimentacion: hotel.alimentacion || "",
             acomodacion: hotel.acomodacion || "",
             direccion_hotel: hotel.direccion_hotel || "",
@@ -476,6 +476,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       console.log("🔍 receipt:", NEW_BODY.receipt);
       console.log("🔍 start_date:", NEW_BODY.start_date);
       console.log("🔍 end_date:", NEW_BODY.end_date);
+      console.log("🔍 incluye:", NEW_BODY.incluye);
+      console.log("🔍 no_incluye:", NEW_BODY.no_incluye);
       console.log("🔍 travelers:", NEW_BODY.travelers);
       console.log("🔍 travel_info:", NEW_BODY.travel_info);
       console.log("🔍 itinerario:", NEW_BODY.itinerario);
@@ -487,8 +489,6 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           console.log(`🔍 Hotel ${index + 1}:`, {
             hotel: hotel.hotel,
             noches: hotel.noches,
-            incluye: hotel.incluye,
-            no_incluye: hotel.no_incluye,
             alimentacion: hotel.alimentacion,
             acomodacion: hotel.acomodacion,
             direccion_hotel: hotel.direccion_hotel,
@@ -784,7 +784,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           <div className="text-sm">
             {(() => {
               const errors = validateBasicFields(formData);
-              const totalFields = 11; // Campos básicos requeridos (sin documentos de viajeros)
+              const totalFields = 13; // Campos básicos requeridos (sin documentos de viajeros) - ahora incluye incluye y no_incluye
               const completedFields = totalFields - errors.length;
               const percentage = Math.max(0, Math.min(100, (completedFields / totalFields) * 100));
               
@@ -934,6 +934,28 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
               type="date"
               value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ""}
               onChange={(e) => updateField("endDate", new Date(e.target.value).toISOString())}
+              required
+            />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label>Incluye *</Label>
+            <Textarea
+              value={formData.incluye || ""}
+              onChange={(e) => updateField("incluye", e.target.value)}
+              placeholder="Servicios incluidos"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>No incluye *</Label>
+            <Textarea
+              value={formData.no_incluye || ""}
+              onChange={(e) => updateField("no_incluye", e.target.value)}
+              placeholder="Servicios no incluidos"
               required
             />
           </div>
@@ -1094,25 +1116,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Incluye</Label>
-            <Textarea
-                  value={hotel.incluye?.join(", ") || ""}
-                  onChange={(e) => updateHotelField(index, "incluye", e.target.value.split(", ").filter(item => item.trim()))}
-              placeholder="Servicios incluidos (separados por comas)"
-            />
-          </div>
 
-          <div className="space-y-2">
-            <Label>No incluye</Label>
-            <Textarea
-                  value={hotel.no_incluye?.join(", ") || ""}
-                  onChange={(e) => updateHotelField(index, "no_incluye", e.target.value.split(", ").filter(item => item.trim()))}
-              placeholder="Servicios no incluidos (separados por comas)"
-            />
-          </div>
-        </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">

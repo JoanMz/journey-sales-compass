@@ -391,6 +391,8 @@ const PendingTransactions = () => {
                 transactionType: selectedTransaction.transaction_type || "venta",
                 startDate: selectedTransaction.start_date,
                 endDate: selectedTransaction.end_date,
+                incluye: selectedTransaction.incluye || "",
+                no_incluye: selectedTransaction.no_incluye || "",
                 travelers: selectedTransaction.travelers || [],
                 invoiceImage: undefined,
                 flightInfo: selectedTransaction.flight_info || {
