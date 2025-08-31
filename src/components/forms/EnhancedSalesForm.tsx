@@ -33,9 +33,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { addTransaction, refreshTransactions } = useData();
   const { user } = useAuth();
-  
+
   console.log("📋 EnhancedSalesForm montado");
-  
+
   const [formData, setFormData] = useState<SalesFormData>({
     customerName: "Sofia",
     customerEmail: "sofia@sofia.com",
@@ -55,22 +55,26 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     no_incluye: "",
     travelers: [],
     invoiceImage: undefined,
-    flightInfo: [{
-      aerolinea: "",
-      ruta: "",
-      fecha: new Date().toISOString(),
-      hora_salida: "",
-      hora_llegada: "",
-    }],
-    hotelInfo: [{
-      hotel: "",
-      noches: 1,
-      alimentacion: "",
-      acomodacion: "",
-      direccion_hotel: "",
-      pais_destino: "",
-      ciudad_destino: "",
-    }],
+    flightInfo: [
+      {
+        aerolinea: "",
+        ruta: "",
+        fecha: new Date().toISOString(),
+        hora_salida: "",
+        hora_llegada: "",
+      },
+    ],
+    hotelInfo: [
+      {
+        hotel: "",
+        noches: 1,
+        alimentacion: "",
+        acomodacion: "",
+        direccion_hotel: "",
+        pais_destino: "",
+        ciudad_destino: "",
+      },
+    ],
   });
 
   const updateField = async (field: keyof SalesFormData, value) => {
@@ -80,18 +84,20 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
   const updateFlightField = (index: number, field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
-      flightInfo: prev.flightInfo?.map((flight, i) => 
-        i === index ? { ...flight, [field]: value } : flight
-      ) || [],
+      flightInfo:
+        prev.flightInfo?.map((flight, i) =>
+          i === index ? { ...flight, [field]: value } : flight
+        ) || [],
     }));
   };
 
   const updateHotelField = (index: number, field: string, value: any) => {
     setFormData((prev) => ({
       ...prev,
-      hotelInfo: prev.hotelInfo?.map((hotel, i) => 
-        i === index ? { ...hotel, [field]: value } : hotel
-      ) || [],
+      hotelInfo:
+        prev.hotelInfo?.map((hotel, i) =>
+          i === index ? { ...hotel, [field]: value } : hotel
+        ) || [],
     }));
   };
 
@@ -131,7 +137,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           direccion_hotel: "",
           pais_destino: "",
           ciudad_destino: "",
-      },
+        },
       ],
     }));
   };
@@ -143,12 +149,10 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     }));
   };
 
-
-
   // Función para validar solo campos básicos requeridos para crear la venta
   const validateBasicFields = (data: SalesFormData): string[] => {
     const errors: string[] = [];
-    
+
     // Solo campos esenciales para crear la venta
     if (!data.customerName.trim()) errors.push("• Nombre del cliente");
     if (!data.customerEmail.trim()) errors.push("• Email del cliente");
@@ -161,20 +165,25 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     if (!data.documentType) errors.push("• Tipo de documento");
     if (!data.startDate) errors.push("• Fecha de inicio");
     if (!data.endDate) errors.push("• Fecha de fin");
-    if (!data.incluye || data.incluye.trim() === "") errors.push("• Servicios incluidos");
-    if (!data.no_incluye || data.no_incluye.trim() === "") errors.push("• Servicios no incluidos");
+    if (!data.incluye || data.incluye.trim() === "")
+      errors.push("• Servicios incluidos");
+    if (!data.no_incluye || data.no_incluye.trim() === "")
+      errors.push("• Servicios no incluidos");
     if (!data.invoiceImage) errors.push("• Comprobante de pago");
     if (data.travelers.length === 0) errors.push("• Al menos un viajero");
-    
+
     // Validar que cada viajero tenga los campos básicos requeridos
     data.travelers.forEach((traveler, index) => {
-      if (!traveler.name.trim()) errors.push(`• Nombre del viajero ${index + 1}`);
+      if (!traveler.name.trim())
+        errors.push(`• Nombre del viajero ${index + 1}`);
       if (!traveler.dni.trim()) errors.push(`• DNI del viajero ${index + 1}`);
-      if (!traveler.date_birth) errors.push(`• Fecha de nacimiento del viajero ${index + 1}`);
-      if (!traveler.phone.trim()) errors.push(`• Teléfono del viajero ${index + 1}`);
+      if (!traveler.date_birth)
+        errors.push(`• Fecha de nacimiento del viajero ${index + 1}`);
+      if (!traveler.phone.trim())
+        errors.push(`• Teléfono del viajero ${index + 1}`);
       // Documento del viajero no es obligatorio al crear la transacción
     });
-    
+
     return errors;
   };
 
@@ -186,17 +195,27 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     if (!data.travelers || data.travelers.length === 0) {
       errors.push("• Al menos un viajero es requerido");
     } else {
-      const travelersWithoutDocuments = data.travelers.filter(traveler => !traveler.dniImage);
+      const travelersWithoutDocuments = data.travelers.filter(
+        (traveler) => !traveler.dniImage
+      );
       if (travelersWithoutDocuments.length > 0) {
-        const names = travelersWithoutDocuments.map(t => t.name).join(", ");
-        errors.push(`• Los siguientes viajeros deben tener documentos: ${names}`);
+        const names = travelersWithoutDocuments.map((t) => t.name).join(", ");
+        errors.push(
+          `• Los siguientes viajeros deben tener documentos: ${names}`
+        );
       }
-      
+
       // Validar que todos los viajeros tengan tipo de documento seleccionado
-      const travelersWithoutDocumentType = data.travelers.filter(traveler => !traveler.tipo_documento || traveler.tipo_documento === "");
+      const travelersWithoutDocumentType = data.travelers.filter(
+        (traveler) => !traveler.tipo_documento || traveler.tipo_documento === ""
+      );
       if (travelersWithoutDocumentType.length > 0) {
-        const names = travelersWithoutDocumentType.map(t => t.name).join(", ");
-        errors.push(`• Los siguientes viajeros deben tener tipo de documento seleccionado: ${names}`);
+        const names = travelersWithoutDocumentType
+          .map((t) => t.name)
+          .join(", ");
+        errors.push(
+          `• Los siguientes viajeros deben tener tipo de documento seleccionado: ${names}`
+        );
       }
     }
 
@@ -209,14 +228,17 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         } else {
           // Verificar que TODOS los campos del primer vuelo estén completos
           const firstFlight = data.flightInfo[0];
-          const hasCompleteFlightData = firstFlight.aerolinea?.trim() &&
-                                       firstFlight.ruta?.trim() &&
-                                       firstFlight.fecha &&
-                                       firstFlight.hora_salida?.trim() &&
-                                       firstFlight.hora_llegada?.trim();
+          const hasCompleteFlightData =
+            firstFlight.aerolinea?.trim() &&
+            firstFlight.ruta?.trim() &&
+            firstFlight.fecha &&
+            firstFlight.hora_salida?.trim() &&
+            firstFlight.hora_llegada?.trim();
 
           if (!hasCompleteFlightData) {
-            errors.push("• Información completa del vuelo (aerolínea, ruta, fecha, hora salida, hora llegada)");
+            errors.push(
+              "• Información completa del vuelo (aerolínea, ruta, fecha, hora salida, hora llegada)"
+            );
           }
         }
 
@@ -225,12 +247,15 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         } else {
           // Verificar que TODOS los campos del primer hotel estén completos
           const firstHotel = data.hotelInfo[0];
-          const hasCompleteHotelData = firstHotel.hotel?.trim() &&
-                                      firstHotel.noches &&
-                                      firstHotel.noches > 0;
+          const hasCompleteHotelData =
+            firstHotel.hotel?.trim() &&
+            firstHotel.noches &&
+            firstHotel.noches > 0;
 
           if (!hasCompleteHotelData) {
-            errors.push("• Información completa del hotel (nombre y número de noches)");
+            errors.push(
+              "• Información completa del hotel (nombre y número de noches)"
+            );
           }
         }
         break;
@@ -241,14 +266,17 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         } else {
           // Verificar que TODOS los campos del primer vuelo estén completos
           const firstFlight = data.flightInfo[0];
-          const hasCompleteFlightData = firstFlight.aerolinea?.trim() &&
-                                       firstFlight.ruta?.trim() &&
-                                       firstFlight.fecha &&
-                                       firstFlight.hora_salida?.trim() &&
-                                       firstFlight.hora_llegada?.trim();
+          const hasCompleteFlightData =
+            firstFlight.aerolinea?.trim() &&
+            firstFlight.ruta?.trim() &&
+            firstFlight.fecha &&
+            firstFlight.hora_salida?.trim() &&
+            firstFlight.hora_llegada?.trim();
 
           if (!hasCompleteFlightData) {
-            errors.push("• Información completa del vuelo (aerolínea, ruta, fecha, hora salida, hora llegada)");
+            errors.push(
+              "• Información completa del vuelo (aerolínea, ruta, fecha, hora salida, hora llegada)"
+            );
           }
         }
         break;
@@ -259,12 +287,15 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         } else {
           // Verificar que TODOS los campos del primer hotel estén completos
           const firstHotel = data.hotelInfo[0];
-          const hasCompleteHotelData = firstHotel.hotel?.trim() &&
-                                      firstHotel.noches &&
-                                      firstHotel.noches > 0;
+          const hasCompleteHotelData =
+            firstHotel.hotel?.trim() &&
+            firstHotel.noches &&
+            firstHotel.noches > 0;
 
           if (!hasCompleteHotelData) {
-            errors.push("• Información completa del hotel (nombre y número de noches)");
+            errors.push(
+              "• Información completa del hotel (nombre y número de noches)"
+            );
           }
         }
         break;
@@ -288,55 +319,77 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
     if (isSubmitting) {
       console.log("⚠️ Ya se está procesando una venta, ignorando...");
-         return;
+      return;
     }
-    
+
     setIsSubmitting(true);
     console.log("🔄 Iniciando proceso de creación de venta...");
-    
+
     // Validar solo campos básicos requeridos para crear la venta
     const basicValidationErrors = validateBasicFields(formData);
     if (basicValidationErrors.length > 0) {
-      alert(`Por favor completa los siguientes campos básicos:\n${basicValidationErrors.join('\n')}`);
+      alert(
+        `Por favor completa los siguientes campos básicos:\n${basicValidationErrors.join(
+          "\n"
+        )}`
+      );
       setIsSubmitting(false);
       return;
     }
 
     let transactionId: string | number | undefined;
-    
+
     try {
       // Preparar todas las imágenes para enviar al webhook
       const allImagesFormData = new FormData();
       const imageOrder = []; // Para mantener el orden de las imágenes
-      
+
       // Agregar imagen del comprobante de pago
       if (formData.invoiceImage) {
         allImagesFormData.append("payment_evidence", formData.invoiceImage);
         imageOrder.push("evidence");
-        console.log("✅ Agregando imagen del comprobante de pago:", formData.invoiceImage.name);
+        console.log(
+          "✅ Agregando imagen del comprobante de pago:",
+          formData.invoiceImage.name
+        );
       } else {
         console.log("⚠️ No hay imagen de comprobante de pago");
       }
-      
+
       // Agregar imágenes de documentos de viajeros
       formData.travelers.forEach((traveler, index) => {
         if (traveler.dniImage) {
           allImagesFormData.append(`traveler_dni_${index}`, traveler.dniImage);
           imageOrder.push(`traveler_${index}`);
-          console.log(`✅ Agregando imagen del DNI del viajero ${index + 1}: ${traveler.name} - ${traveler.dniImage.name}`);
+          console.log(
+            `✅ Agregando imagen del DNI del viajero ${index + 1}: ${
+              traveler.name
+            } - ${traveler.dniImage.name}`
+          );
         } else {
-          console.log(`⚠️ No hay imagen para el viajero ${index + 1}: ${traveler.name}`);
+          console.log(
+            `⚠️ No hay imagen para el viajero ${index + 1}: ${traveler.name}`
+          );
         }
       });
-      
+
       // Enviar todas las imágenes al webhook
       let uploadedImageUrls = [];
-      console.log("📋 FormData tiene payment_evidence:", allImagesFormData.has("payment_evidence"));
-      console.log("📋 Viajeros con imágenes:", formData.travelers.filter(t => t.dniImage).length);
-      
-      if (allImagesFormData.has("payment_evidence") || formData.travelers.some(t => t.dniImage)) {
+      console.log(
+        "📋 FormData tiene payment_evidence:",
+        allImagesFormData.has("payment_evidence")
+      );
+      console.log(
+        "📋 Viajeros con imágenes:",
+        formData.travelers.filter((t) => t.dniImage).length
+      );
+
+      if (
+        allImagesFormData.has("payment_evidence") ||
+        formData.travelers.some((t) => t.dniImage)
+      ) {
         console.log("✅ Subiendo todas las imágenes al webhook...");
-        
+
         const imageResponse = await axios.post(
           "https://elder-link-staging-n8n.fwoasm.easypanel.host/webhook/6e0954b7-832f-4817-86cd-9c59f18d8a52",
           allImagesFormData,
@@ -346,25 +399,29 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             },
           }
         );
-        
+
         console.log("Respuesta del webhook:", imageResponse.data);
-        
+
         // Extraer las URLs de las imágenes del response
         if (imageResponse.data && imageResponse.data.length > 0) {
-          uploadedImageUrls = imageResponse.data.map(item => item?.imageUrl || "");
+          uploadedImageUrls = imageResponse.data.map(
+            (item) => item?.imageUrl || ""
+          );
           console.log("URLs de las imágenes obtenidas:", uploadedImageUrls);
         }
       }
-      
+
       // Separar las URLs según el orden original
       let evidenceUrl = "";
       const travelerImageUrls = [];
-      
+
       console.log("📋 Procesando URLs:", uploadedImageUrls);
       console.log("📋 Orden de imágenes:", imageOrder);
-      
+
       uploadedImageUrls.forEach((url, index) => {
-        console.log(`📋 Procesando URL ${index}: ${url} - Tipo: ${imageOrder[index]}`);
+        console.log(
+          `📋 Procesando URL ${index}: ${url} - Tipo: ${imageOrder[index]}`
+        );
         if (imageOrder[index] === "evidence") {
           evidenceUrl = url;
           console.log(`✅ Evidence URL asignada: ${evidenceUrl}`);
@@ -374,80 +431,98 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           console.log(`✅ Traveler ${travelerIndex} URL asignada: ${url}`);
         }
       });
-      
+
       console.log("📋 Evidence URL final:", evidenceUrl);
       console.log("📋 Traveler URLs finales:", travelerImageUrls);
 
       // Crear el array evidences con la URL obtenida
-      const evidencesData = evidenceUrl ? [{
-        evidence_file: evidenceUrl,
-        amount: formData.paidAmount,
-        filename: formData.invoiceImage ? formData.invoiceImage.name : "comprobante_pago.jpg"
-      }] : [];
+      const evidencesData = evidenceUrl
+        ? [
+            {
+              evidence_file: evidenceUrl,
+              amount: formData.paidAmount,
+              filename: formData.invoiceImage
+                ? formData.invoiceImage.name
+                : "comprobante_pago.jpg",
+            },
+          ]
+        : [];
 
       // Crear array de documentos de viajeros
       const documentosData = [];
       console.log("🔍 Procesando documentos de viajeros:");
       formData.travelers.forEach((traveler, index) => {
-        console.log(`   Viajero ${index + 1}: ${traveler.name} (DNI: ${traveler.dni})`);
+        console.log(
+          `   Viajero ${index + 1}: ${traveler.name} (DNI: ${traveler.dni})`
+        );
         console.log(`   - Tiene imagen: ${!!traveler.dniImage}`);
         console.log(`   - URL obtenida: ${travelerImageUrls[index]}`);
-        
+
         if (travelerImageUrls[index]) {
           const documento = {
             document_url: travelerImageUrls[index],
             viajero_id: traveler.dni, // Mantener como string
-            tipo_documento: traveler.tipo_documento || "dni" // Usar el tipo específico del viajero
+            tipo_documento: traveler.tipo_documento || "dni", // Usar el tipo específico del viajero
           };
           documentosData.push(documento);
           console.log(`   ✅ Documento agregado:`, documento);
         } else {
-          console.log(`   ❌ No se pudo obtener URL para viajero ${traveler.name}`);
+          console.log(
+            `   ❌ No se pudo obtener URL para viajero ${traveler.name}`
+          );
         }
       });
-      
+
       console.log("📋 Array final de documentos:", documentosData);
 
-    const NEW_BODY = {
-      client_name: formData.customerName,
-      client_email: formData.customerEmail,
-      client_phone: formData.customerPhone,
-      client_dni: formData.customerDni,
-      client_address: formData.customerAddress,
-      package: formData.package,
-      quoted_flight: formData.quotedFlight,
-      agency_cost: formData.agencyCost,
-      amount: formData.amount,
-      transaction_type: formData.transactionType,
-      status: "pending",
-      seller_id: user?.id || 1,
-      receipt: "mateo",
-      start_date: formData.startDate,
-      end_date: formData.endDate,
-      incluye: formData.incluye || "",
-      no_incluye: formData.no_incluye || "",
+      const NEW_BODY = {
+        client_name: formData.customerName,
+        client_email: formData.customerEmail,
+        client_phone: formData.customerPhone,
+        client_dni: formData.customerDni,
+        client_address: formData.customerAddress,
+        package: formData.package,
+        quoted_flight: formData.quotedFlight,
+        agency_cost: formData.agencyCost,
+        amount: formData.amount,
+        transaction_type: formData.transactionType,
+        status: "pending",
+        seller_id: user?.id || 1,
+        receipt: "mateo",
+        start_date: formData.startDate,
+        end_date: formData.endDate,
+        incluye: formData.incluye || "",
+        no_incluye: formData.no_incluye || "",
         travelers: formData.travelers.map((traveler) => ({
-        name: traveler.name,
-        dni: traveler.dni,
-        date_birth: traveler.date_birth,
-        phone: traveler.phone
-      })),
+          name: traveler.name,
+          dni: traveler.dni,
+          date_birth: traveler.date_birth,
+          phone: traveler.phone,
+        })),
         // Solo enviar travel_info si el paquete lo requiere
-        ...(formData.package === "nacional" || formData.package === "internacional" || formData.package === "terrestre" ? {
-          travel_info: (formData.hotelInfo || []).map((hotel: any) => ({
-            hotel: hotel.hotel || "",
-            noches: (parseInt(hotel?.noches) || 1).toString(),
-            alimentacion: hotel.alimentacion || "",
-            acomodacion: hotel.acomodacion || "",
-            direccion_hotel: hotel.direccion_hotel || "",
-            pais_destino: hotel.pais_destino || "",
-            ciudad_destino: hotel.ciudad_destino || ""
-          }))
-        } : {}),
+        ...(formData.package === "nacional" ||
+        formData.package === "internacional" ||
+        formData.package === "terrestre"
+          ? {
+              travel_info: (formData.hotelInfo || []).map((hotel: any) => ({
+                hotel: hotel.hotel || "",
+                noches: (parseInt(hotel?.noches) || 1).toString(),
+                alimentacion: hotel.alimentacion || "",
+                acomodacion: hotel.acomodacion || "",
+                direccion_hotel: hotel.direccion_hotel || "",
+                pais_destino: hotel.pais_destino || "",
+                ciudad_destino: hotel.ciudad_destino || "",
+              })),
+            }
+          : {}),
         // Solo enviar itinerario si el paquete lo requiere
-        ...(formData.package === "nacional" || formData.package === "internacional" || formData.package === "migratorio" ? {
-          itinerario: formData.flightInfo || []
-        } : {})
+        ...(formData.package === "nacional" ||
+        formData.package === "internacional" ||
+        formData.package === "migratorio"
+          ? {
+              itinerario: formData.flightInfo || [],
+            }
+          : {}),
       };
 
       console.log("Submitting form data:", NEW_BODY);
@@ -457,8 +532,11 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       console.log("Traveler Image URLs:", travelerImageUrls);
       console.log("Evidence Data:", evidencesData);
       console.log("Documents Data:", documentosData);
-      console.log("JSON completo que se envía:", JSON.stringify(NEW_BODY, null, 2));
-      
+      console.log(
+        "JSON completo que se envía:",
+        JSON.stringify(NEW_BODY, null, 2)
+      );
+
       // Log detallado de cada campo para debug
       console.log("🔍 Debug - Campos individuales:");
       console.log("🔍 client_name:", NEW_BODY.client_name);
@@ -493,7 +571,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             acomodacion: hotel.acomodacion,
             direccion_hotel: hotel.direccion_hotel,
             pais_destino: hotel.pais_destino,
-            ciudad_destino: hotel.ciudad_destino
+            ciudad_destino: hotel.ciudad_destino,
           });
         });
       }
@@ -509,20 +587,17 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         {
           headers: {
             "Content-Type": "application/json",
-            "Accept": "application/json"
+            Accept: "application/json",
           },
         }
       );
 
-      console.log(
-        "Transaction created successfully:",
-        response
-      );
+      console.log("Transaction created successfully:", response);
 
       // Enviar evidencias y documentos usando los endpoints correctos
       const responseData = response.data as any;
       transactionId = responseData.transaction_id || responseData.id;
-      
+
       console.log("🔍 Respuesta completa de la transacción:", responseData);
       console.log("🔍 Transaction ID:", transactionId);
       console.log("🔍 Travelers en responseData:", responseData.travelers);
@@ -530,23 +605,26 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
       if (transactionId) {
         console.log("🔄 Transaction ID obtenido:", transactionId);
-        
+
         // Enviar evidencias
         if (evidencesData.length > 0) {
           console.log("📤 Enviando evidencias...");
           console.log("📤 Datos de evidencia:", evidencesData[0]);
-          console.log("📤 JSON de evidencia:", JSON.stringify(evidencesData[0], null, 2));
-          
+          console.log(
+            "📤 JSON de evidencia:",
+            JSON.stringify(evidencesData[0], null, 2)
+          );
+
           try {
             const evidenceResponse = await axios.post(
               `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/evidence`,
               evidencesData[0], // Enviar solo el primer elemento del array
-          {
-            headers: {
+              {
+                headers: {
                   "Content-Type": "application/json",
-            },
-          }
-        );
+                },
+              }
+            );
             console.log("✅ Evidencias enviadas:", evidenceResponse.data);
           } catch (error) {
             console.error("❌ Error enviando evidencias:", error);
@@ -556,69 +634,105 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             }
           }
         }
-        
+
         // Enviar documentos de viajeros
         if (documentosData.length > 0) {
           console.log("📤 Enviando documentos de viajeros...");
-          
+
           // Obtener los viajeros de la transacción creada
           console.log("🔍 Obteniendo viajeros de la transacción...");
           try {
             const transactionResponse = await axios.get(
               `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}`
             );
-            const travelersFromResponse = transactionResponse.data.travelers || [];
-            console.log("📋 Viajeros de la transacción:", travelersFromResponse);
-            
+            const travelersFromResponse =
+              transactionResponse.data.travelers || [];
+            console.log(
+              "📋 Viajeros de la transacción:",
+              travelersFromResponse
+            );
+
             for (let i = 0; i < documentosData.length; i++) {
               const documento = documentosData[i];
               const travelerDni = documento.viajero_id; // Este es el DNI
-              
+
               // Buscar el viajero por DNI para obtener su ID
-              const traveler = travelersFromResponse.find(t => t.dni === travelerDni);
+              const traveler = travelersFromResponse.find(
+                (t) => t.dni === travelerDni
+              );
               if (!traveler || !traveler.id) {
-                console.error(`❌ No se encontró el ID del viajero con DNI ${travelerDni}`);
+                console.error(
+                  `❌ No se encontró el ID del viajero con DNI ${travelerDni}`
+                );
                 continue;
               }
-              
+
               const travelerId = traveler.id; // Este es el ID numérico
-              
+
               try {
-                console.log(`🔍 Procesando documento para viajero ${travelerDni} (ID: ${travelerId}):`);
-                console.log(`   - URL del documento: ${documento.document_url}`);
-                console.log(`   - Tipo de documento: ${documento.tipo_documento}`);
-                
-                if (!documento.document_url || !documento.document_url.startsWith('http')) {
-                  console.error(`❌ URL inválida para viajero ${travelerDni}: ${documento.document_url}`);
+                console.log(
+                  `🔍 Procesando documento para viajero ${travelerDni} (ID: ${travelerId}):`
+                );
+                console.log(
+                  `   - URL del documento: ${documento.document_url}`
+                );
+                console.log(
+                  `   - Tipo de documento: ${documento.tipo_documento}`
+                );
+
+                if (
+                  !documento.document_url ||
+                  !documento.document_url.startsWith("http")
+                ) {
+                  console.error(
+                    `❌ URL inválida para viajero ${travelerDni}: ${documento.document_url}`
+                  );
                   continue;
                 }
-                
+
                 // Enviar URL directamente al backend
                 const documentoData = {
                   document_file: documento.document_url,
                   tipo_documento: documento.tipo_documento,
-                  filename: "" // Campo requerido pero vacío como especificaste
+                  filename: "", // Campo requerido pero vacío como especificaste
                 };
-                
-                console.log(`📤 Enviando documento para viajero ${travelerDni} (ID: ${travelerId})...`);
+
+                console.log(
+                  `📤 Enviando documento para viajero ${travelerDni} (ID: ${travelerId})...`
+                );
                 console.log(`📤 Datos del documento:`, documentoData);
-                console.log(`📤 JSON que se envía:`, JSON.stringify(documentoData, null, 2));
+                console.log(
+                  `📤 JSON que se envía:`,
+                  JSON.stringify(documentoData, null, 2)
+                );
 
                 const documentoResponse = await axios.post(
-                  endpoints.transactions.uploadTravelerDocument(transactionId.toString(), travelerId.toString()),
+                  endpoints.transactions.uploadTravelerDocument(
+                    transactionId.toString(),
+                    travelerId.toString()
+                  ),
                   documentoData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-                console.log(`✅ Documento enviado para viajero ${travelerDni} (ID: ${travelerId}):`, documentoResponse.data);
+                  {
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+                console.log(
+                  `✅ Documento enviado para viajero ${travelerDni} (ID: ${travelerId}):`,
+                  documentoResponse.data
+                );
               } catch (error) {
-                console.error(`❌ Error enviando documento para viajero ${travelerDni} (ID: ${travelerId}):`, error);
+                console.error(
+                  `❌ Error enviando documento para viajero ${travelerDni} (ID: ${travelerId}):`,
+                  error
+                );
                 if (error.response) {
                   console.error(`❌ Error response data:`, error.response.data);
-                  console.error(`❌ Error response status:`, error.response.status);
+                  console.error(
+                    `❌ Error response status:`,
+                    error.response.status
+                  );
                 } else if (error.request) {
                   console.error(`❌ Error de red:`, error.message);
                 } else {
@@ -628,7 +742,10 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
               }
             }
           } catch (error) {
-            console.error("❌ Error obteniendo viajeros de la transacción:", error);
+            console.error(
+              "❌ Error obteniendo viajeros de la transacción:",
+              error
+            );
             console.log("⚠️ No se pudieron subir los documentos de viajeros");
           }
         }
@@ -640,33 +757,42 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         console.log("🔍 Debug - Tipo de paquete:", formData.package);
         console.log("🔍 Debug - Flight info:", formData.flightInfo);
         console.log("🔍 Debug - Hotel info:", formData.hotelInfo);
-        
+
         const packageValidationErrors = validatePackageFields(formData);
-        console.log("🔍 Debug - Errores de validación:", packageValidationErrors);
-        
+        console.log(
+          "🔍 Debug - Errores de validación:",
+          packageValidationErrors
+        );
+
         const isComplete = packageValidationErrors.length === 0;
         console.log("🔍 Debug - ¿Está completa?:", isComplete);
-        
+
         if (!isComplete) {
-          console.log("⚠️ Transacción incompleta detectada. Actualizando estado a 'incompleta'...");
+          console.log(
+            "⚠️ Transacción incompleta detectada. Actualizando estado a 'incompleta'..."
+          );
           console.log("❌ Campos faltantes:", packageValidationErrors);
-          
+
           try {
-            const statusResponse = await axios.patch(
+            const statusResponse = await axios.put(
               endpoints.transactions.patchStatusIncomplete(transactionId),
-              {},
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
+              // `http://localhost:3000/transactions/${transactionId}/status`,
+              { status: "incompleta" }
             );
-            console.log("✅ Estado actualizado a 'incompleta':", statusResponse.data);
+            console.log(
+              "✅ Estado actualizado a 'incompleta':",
+              statusResponse.data
+            );
           } catch (error) {
-            console.error("❌ Error actualizando estado a 'incompleta':", error);
+            console.error(
+              "❌ Error actualizando estado a 'incompleta':",
+              error
+            );
           }
         } else {
-          console.log("✅ Transacción completa. Manteniendo estado por defecto.");
+          console.log(
+            "✅ Transacción completa. Manteniendo estado por defecto."
+          );
         }
       }
 
@@ -675,27 +801,34 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
       // Refrescar las transacciones para que aparezcan en la lista (DESPUÉS de validar)
       await refreshTransactions();
-      
     } catch (error) {
       console.error("❌ Failed to create sale:", error);
-      
+
       // Log detallado del error
       if (error.response) {
         console.error("❌ Error response status:", error.response.status);
         console.error("❌ Error response data:", error.response.data);
         console.error("❌ Error response headers:", error.response.headers);
-        
+
         // Mostrar detalles específicos del error 422
-        if (error.response.status === 422 && error.response.data && error.response.data.detail) {
+        if (
+          error.response.status === 422 &&
+          error.response.data &&
+          error.response.data.detail
+        ) {
           console.error("❌ Detalles del error de validación:");
           error.response.data.detail.forEach((detail, index) => {
-            console.error(`   ${index + 1}. Campo: ${detail.loc.join('.')} - Error: ${detail.msg}`);
+            console.error(
+              `   ${index + 1}. Campo: ${detail.loc.join(".")} - Error: ${
+                detail.msg
+              }`
+            );
           });
-          
+
           // Mostrar alert con los errores específicos
-          const errorMessages = error.response.data.detail.map(detail => 
-            `${detail.loc.join('.')}: ${detail.msg}`
-          ).join('\n');
+          const errorMessages = error.response.data.detail
+            .map((detail) => `${detail.loc.join(".")}: ${detail.msg}`)
+            .join("\n");
           alert(`❌ Error de validación:\n${errorMessages}`);
         }
       } else if (error.request) {
@@ -705,7 +838,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
         console.error("❌ Error message:", error.message);
         alert(`❌ Error: ${error.message}`);
       }
-      
+
       throw error;
     } finally {
       setIsSubmitting(false);
@@ -779,30 +912,38 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       <div className="bg-white p-6 rounded-lg border space-y-4">
         <div className="flex justify-between items-center border-b border-blue-200 pb-2">
           <h3 className="text-lg font-semibold text-blue-800">
-          Información del Paquete
-        </h3>
+            Información del Paquete
+          </h3>
           <div className="text-sm">
             {(() => {
               const errors = validateBasicFields(formData);
               const totalFields = 13; // Campos básicos requeridos (sin documentos de viajeros) - ahora incluye incluye y no_incluye
               const completedFields = totalFields - errors.length;
-              const percentage = Math.max(0, Math.min(100, (completedFields / totalFields) * 100));
-              
+              const percentage = Math.max(
+                0,
+                Math.min(100, (completedFields / totalFields) * 100)
+              );
+
               return (
                 <div className="flex items-center space-x-2">
                   <span className="text-gray-600">
                     {completedFields}/{totalFields} campos básicos completados
                   </span>
                   <div className="w-20 bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className={`h-2 rounded-full ${
-                        percentage === 100 ? 'bg-green-500' : 
-                        percentage >= 70 ? 'bg-yellow-500' : 'bg-red-500'
+                        percentage === 100
+                          ? "bg-green-500"
+                          : percentage >= 70
+                          ? "bg-yellow-500"
+                          : "bg-red-500"
                       }`}
                       style={{ width: `${percentage}%` }}
                     ></div>
                   </div>
-                  <span className="text-gray-600">{Math.round(percentage)}%</span>
+                  <span className="text-gray-600">
+                    {Math.round(percentage)}%
+                  </span>
                 </div>
               );
             })()}
@@ -913,7 +1054,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
                 <SelectItem value="dni">DNI</SelectItem>
                 <SelectItem value="pasaporte">Pasaporte</SelectItem>
                 <SelectItem value="cedula">Cédula</SelectItem>
-                <SelectItem value="tarjeta_identidad">Tarjeta de Identidad</SelectItem>
+                <SelectItem value="tarjeta_identidad">
+                  Tarjeta de Identidad
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -922,8 +1065,14 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Fecha de inicio *</Label>
             <Input
               type="date"
-              value={formData.startDate ? new Date(formData.startDate).toISOString().split('T')[0] : ""}
-              onChange={(e) => updateField("startDate", new Date(e.target.value).toISOString())}
+              value={
+                formData.startDate
+                  ? new Date(formData.startDate).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={(e) =>
+                updateField("startDate", new Date(e.target.value).toISOString())
+              }
               required
             />
           </div>
@@ -932,8 +1081,14 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
             <Label>Fecha de fin *</Label>
             <Input
               type="date"
-              value={formData.endDate ? new Date(formData.endDate).toISOString().split('T')[0] : ""}
-              onChange={(e) => updateField("endDate", new Date(e.target.value).toISOString())}
+              value={
+                formData.endDate
+                  ? new Date(formData.endDate).toISOString().split("T")[0]
+                  : ""
+              }
+              onChange={(e) =>
+                updateField("endDate", new Date(e.target.value).toISOString())
+              }
               required
             />
           </div>
@@ -972,11 +1127,13 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       <div className="bg-white p-6 rounded-lg border space-y-4">
         <div className="flex justify-between items-center border-b border-blue-200 pb-2">
           <h3 className="text-lg font-semibold text-blue-800">
-          Información del Vuelo
+            Información del Vuelo
             {formData.package === "terrestre" && (
-              <span className="text-sm text-gray-500 ml-2">(Opcional para paquetes terrestres)</span>
+              <span className="text-sm text-gray-500 ml-2">
+                (Opcional para paquetes terrestres)
+              </span>
             )}
-        </h3>
+          </h3>
           <Button
             type="button"
             onClick={addFlight}
@@ -1006,52 +1163,70 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
               )}
             </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Aerolínea</Label>
-            <Input
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Aerolínea</Label>
+                <Input
                   value={flight.aerolinea || ""}
-                  onChange={(e) => updateFlightField(index, "aerolinea", e.target.value)}
-              placeholder="Nombre de la aerolínea"
-            />
-          </div>
+                  onChange={(e) =>
+                    updateFlightField(index, "aerolinea", e.target.value)
+                  }
+                  placeholder="Nombre de la aerolínea"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Ruta</Label>
-            <Input
+              <div className="space-y-2">
+                <Label>Ruta</Label>
+                <Input
                   value={flight.ruta || ""}
-                  onChange={(e) => updateFlightField(index, "ruta", e.target.value)}
-              placeholder="Origen - Destino"
-            />
-          </div>
+                  onChange={(e) =>
+                    updateFlightField(index, "ruta", e.target.value)
+                  }
+                  placeholder="Origen - Destino"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Fecha del vuelo</Label>
-            <Input
-              type="date"
-                  value={flight.fecha ? new Date(flight.fecha).toISOString().split('T')[0] : ""}
-                  onChange={(e) => updateFlightField(index, "fecha", new Date(e.target.value).toISOString())}
-            />
-          </div>
+              <div className="space-y-2">
+                <Label>Fecha del vuelo</Label>
+                <Input
+                  type="date"
+                  value={
+                    flight.fecha
+                      ? new Date(flight.fecha).toISOString().split("T")[0]
+                      : ""
+                  }
+                  onChange={(e) =>
+                    updateFlightField(
+                      index,
+                      "fecha",
+                      new Date(e.target.value).toISOString()
+                    )
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Hora de salida</Label>
-            <Input
-              type="time"
+              <div className="space-y-2">
+                <Label>Hora de salida</Label>
+                <Input
+                  type="time"
                   value={flight.hora_salida || ""}
-                  onChange={(e) => updateFlightField(index, "hora_salida", e.target.value)}
-            />
-          </div>
+                  onChange={(e) =>
+                    updateFlightField(index, "hora_salida", e.target.value)
+                  }
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Hora de llegada</Label>
-            <Input
-              type="time"
+              <div className="space-y-2">
+                <Label>Hora de llegada</Label>
+                <Input
+                  type="time"
                   value={flight.hora_llegada || ""}
-                  onChange={(e) => updateFlightField(index, "hora_llegada", e.target.value)}
-            />
-          </div>
-        </div>
+                  onChange={(e) =>
+                    updateFlightField(index, "hora_llegada", e.target.value)
+                  }
+                />
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -1060,11 +1235,13 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       <div className="bg-white p-6 rounded-lg border space-y-4">
         <div className="flex justify-between items-center border-b border-blue-200 pb-2">
           <h3 className="text-lg font-semibold text-blue-800">
-          Información del Hotel
+            Información del Hotel
             {formData.package === "migratorio" && (
-              <span className="text-sm text-gray-500 ml-2">(Opcional para paquetes migratorios)</span>
+              <span className="text-sm text-gray-500 ml-2">
+                (Opcional para paquetes migratorios)
+              </span>
             )}
-        </h3>
+          </h3>
           <Button
             type="button"
             onClick={addHotel}
@@ -1094,36 +1271,44 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
               )}
             </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Nombre del hotel</Label>
-            <Input
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Nombre del hotel</Label>
+                <Input
                   value={hotel.hotel || ""}
-                  onChange={(e) => updateHotelField(index, "hotel", e.target.value)}
-              placeholder="Nombre del hotel"
-            />
-          </div>
+                  onChange={(e) =>
+                    updateHotelField(index, "hotel", e.target.value)
+                  }
+                  placeholder="Nombre del hotel"
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Número de noches</Label>
-            <Input
-              type="number"
+              <div className="space-y-2">
+                <Label>Número de noches</Label>
+                <Input
+                  type="number"
                   value={hotel.noches || 1}
-                  onChange={(e) => updateHotelField(index, "noches", parseInt(e.target.value) || 1)}
-              min="1"
-              placeholder="Número de noches"
-            />
-          </div>
-        </div>
-
-
+                  onChange={(e) =>
+                    updateHotelField(
+                      index,
+                      "noches",
+                      parseInt(e.target.value) || 1
+                    )
+                  }
+                  min="1"
+                  placeholder="Número de noches"
+                />
+              </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Alimentación</Label>
                 <Input
                   value={hotel.alimentacion || ""}
-                  onChange={(e) => updateHotelField(index, "alimentacion", e.target.value)}
+                  onChange={(e) =>
+                    updateHotelField(index, "alimentacion", e.target.value)
+                  }
                   placeholder="Tipo de alimentación (ej: Todo incluido, Media pensión)"
                 />
               </div>
@@ -1132,7 +1317,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
                 <Label>Acomodación</Label>
                 <Input
                   value={hotel.acomodacion || ""}
-                  onChange={(e) => updateHotelField(index, "acomodacion", e.target.value)}
+                  onChange={(e) =>
+                    updateHotelField(index, "acomodacion", e.target.value)
+                  }
                   placeholder="Tipo de acomodación (ej: Habitación doble, Suite)"
                 />
               </div>
@@ -1142,7 +1329,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
               <Label>Dirección del hotel</Label>
               <Input
                 value={hotel.direccion_hotel || ""}
-                onChange={(e) => updateHotelField(index, "direccion_hotel", e.target.value)}
+                onChange={(e) =>
+                  updateHotelField(index, "direccion_hotel", e.target.value)
+                }
                 placeholder="Dirección completa del hotel"
               />
             </div>
@@ -1152,7 +1341,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
                 <Label>País de destino</Label>
                 <Input
                   value={hotel.pais_destino || ""}
-                  onChange={(e) => updateHotelField(index, "pais_destino", e.target.value)}
+                  onChange={(e) =>
+                    updateHotelField(index, "pais_destino", e.target.value)
+                  }
                   placeholder="País de destino"
                 />
               </div>
@@ -1161,13 +1352,13 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
                 <Label>Ciudad de destino</Label>
                 <Input
                   value={hotel.ciudad_destino || ""}
-                  onChange={(e) => updateHotelField(index, "ciudad_destino", e.target.value)}
+                  onChange={(e) =>
+                    updateHotelField(index, "ciudad_destino", e.target.value)
+                  }
                   placeholder="Ciudad de destino"
-            />
-          </div>
-        </div>
-
-
+                />
+              </div>
+            </div>
           </div>
         ))}
       </div>
