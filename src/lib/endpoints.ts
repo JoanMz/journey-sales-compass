@@ -19,9 +19,11 @@ export const endpoints = {
     updateStatus: (transactionId: number | string, status: string) =>
       `${baseUrl}/transactions/${transactionId}/status?status=${status}`,
     patchStatus: (transactionId: number | string) =>
-      `${baseUrl}/transactions/${transactionId}/status?status=pending`,
+      `${baseUrl}/transactions/${transactionId}/status`,
+      // `${baseUrl}/transactions/${transactionId}/status?status=pending`,
     patchStatusIncomplete: (transactionId: number | string) =>
-      `${baseUrl}/transactions/${transactionId}/status?status=incompleta`,
+      `${baseUrl}/transactions/${transactionId}/status`,
+      // `${baseUrl}/transactions/${transactionId}/status?status=incompleta`,
     postTransaction:  `${baseUrl}/transactions/`,
     getById: (transactionId: number | string) =>
       `${baseUrl}/transactions/${transactionId}`,

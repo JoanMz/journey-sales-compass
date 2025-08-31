@@ -1425,7 +1425,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               const statusResponse = await axios.put(
                 endpoints.transactions.patchStatus(transactionId),
                 // `http://localhost:3000/transactions/${transactionId}/status`,
-                { status: "incompleta" }
+                { status: "pending" }
               );
 
               console.log(
