@@ -1289,12 +1289,12 @@ const Home = () => {
                     </div>
                   )}
 
-                {/* Información de Viaje */}
+                {/* Información de Hotel */}
                 {selectedTransaction.travel_info &&
                   selectedTransaction.travel_info.length > 0 && (
                     <div className="bg-gray-50 p-4 rounded-lg">
                       <h3 className="font-semibold text-lg mb-3">
-                        Información de Viaje
+                        Información de Hotel
                       </h3>
                       <div className="space-y-3">
                         {selectedTransaction.travel_info.map(
@@ -1331,70 +1331,72 @@ const Home = () => {
                                   </p>
                                   )}
                                 </div>
-                                {/* <div>
-                                  <Label>Incluye</Label>
+                                <div>
+                                  <Label>País Destino</Label>
                                   {isEditing ? (
-                                    <Textarea
-                                      value={
-                                        editedTransaction?.travel_info?.[0]?.incluye 
-                                          ? (Array.isArray(editedTransaction.travel_info[0].incluye) 
-                                              ? editedTransaction.travel_info[0].incluye.join(', ')
-                                              : editedTransaction.travel_info[0].incluye)
-                                          : ''
-                                      }
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        const incluyeArray = value ? value.split(',').map(item => item.trim()) : [];
-                                        updateHotelField('incluye', incluyeArray);
-                                      }}
-                                      placeholder="Separar elementos con comas"
+                                    <Input
+                                      value={editedTransaction?.travel_info?.[0]?.pais_destino || ''}
+                                      onChange={(e) => updateHotelField('pais_destino', e.target.value)}
                                     />
                                   ) : (
-                                  <div className="font-medium">
-                                    {travelInfo.incluye && Array.isArray(travelInfo.incluye) ? (
-                                      <ul className="list-disc list-inside">
-                                        {travelInfo.incluye.map((item: string, idx: number) => (
-                                          <li key={idx} className="text-sm">{item}</li>
-                                        ))}
-                                      </ul>
-                                    ) : (
-                                      <p>{travelInfo.incluye || "No especificado"}</p>
-                                    )}
-                                  </div>
+                                  <p className="font-medium">
+                                    {travelInfo.pais_destino || "No especificado"}
+                                  </p>
                                   )}
-                                </div> */}
-                                {/* <div>
-                                  <Label>No Incluye</Label>
+                                </div>
+                                <div>
+                                  <Label>Ciudad Destino</Label>
                                   {isEditing ? (
-                                    <Textarea
-                                      value={
-                                        editedTransaction?.travel_info?.[0]?.no_incluye 
-                                          ? (Array.isArray(editedTransaction.travel_info[0].no_incluye) 
-                                              ? editedTransaction.travel_info[0].no_incluye.join(', ')
-                                              : editedTransaction.travel_info[0].no_incluye)
-                                          : ''
-                                      }
-                                      onChange={(e) => {
-                                        const value = e.target.value;
-                                        const noIncluyeArray = value ? value.split(',').map(item => item.trim()) : [];
-                                        updateHotelField('no_incluye', noIncluyeArray);
-                                      }}
-                                      placeholder="Separar elementos con comas"
+                                    <Input
+                                      value={editedTransaction?.travel_info?.[0]?.ciudad_destino || ''}
+                                      onChange={(e) => updateHotelField('ciudad_destino', e.target.value)}
                                     />
                                   ) : (
-                                  <div className="font-medium">
-                                    {travelInfo.no_incluye && Array.isArray(travelInfo.no_incluye) ? (
-                                      <ul className="list-disc list-inside">
-                                        {travelInfo.no_incluye.map((item: string, idx: number) => (
-                                          <li key={idx} className="text-sm">{item}</li>
-                                        ))}
-                                      </ul>
-                                    ) : (
-                                      <p>{travelInfo.no_incluye || "No especificado"}</p>
-                                    )}
-                                  </div>
+                                  <p className="font-medium">
+                                    {travelInfo.ciudad_destino || "No especificado"}
+                                  </p>
                                   )}
-                                </div> */}
+                                </div>
+                                <div>
+                                  <Label>Dirección del Hotel</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.travel_info?.[0]?.direccion_hotel || ''}
+                                      onChange={(e) => updateHotelField('direccion_hotel', e.target.value)}
+                                    />
+                                  ) : (
+                                  <p className="font-medium">
+                                    {travelInfo.direccion_hotel || "No especificado"}
+                                  </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <Label>Acomodación</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.travel_info?.[0]?.acomodacion || ''}
+                                      onChange={(e) => updateHotelField('acomodacion', e.target.value)}
+                                    />
+                                  ) : (
+                                  <p className="font-medium">
+                                    {travelInfo.acomodacion || "No especificado"}
+                                  </p>
+                                  )}
+                                </div>
+                                <div>
+                                  <Label>Alimentación</Label>
+                                  {isEditing ? (
+                                    <Input
+                                      value={editedTransaction?.travel_info?.[0]?.alimentacion || ''}
+                                      onChange={(e) => updateHotelField('alimentacion', e.target.value)}
+                                    />
+                                  ) : (
+                                  <p className="font-medium">
+                                    {travelInfo.alimentacion || "No especificado"}
+                                  </p>
+                                  )}
+                                </div>
+
                               </div>
                             </div>
                           )

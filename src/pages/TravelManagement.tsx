@@ -705,10 +705,10 @@ const TravelManagement = () => {
                       </div>
                     )}
 
-                    {/* Información de Viaje */}
+                    {/* Información de Hotel */}
                     {selectedTransaction.travel_info && selectedTransaction.travel_info.length > 0 && (
                       <div className="space-y-4">
-                        <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información de Viaje</h3>
+                        <h3 className="text-lg font-semibold text-gray-700 border-b pb-2">Información de Hotel</h3>
                         <div className="space-y-3">
                           {selectedTransaction.travel_info.map((info, index) => (
                             <div key={index} className="bg-gray-50 p-4 rounded-lg">
