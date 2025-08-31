@@ -62,8 +62,8 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
         return;
       }
 
-      if (formData.tarifa_adulto <= 0 || formData.tarifa_nino <= 0) {
-        alert('Las tarifas deben ser mayores a 0');
+      if (formData.tarifa_adulto <= 0) {
+        alert('La tarifa por adulto debe ser mayor a 0');
         setIsSubmitting(false);
         return;
       }
@@ -157,7 +157,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="tarifa_nino">Tarifa por niño *</Label>
+              <Label htmlFor="tarifa_nino">Tarifa por niño</Label>
               <Input
                 id="tarifa_nino"
                 type="number"
@@ -166,7 +166,6 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 value={formData.tarifa_nino}
                 onChange={(e) => updateField('tarifa_nino', parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
-                required
               />
             </div>
           </div>
