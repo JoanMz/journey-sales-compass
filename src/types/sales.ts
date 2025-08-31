@@ -47,12 +47,6 @@ export interface SalesFormData {
     direccion_hotel: string;
     pais_destino: string;
     ciudad_destino: string;
-    cuentas_recaudo: {
-      banco: string;
-      numero: string;
-      nombre: string;
-      nit: string;
-    };
   }>;
 }
 

@@ -291,89 +291,10 @@ export const QuincenalCommissions: React.FC<QuincenalCommissionsProps> = ({ sell
             </Button>
           </div>
 
-          {/* Resumen */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
-              <DollarSign className="h-10 w-10 text-blue-500 mr-3" />
-              <div>
-                <div className="font-semibold text-blue-700">Total Comisiones Quincenales</div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {totalCommission.toLocaleString("es-CO", {
-                    style: "currency",
-                    currency: "COP",
-                  })}
-                </div>
-                <div className="text-sm text-blue-500">2.25% por venta aprobada en la quincena</div>
-              </div>
-            </div>
-            
-            <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
-              <Users className="h-10 w-10 text-blue-500 mr-3" />
-              <div>
-                <div className="font-semibold text-blue-700">Sellers con Ventas</div>
-                <div className="text-2xl font-bold text-blue-600">{commissions.length}</div>
-                <div className="text-sm text-blue-500">Con ventas aprobadas en la quincena</div>
-              </div>
-            </div>
-            
-            <div className="bg-white p-4 rounded-md border border-blue-200 flex items-center">
-              <Calendar className="h-10 w-10 text-blue-500 mr-3" />
-              <div>
-                <div className="font-semibold text-blue-700">Ventas Aprobadas</div>
-                <div className="text-2xl font-bold text-blue-600">{totalTransactions}</div>
-                <div className="text-sm text-blue-500">Transacciones aprobadas en la quincena</div>
-              </div>
-            </div>
-          </div>
+
         </div>
 
-        {/* Lista de comisiones por seller */}
-        <div className="space-y-3">
-          <h3 className="font-semibold text-blue-700 mb-3">
-            Comisiones Quincenales por Seller - {getQuincenaLabel(selectedQuincena)}
-            {isAdmin && selectedSeller && selectedSeller !== 'all' && (
-              <span className="text-sm text-blue-500 ml-2">
-                (Filtrado por vendedor)
-              </span>
-            )}
-          </h3>
-          
-          {loading ? (
-            <div className="text-center py-8 text-blue-500">Calculando comisiones...</div>
-          ) : commissions.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              No hay comisiones para esta quincena
-            </div>
-          ) : (
-            commissions.map((commission) => (
-              <div
-                key={commission.sellerId}
-                className="bg-white p-4 rounded-md border border-blue-200 flex justify-between items-center"
-              >
-                <div className="flex items-center">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mr-3">
-                    {commission.sellerName.charAt(0)}
-                  </div>
-                  <div>
-                    <h4 className="font-medium text-blue-700">{commission.sellerName}</h4>
-                    <div className="text-sm text-blue-500">
-                      {commission.transactionCount} venta{commission.transactionCount !== 1 ? 's' : ''} aprobada{commission.transactionCount !== 1 ? 's' : ''}
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="text-right">
-                  <div className="text-lg font-bold text-blue-600">
-                    {commission.formatted}
-                  </div>
-                  <Badge variant="outline" className="text-blue-600 border-blue-300">
-                    Comisión Quincenal 2.25%
-                  </Badge>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
+
 
         {/* Seller Metrics Section - Only shown for non-admin users */}
         {!isAdmin && user?.id && (
@@ -464,27 +385,7 @@ export const QuincenalCommissions: React.FC<QuincenalCommissionsProps> = ({ sell
                   </>
                 ) : (
                   <>
-                    <Card className="bg-white shadow-md border border-gray-200">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="text-sm font-semibold text-gray-700">
-                            Mis Ingresos [BORRAR]
-                          </h3> 
-                          <div className="p-1 bg-blue-500 text-white rounded-md">
-                            <TrendingUp size={16} />
-                          </div>
-                        </div>
-                        <div className="text-xl font-bold text-gray-900">
-                          {formatCurrency(sellerTotalRevenue)}
-                        </div>
-                        <div className="flex items-center mt-1 text-xs">
-                          <ArrowUp className="h-3 w-3 text-green-500 mr-1" />
-                          <span className="text-green-500 font-medium">
-                            Total generado
-                          </span>
-                        </div>
-                      </CardContent>
-                    </Card>
+
 
                     <Card className="bg-white shadow-md border border-gray-200">
                       <CardContent className="p-4">

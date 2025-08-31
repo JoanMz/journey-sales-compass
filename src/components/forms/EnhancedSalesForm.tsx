@@ -70,12 +70,6 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
       direccion_hotel: "",
       pais_destino: "",
       ciudad_destino: "",
-      cuentas_recaudo: {
-        banco: "",
-        numero: "",
-        nombre: "",
-        nit: "",
-      },
     }],
   });
 
@@ -139,12 +133,6 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           direccion_hotel: "",
           pais_destino: "",
           ciudad_destino: "",
-          cuentas_recaudo: {
-            banco: "",
-            numero: "",
-            nombre: "",
-            nit: "",
-          },
       },
       ],
     }));
@@ -157,20 +145,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     }));
   };
 
-  const updateCuentaRecaudoField = (hotelIndex: number, field: string, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      hotelInfo: prev.hotelInfo?.map((hotel, i) => 
-        i === hotelIndex ? {
-          ...hotel,
-        cuentas_recaudo: {
-            ...hotel.cuentas_recaudo,
-          [field]: value,
-        },
-        } : hotel
-      ) || [],
-    }));
-  };
+
 
   // Función para validar solo campos básicos requeridos para crear la venta
   const validateBasicFields = (data: SalesFormData): string[] => {
@@ -1188,50 +1163,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           </div>
         </div>
 
-        {/* Cuentas de Recaudo */}
-        <div className="border-t pt-4">
-          <h4 className="text-md font-semibold text-blue-700 mb-4">
-            Cuentas de Recaudo
-          </h4>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Banco</Label>
-              <Input
-                    value={hotel.cuentas_recaudo?.banco || ""}
-                    onChange={(e) => updateCuentaRecaudoField(index, "banco", e.target.value)}
-                placeholder="Nombre del banco"
-              />
-            </div>
 
-            <div className="space-y-2">
-              <Label>Número de cuenta</Label>
-              <Input
-                    value={hotel.cuentas_recaudo?.numero || ""}
-                    onChange={(e) => updateCuentaRecaudoField(index, "numero", e.target.value)}
-                placeholder="Número de cuenta"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Nombre del titular</Label>
-              <Input
-                    value={hotel.cuentas_recaudo?.nombre || ""}
-                    onChange={(e) => updateCuentaRecaudoField(index, "nombre", e.target.value)}
-                placeholder="Nombre del titular de la cuenta"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>NIT</Label>
-              <Input
-                    value={hotel.cuentas_recaudo?.nit || ""}
-                    onChange={(e) => updateCuentaRecaudoField(index, "nit", e.target.value)}
-                placeholder="Número de identificación tributaria"
-              />
-            </div>
-          </div>
-        </div>
           </div>
         ))}
       </div>

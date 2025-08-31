@@ -32,12 +32,11 @@ const FlightHotelForm: React.FC<FlightHotelFormProps> = ({
     noches: 0,
     incluye: [],
     no_incluye: [],
-    cuentas_recaudo: {
-      banco: '',
-      numero: '',
-      nombre: '',
-      nit: ''
-    }
+    alimentacion: '',
+    acomodacion: '',
+    direccion_hotel: '',
+    pais_destino: '',
+    ciudad_destino: ''
   });
 
   const [newIncluye, setNewIncluye] = useState('');
@@ -47,16 +46,11 @@ const FlightHotelForm: React.FC<FlightHotelFormProps> = ({
     setFlightInfo(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleHotelChange = (field: keyof Omit<HotelInfo, 'incluye' | 'no_incluye' | 'cuentas_recaudo'>, value: string | number) => {
+  const handleHotelChange = (field: keyof Omit<HotelInfo, 'incluye' | 'no_incluye'>, value: string | number) => {
     setHotelInfo(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleCuentasChange = (field: keyof HotelInfo['cuentas_recaudo'], value: string) => {
-    setHotelInfo(prev => ({
-      ...prev,
-      cuentas_recaudo: { ...prev.cuentas_recaudo, [field]: value }
-    }));
-  };
+
 
   const addIncluye = () => {
     if (newIncluye.trim()) {
@@ -97,7 +91,7 @@ const FlightHotelForm: React.FC<FlightHotelFormProps> = ({
     
     // Basic validation
     if (!flightInfo.aerolinea || !flightInfo.ruta || !flightInfo.fecha ||
-        !hotelInfo.hotel || hotelInfo.noches <= 0 || !hotelInfo.cuentas_recaudo.banco) {
+        !hotelInfo.hotel || hotelInfo.noches <= 0) {
       alert('Por favor completa todos los campos obligatorios');
       return;
     }
@@ -263,55 +257,7 @@ const FlightHotelForm: React.FC<FlightHotelFormProps> = ({
         </CardContent>
       </Card>
 
-      {/* Banking Information */}
-      <Card className="bg-white border-blue-200">
-        <CardHeader>
-          <CardTitle className="text-blue-800">Cuentas de Recaudo</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Banco *</Label>
-              <Input
-                value={hotelInfo.cuentas_recaudo.banco}
-                onChange={(e) => handleCuentasChange('banco', e.target.value)}
-                placeholder="Nombre del banco"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Número de Cuenta *</Label>
-              <Input
-                value={hotelInfo.cuentas_recaudo.numero}
-                onChange={(e) => handleCuentasChange('numero', e.target.value)}
-                placeholder="Número de cuenta"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Nombre del Titular *</Label>
-              <Input
-                value={hotelInfo.cuentas_recaudo.nombre}
-                onChange={(e) => handleCuentasChange('nombre', e.target.value)}
-                placeholder="Nombre completo del titular"
-                required
-              />
-            </div>
-            
-            <div className="space-y-2">
-              <Label>NIT *</Label>
-              <Input
-                value={hotelInfo.cuentas_recaudo.nit}
-                onChange={(e) => handleCuentasChange('nit', e.target.value)}
-                placeholder="Número de NIT"
-                required
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+
 
       {/* Form Actions */}
       <div className="flex justify-end space-x-4 pt-6">
