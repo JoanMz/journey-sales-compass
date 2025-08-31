@@ -206,8 +206,12 @@ export const updateTransactionStatus = async (id: number, status: string) => {
     //     },
     //   }
     // );
-    const response = await axios.patch(
-      endpoints.transactions.updateStatus(id, status)
+    // const response = await axios.patch(
+    //   endpoints.transactions.updateStatus(id, status)
+    // );
+    const response = await axios.put(
+      endpoints.transactions.updateStatus(id),
+      { status }
     );
     return parseTransactionsResponse(response);
   } catch (error) {

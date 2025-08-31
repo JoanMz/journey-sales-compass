@@ -16,8 +16,10 @@ export const endpoints = {
       dateField: string = "created_at"
     ) =>
       `${baseUrl}/transactions/date-range/?start_date=${startDate}&end_date=${endDate}&date_field=${dateField}`,
-    updateStatus: (transactionId: number | string, status: string) =>
-      `${baseUrl}/transactions/${transactionId}/status?status=${status}`,
+    // updateStatus: (transactionId: number | string, status: string) =>
+    updateStatus: (transactionId: number | string) =>
+      // `${baseUrl}/transactions/${transactionId}/status?status=${status}`,
+      `${baseUrl}/transactions/${transactionId}/status`,
     patchStatus: (transactionId: number | string) =>
       `${baseUrl}/transactions/${transactionId}/status`,
       // `${baseUrl}/transactions/${transactionId}/status?status=pending`,
