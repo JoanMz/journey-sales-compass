@@ -10,6 +10,8 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
+import { baseUrl } from "@/lib/endpoints";
+
 
 type User = {
   id: number;
@@ -167,7 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // If not using demo credentials, try the API
       try {
         const response = await axios.post(
-          `https://fastapi-data-1-nc7j.onrender.com/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
+          `${baseUrl}/auth/login?email=${encodeURIComponent(email)}&password=${encodeURIComponent(password)}`,
           {},
           {
             headers: {

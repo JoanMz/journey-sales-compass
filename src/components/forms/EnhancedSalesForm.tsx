@@ -18,6 +18,8 @@ import axios from "axios";
 import { endpoints } from "@/lib/endpoints";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
+import { baseUrl } from "@/lib/endpoints";
+
 
 interface EnhancedSalesFormProps {
   onSubmit: (formData: FormData) => Promise<void> | void;
@@ -617,7 +619,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
           try {
             const evidenceResponse = await axios.post(
-              `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/evidence`,
+              `${baseUrl}/transactions/${transactionId}/evidence`,
               evidencesData[0], // Enviar solo el primer elemento del array
               {
                 headers: {
@@ -643,7 +645,7 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           console.log("🔍 Obteniendo viajeros de la transacción...");
           try {
             const transactionResponse = await axios.get(
-              `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}`
+              `${baseUrl}/transactions/${transactionId}`
             );
             const travelersFromResponse =
               transactionResponse.data.travelers || [];

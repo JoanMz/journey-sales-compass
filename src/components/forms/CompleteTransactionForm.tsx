@@ -17,6 +17,9 @@ import TravelerForm from "./TravelerForm";
 import { useData } from "@/contexts/DataContext";
 import axios from "axios";
 import { endpoints } from "@/lib/endpoints";
+import { baseUrl } from "@/lib/endpoints";
+
+
 
 interface CompleteTransactionFormProps {
   transactionId: string;
@@ -321,7 +324,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
       try {
         console.log("🔍 Obteniendo transacción actual...");
         const getResponse = await axios.get(
-          `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}`
+          `${baseUrl}/transactions/${transactionId}`
         );
         currentTransaction = getResponse.data;
         console.log("✅ Transacción actual obtenida:", currentTransaction);
@@ -380,7 +383,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
       try {
         console.log("🔍 Verificando que la transacción existe...");
         const currentTransactionResponse = await axios.get(
-          `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}`
+          `${baseUrl}/transactions/${transactionId}`
         );
         const currentTransaction = currentTransactionResponse.data;
         console.log("✅ Transacción encontrada:", currentTransaction);
@@ -442,7 +445,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
 
               console.log(
                 "📤 URL del endpoint itinerario:",
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/itinerario/${itinerarioId}`
+                `${baseUrl}/transactions/${transactionId}/itinerario/${itinerarioId}`
               );
               console.log(
                 "📤 Payload itinerario:",
@@ -453,7 +456,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               });
 
               const itinerarioResponse = await axios.patch(
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/itinerario/${itinerarioId}`,
+                `${baseUrl}/transactions/${transactionId}/itinerario/${itinerarioId}`,
                 formData.flightInfo[0],
                 {
                   headers: {
@@ -471,7 +474,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               console.log("📤 Creando nuevo itinerario...");
 
               const itinerarioResponse = await axios.post(
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/itinerario`,
+                `${baseUrl}/transactions/${transactionId}/itinerario`,
                 formData.flightInfo[0],
                 {
                   headers: {
@@ -593,7 +596,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
 
               console.log(
                 "📤 URL del endpoint travel_info:",
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/travel_info/${travelInfoId}`
+                `${baseUrl}/transactions/${transactionId}/travel_info/${travelInfoId}`
               );
               console.log(
                 "📤 Payload travel_info:",
@@ -604,7 +607,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               });
 
               const travelInfoResponse = await axios.patch(
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/travel_info/${travelInfoId}`,
+                `${baseUrl}/transactions/${transactionId}/travel_info/${travelInfoId}`,
                 travelInfoPayload,
                 {
                   headers: {
@@ -622,7 +625,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               console.log("📤 Creando nuevo travel_info...");
 
               const travelInfoResponse = await axios.post(
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/travel_info`,
+                `${baseUrl}/transactions/${transactionId}/travel_info`,
                 travelInfoPayload,
                 {
                   headers: {
@@ -659,7 +662,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
         // Verificar que los datos se actualizaron correctamente
         console.log("🔍 Verificando actualización...");
         const verifyResponse = await axios.get(
-          `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}`
+          `${baseUrl}/transactions/${transactionId}`
         );
         console.log(
           "✅ Datos actualizados en el backend:",
@@ -816,7 +819,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                   );
 
                   const documentoResponse = await axios.post(
-                    `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/documentos/${traveler.dni}`,
+                    `${baseUrl}/transactions/${transactionId}/documentos/${traveler.dni}`,
                     documentoData,
                     {
                       headers: {
@@ -1274,7 +1277,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
               // Obtener la transacción actual para ver qué datos existen
               console.log("🔍 Obteniendo transacción actual...");
               const getResponse = await axios.get(
-                `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}`
+                `${baseUrl}/transactions/${transactionId}`
               );
               const currentTransaction = getResponse.data;
               console.log(
@@ -1327,7 +1330,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                       }`
                     );
                     await axios.patch(
-                      `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/itinerario/${
+                      `${baseUrl}/transactions/${transactionId}/itinerario/${
                         (existingFlight as any).id
                       }`,
                       {
@@ -1345,7 +1348,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                     // POST - Crear nuevo vuelo
                     console.log(`📤 Creando nuevo vuelo ${i + 1}`);
                     await axios.post(
-                      `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/itinerario`,
+                      `${baseUrl}/transactions/${transactionId}/itinerario`,
                       {
                         aerolinea: flight.aerolinea,
                         ruta: flight.ruta,
@@ -1398,7 +1401,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                       }`
                     );
                     await axios.patch(
-                      `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/travel_info/${
+                      `${baseUrl}/transactions/${transactionId}/travel_info/${
                         (existingHotel as any).id
                       }`,
                       validatedHotelData,
@@ -1410,7 +1413,7 @@ const CompleteTransactionForm: React.FC<CompleteTransactionFormProps> = ({
                     // POST - Crear nuevo hotel
                     console.log(`📤 Creando nuevo hotel ${i + 1}`);
                     await axios.post(
-                      `https://fastapi-data-1-nc7j.onrender.com/transactions/${transactionId}/travel_info`,
+                      `${baseUrl}/transactions/${transactionId}/travel_info`,
                       validatedHotelData,
                       {
                         headers: { "Content-Type": "application/json" },
