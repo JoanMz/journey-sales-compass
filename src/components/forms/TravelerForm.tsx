@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import ImageUpload from '../ui/image-upload';
 import { Plus, Trash2 } from 'lucide-react';
 import { TravelerFormData } from '@/types/sales';
+import { filterNameInput, filterNumericInput } from '@/utils/validations';
 
 interface TravelerFormProps {
   travelers: TravelerFormData[];
@@ -36,8 +37,17 @@ const TravelerForm: React.FC<TravelerFormProps> = ({
   };
 
   const updateTraveler = (index: number, field: keyof TravelerFormData, value: any) => {
+    let filteredValue = value;
+    
+    // Aplicar filtros según el tipo de campo usando las funciones de validations.ts
+    if (field === 'name' && typeof value === 'string') {
+      filteredValue = filterNameInput(value);
+    } else if ((field === 'dni' || field === 'phone') && typeof value === 'string') {
+      filteredValue = filterNumericInput(value);
+    }
+    
     const updated = travelers.map((traveler, i) => 
-      i === index ? { ...traveler, [field]: value } : traveler
+      i === index ? { ...traveler, [field]: filteredValue } : traveler
     );
     onTravelersChange(updated);
   };
@@ -142,6 +152,7 @@ const TravelerForm: React.FC<TravelerFormProps> = ({
                 value={traveler.phone}
                 onChange={(e) => updateTraveler(index, 'phone', e.target.value)}
                 placeholder="Número de teléfono"
+                maxLength={11}
               />
             </div>
           </div>

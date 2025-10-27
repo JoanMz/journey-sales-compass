@@ -104,6 +104,38 @@ const result = validateFutureDate("2020-01-01", "Fecha de inicio");
 // { isValid: false, message: "El campo Fecha de inicio debe ser una fecha futura" }
 ```
 
+### validateNameOnlyLetters
+Valida que un nombre no contenga números.
+
+```typescript
+const result = validateNameOnlyLetters("Juan123", "Nombre completo");
+// { isValid: false, message: "El campo Nombre completo no puede contener números" }
+```
+
+### validateDocumentOnlyNumbers
+Valida que un documento de identidad contenga solo números.
+
+```typescript
+const result = validateDocumentOnlyNumbers("123abc", "Cédula");
+// { isValid: false, message: "El campo Cédula debe contener solo números" }
+```
+
+### validatePhoneOnlyNumbers
+Valida que un teléfono contenga solo números.
+
+```typescript
+const result = validatePhoneOnlyNumbers("300-123-4567", "Número de teléfono");
+// { isValid: false, message: "El campo Número de teléfono debe contener solo números" }
+```
+
+### validateBirthDate
+Valida que una fecha de nacimiento sea válida y no sea futura.
+
+```typescript
+const result = validateBirthDate("2025-01-01", "Fecha de nacimiento");
+// { isValid: false, message: "El campo Fecha de nacimiento no puede ser una fecha futura" }
+```
+
 ## 🔍 Validador de Campos Individuales
 
 ### validateField
@@ -139,6 +171,40 @@ const config = {
 
 const result = validateForm(formData, config);
 // { isValid: true, errors: {} }
+```
+
+## 🔧 Funciones de Filtrado de Entrada
+
+### filterNameInput
+Filtra la entrada para permitir solo letras, espacios y caracteres especiales del español.
+
+```typescript
+const filtered = filterNameInput("Juan123@#");
+// "Juan"
+```
+
+### filterNumericInput
+Filtra la entrada para permitir solo números.
+
+```typescript
+const filtered = filterNumericInput("123abc456");
+// "123456"
+```
+
+### filterPhoneInput
+Filtra la entrada para permitir solo números y guiones (para teléfonos con formato).
+
+```typescript
+const filtered = filterPhoneInput("300-123-4567abc");
+// "300-123-4567"
+```
+
+### filterAlphanumericInput
+Filtra la entrada para permitir solo letras, números y espacios (para direcciones).
+
+```typescript
+const filtered = filterAlphanumericInput("Calle 123 #45-67@");
+// "Calle 123 #45-67"
 ```
 
 ## 💰 Utilidades de Formateo
@@ -184,6 +250,18 @@ const phoneResult = validateField(phone, CommonValidations.phone, "Teléfono");
 
 // Usar validación de moneda predefinida
 const currencyResult = validateField(amount, CommonValidations.currency, "Monto");
+
+// Usar validación de nombre solo letras predefinida
+const nameResult = validateField(name, CommonValidations.nameOnlyLetters, "Nombre completo");
+
+// Usar validación de documento solo números predefinida
+const documentResult = validateField(document, CommonValidations.documentOnlyNumbers, "Cédula");
+
+// Usar validación de teléfono solo números predefinida
+const phoneResult = validateField(phone, CommonValidations.phoneOnlyNumbers, "Teléfono");
+
+// Usar validación de fecha de nacimiento predefinida
+const birthDateResult = validateField(birthDate, CommonValidations.birthDate, "Fecha de nacimiento");
 ```
 
 ## 📚 Ejemplos Prácticos
@@ -239,7 +317,75 @@ const invoiceValidationConfig = {
 const result = validateForm(invoiceFormData, invoiceValidationConfig);
 ```
 
-### Ejemplo 3: Input de Moneda con Formateo
+### Ejemplo 3: Formulario de Viajeros
+
+```typescript
+import { validateForm, CommonValidations } from '@/utils/validations';
+
+const travelerFormData = {
+  name: "Juan Pérez",
+  dni: "12345678",
+  tipo_documento: "dni",
+  date_birth: "1990-05-15",
+  phone: "3001234567"
+};
+
+const travelerValidationConfig = {
+  name: CommonValidations.nameOnlyLetters,
+  dni: CommonValidations.documentOnlyNumbers,
+  tipo_documento: { required: true },
+  date_birth: CommonValidations.birthDate,
+  phone: CommonValidations.phoneOnlyNumbers
+};
+
+const result = validateForm(travelerFormData, travelerValidationConfig);
+if (!result.isValid) {
+  console.log("Errores:", result.errors);
+}
+```
+
+### Ejemplo 4: Filtrado de Entrada en Tiempo Real
+
+```typescript
+import { filterNameInput, filterNumericInput, filterPhoneInput } from '@/utils/validations';
+
+// En un componente React
+const [formData, setFormData] = useState({
+  name: '',
+  document: '',
+  phone: ''
+});
+
+const handleInputChange = (field: string, value: string) => {
+  let filteredValue = value;
+  
+  switch (field) {
+    case 'name':
+      filteredValue = filterNameInput(value);
+      break;
+    case 'document':
+      filteredValue = filterNumericInput(value);
+      break;
+    case 'phone':
+      filteredValue = filterPhoneInput(value);
+      break;
+  }
+  
+  setFormData(prev => ({
+    ...prev,
+    [field]: filteredValue
+  }));
+};
+
+// En el JSX
+<Input
+  value={formData.name}
+  onChange={(e) => handleInputChange('name', e.target.value)}
+  placeholder="Solo letras y espacios"
+/>
+```
+
+### Ejemplo 5: Input de Moneda con Formateo
 
 ```typescript
 import { formatCurrency, parseCurrencyInput, cleanCurrencyInput } from '@/utils/validations';

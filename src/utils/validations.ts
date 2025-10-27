@@ -330,6 +330,130 @@ export const validateFutureDate = (date: string, fieldName: string = "Fecha"): V
   return { isValid: true };
 };
 
+/**
+ * Valida que un nombre no contenga números
+ * @param name - Nombre a validar
+ * @param fieldName - Nombre del campo (por defecto "Nombre")
+ * @returns Resultado de la validación
+ * 
+ * @example
+ * ```typescript
+ * const result = validateNameOnlyLetters("Juan123", "Nombre completo");
+ * // { isValid: false, message: "El campo Nombre completo no puede contener números" }
+ * ```
+ */
+export const validateNameOnlyLetters = (name: string, fieldName: string = "Nombre"): ValidationResult => {
+  const hasNumbers = /\d/.test(name);
+  if (hasNumbers) {
+    return {
+      isValid: false,
+      message: `El campo ${fieldName} no puede contener números`
+    };
+  }
+  return { isValid: true };
+};
+
+/**
+ * Valida que un documento de identidad contenga solo números
+ * @param document - Documento a validar
+ * @param fieldName - Nombre del campo (por defecto "Documento")
+ * @returns Resultado de la validación
+ * 
+ * @example
+ * ```typescript
+ * const result = validateDocumentOnlyNumbers("123abc", "Cédula");
+ * // { isValid: false, message: "El campo Cédula debe contener solo números" }
+ * ```
+ */
+export const validateDocumentOnlyNumbers = (document: string, fieldName: string = "Documento"): ValidationResult => {
+  const onlyNumbers = /^\d+$/.test(document);
+  if (!onlyNumbers) {
+    return {
+      isValid: false,
+      message: `El campo ${fieldName} debe contener solo números`
+    };
+  }
+  return { isValid: true };
+};
+
+/**
+ * Valida que un teléfono contenga solo números
+ * @param phone - Teléfono a validar
+ * @param fieldName - Nombre del campo (por defecto "Teléfono")
+ * @returns Resultado de la validación
+ * 
+ * @example
+ * ```typescript
+ * const result = validatePhoneOnlyNumbers("300-123-4567", "Número de teléfono");
+ * // { isValid: false, message: "El campo Número de teléfono debe contener solo números" }
+ * ```
+ */
+export const validatePhoneOnlyNumbers = (phone: string, fieldName: string = "Teléfono"): ValidationResult => {
+  const onlyNumbers = /^\d+$/.test(phone);
+  if (!onlyNumbers) {
+    return {
+      isValid: false,
+      message: `El campo ${fieldName} debe contener solo números`
+    };
+  }
+  return { isValid: true };
+};
+
+/**
+ * Valida que una fecha de nacimiento sea válida y no sea futura
+ * @param date - Fecha de nacimiento a validar (string en formato YYYY-MM-DD)
+ * @param fieldName - Nombre del campo (por defecto "Fecha de nacimiento")
+ * @returns Resultado de la validación
+ * 
+ * @example
+ * ```typescript
+ * const result = validateBirthDate("2025-01-01", "Fecha de nacimiento");
+ * // { isValid: false, message: "El campo Fecha de nacimiento no puede ser una fecha futura" }
+ * ```
+ */
+export const validateBirthDate = (date: string, fieldName: string = "Fecha de nacimiento"): ValidationResult => {
+  const dateObj = new Date(date);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  if (isNaN(dateObj.getTime())) {
+    return {
+      isValid: false,
+      message: `El campo ${fieldName} debe ser una fecha válida`
+    };
+  }
+  
+  if (dateObj > today) {
+    return {
+      isValid: false,
+      message: `El campo ${fieldName} no puede ser una fecha futura`
+    };
+  }
+  
+  // Validar que la persona tenga al menos 0 años (recién nacido)
+  const age = today.getFullYear() - dateObj.getFullYear();
+  const monthDiff = today.getMonth() - dateObj.getMonth();
+  const dayDiff = today.getDate() - dateObj.getDate();
+  
+  const actualAge = monthDiff < 0 || (monthDiff === 0 && dayDiff < 0) ? age - 1 : age;
+  
+  if (actualAge < 0) {
+    return {
+      isValid: false,
+      message: `El campo ${fieldName} no puede ser una fecha futura`
+    };
+  }
+  
+  if (actualAge > 120) {
+    return {
+      isValid: false,
+      message: `El campo ${fieldName} no puede ser anterior a 120 años`
+    };
+  }
+  
+  return { isValid: true };
+};
+
 // ========================================
 // VALIDADOR DE CAMPOS INDIVIDUALES
 // ========================================
@@ -478,6 +602,70 @@ export const validateForm = (
 };
 
 // ========================================
+// FUNCIONES DE FILTRADO DE ENTRADA
+// ========================================
+
+/**
+ * Filtra la entrada para permitir solo letras, espacios y caracteres especiales del español
+ * @param value - Valor a filtrar
+ * @returns String filtrado con solo letras y espacios
+ * 
+ * @example
+ * ```typescript
+ * const filtered = filterNameInput("Juan123@#");
+ * // "Juan"
+ * ```
+ */
+export const filterNameInput = (value: string): string => {
+  return value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+};
+
+/**
+ * Filtra la entrada para permitir solo números
+ * @param value - Valor a filtrar
+ * @returns String filtrado con solo números
+ * 
+ * @example
+ * ```typescript
+ * const filtered = filterNumericInput("123abc456");
+ * // "123456"
+ * ```
+ */
+export const filterNumericInput = (value: string): string => {
+  return value.replace(/[^\d]/g, '');
+};
+
+/**
+ * Filtra la entrada para permitir solo números y guiones (para teléfonos con formato)
+ * @param value - Valor a filtrar
+ * @returns String filtrado con solo números y guiones
+ * 
+ * @example
+ * ```typescript
+ * const filtered = filterPhoneInput("300-123-4567abc");
+ * // "300-123-4567"
+ * ```
+ */
+export const filterPhoneInput = (value: string): string => {
+  return value.replace(/[^\d-]/g, '');
+};
+
+/**
+ * Filtra la entrada para permitir solo letras, números y espacios (para direcciones)
+ * @param value - Valor a filtrar
+ * @returns String filtrado con letras, números y espacios
+ * 
+ * @example
+ * ```typescript
+ * const filtered = filterAlphanumericInput("Calle 123 #45-67@");
+ * // "Calle 123 #45-67"
+ * ```
+ */
+export const filterAlphanumericInput = (value: string): string => {
+  return value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ0-9\s#-]/g, '');
+};
+
+// ========================================
 // UTILIDADES DE FORMATEO
 // ========================================
 
@@ -610,5 +798,35 @@ export const CommonValidations = {
   futureDate: {
     required: true,
     custom: (value: string) => validateFutureDate(value)
+  } as ValidationConfig,
+
+  // Validación de nombre solo letras
+  nameOnlyLetters: {
+    required: true,
+    minLength: 2,
+    maxLength: 50,
+    custom: (value: string) => validateNameOnlyLetters(value, "Nombre")
+  } as ValidationConfig,
+
+  // Validación de documento solo números
+  documentOnlyNumbers: {
+    required: true,
+    minLength: 7,
+    maxLength: 12,
+    custom: (value: string) => validateDocumentOnlyNumbers(value, "Documento")
+  } as ValidationConfig,
+
+  // Validación de teléfono solo números
+  phoneOnlyNumbers: {
+    required: false,
+    minLength: 10,
+    maxLength: 15,
+    custom: (value: string) => value ? validatePhoneOnlyNumbers(value, "Teléfono") : { isValid: true }
+  } as ValidationConfig,
+
+  // Validación de fecha de nacimiento
+  birthDate: {
+    required: true,
+    custom: (value: string) => validateBirthDate(value, "Fecha de nacimiento")
   } as ValidationConfig
 };
