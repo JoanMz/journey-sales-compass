@@ -1,6 +1,6 @@
-import { DragEvent } from "react";
+import { DragEvent, useState } from "react";
 import { Button } from "../ui/button";
-import { Clock, Check, X, FileText } from "lucide-react";
+import { Clock, Check, X, FileText, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { SalesTransaction } from "../../types/sales";
 import { useAuth } from "../../contexts/AuthContext";
 import { Badge } from "../ui/badge";
@@ -33,11 +33,100 @@ export const KanbanView = ({
 }: KanbanViewProps) => {
   const { isSeller, user } = useAuth();
 
+  // Pagination state for each column
+  const [currentPages, setCurrentPages] = useState({
+    "Incompleta": 1,
+    "Pendiente": 1,
+    "Aprobado": 1,
+    "Rechazado": 1,
+  });
+
+  const ITEMS_PER_PAGE = 5; // Cambiar a 5 para la vista de ventas aprobadas    
+
+  // Pagination utility functions
+  const getPaginatedData = (data: SalesTransaction[], columnName: string) => {
+    const currentPage = currentPages[columnName as keyof typeof currentPages];
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return data.slice(startIndex, endIndex);
+  };
+
+  const getTotalPages = (dataLength: number) => {
+    return Math.ceil(dataLength / ITEMS_PER_PAGE);
+  };
+
+  const handlePageChange = (columnName: string, newPage: number) => {
+    setCurrentPages(prev => ({
+      ...prev,
+      [columnName]: newPage,
+    }));
+  };
+
+  // Pagination component
+  const PaginationControls = ({
+    columnName,
+    data,
+  }: {
+    columnName: string;
+    data: SalesTransaction[];
+  }) => {
+    const totalPages = getTotalPages(data.length);
+    const currentPage = currentPages[columnName as keyof typeof currentPages];
+
+    if (data.length <= ITEMS_PER_PAGE) {
+      return null;
+    }
+
+    return (
+      <div className="flex items-center justify-center gap-1 sm:gap-2 mt-4 pt-4 border-t">
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handlePageChange(columnName, 1)}
+          disabled={currentPage === 1}
+          className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+        >
+          <ChevronsLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handlePageChange(columnName, currentPage - 1)}
+          disabled={currentPage === 1}
+          className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+        >
+          <ChevronLeft className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+        <span className="text-xs sm:text-sm text-gray-600 px-1 sm:px-2">
+          {currentPage} de {totalPages}
+        </span>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handlePageChange(columnName, currentPage + 1)}
+          disabled={currentPage === totalPages}
+          className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+        >
+          <ChevronRight className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => handlePageChange(columnName, totalPages)}
+          disabled={currentPage === totalPages}
+          className="h-7 w-7 sm:h-8 sm:w-8 p-0"
+        >
+          <ChevronsRight className="h-3 w-3 sm:h-4 sm:w-4" />
+        </Button>
+      </div>
+    );
+  };
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Incompletas Column */}
       <div
-        className="kanban-column border-t-4 border-orange-400"
+        className="kanban-column border-t-4 border-orange-400 min-h-[400px] flex flex-col"
         onDrop={(e) => onDrop(e, "Incompleta")}
         onDragOver={allowDrop}
       >
@@ -49,8 +138,8 @@ export const KanbanView = ({
           </span>
         </div>
 
-        <div className="space-y-3">
-          {kanbanGroups["Incompleta"].map((transaction) => (
+        <div className="space-y-3 flex-1">
+          {getPaginatedData(kanbanGroups["Incompleta"], "Incompleta").map((transaction) => (
             <div
               key={transaction.id}
               draggable
@@ -91,11 +180,15 @@ export const KanbanView = ({
             </div>
           ))}
         </div>
+        <PaginationControls
+          columnName="Incompleta"
+          data={kanbanGroups["Incompleta"]}
+        />
       </div>
 
       {/* Pending Column */}
       <div
-        className="kanban-column border-t-4 border-blue-400"
+        className="kanban-column border-t-4 border-blue-400 min-h-[400px] flex flex-col"
         onDrop={(e) => onDrop(e, "Pendiente")}
         onDragOver={allowDrop}
       >
@@ -107,8 +200,8 @@ export const KanbanView = ({
           </span>
         </div>
 
-        <div className="space-y-3">
-          {kanbanGroups["Pendiente"].map((transaction) => (
+        <div className="space-y-3 flex-1">
+          {getPaginatedData(kanbanGroups["Pendiente"], "Pendiente").map((transaction) => (
             <div
               key={transaction.id}
               draggable
@@ -141,11 +234,15 @@ export const KanbanView = ({
             </div>
           ))}
         </div>
+        <PaginationControls
+          columnName="Pendiente"
+          data={kanbanGroups["Pendiente"]}
+        />
       </div>
 
       {/* Approved Column */}
       <div
-        className="kanban-column border-t-4 border-yellow-400"
+        className="kanban-column border-t-4 border-yellow-400 min-h-[400px] flex flex-col"
         onDrop={(e) => onDrop(e, "Aprobado")}
         onDragOver={allowDrop}
       >
@@ -157,8 +254,8 @@ export const KanbanView = ({
           </span>
         </div>
 
-        <div className="space-y-3">
-          {kanbanGroups["Aprobado"].map((transaction) => (
+        <div className="space-y-3 flex-1">
+          {getPaginatedData(kanbanGroups["Aprobado"], "Aprobado").map((transaction) => (
             <div
               key={transaction.id}
               draggable
@@ -236,13 +333,17 @@ export const KanbanView = ({
             </div>
           ))}
         </div>
+        <PaginationControls
+          columnName="Aprobado"
+          data={kanbanGroups["Aprobado"]}
+        />
       </div>
 
 
 
       {/* Rejected Column */}
       <div
-        className="kanban-column border-t-4 border-red-400"
+        className="kanban-column border-t-4 border-red-400 min-h-[400px] flex flex-col"
         onDrop={(e) => onDrop(e, "Rechazado")}
         onDragOver={allowDrop}
       >
@@ -254,8 +355,8 @@ export const KanbanView = ({
           </span>
         </div>
 
-        <div className="space-y-3">
-          {kanbanGroups["Rechazado"].map((transaction) => (
+        <div className="space-y-3 flex-1">
+          {getPaginatedData(kanbanGroups["Rechazado"], "Rechazado").map((transaction) => (
             <div
               key={transaction.id}
               draggable
@@ -287,6 +388,10 @@ export const KanbanView = ({
             </div>
           ))}
         </div>
+        <PaginationControls
+          columnName="Rechazado"
+          data={kanbanGroups["Rechazado"]}
+        />
       </div>
     </div>
   );
