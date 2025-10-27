@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
+import { 
+  validateForm, 
+  validateCurrency, 
+  validateFutureDate,
+  formatCurrency, 
+  parseCurrencyInput,
+  cleanCurrencyInput,
+  FormValidationConfig 
+} from '@/utils/validations';
+
 
 interface InvoiceFormData {
   ciudad_salida: string;
@@ -35,12 +45,123 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     tarifa_nino: 0
   });
 
+  // Track which field is currently being edited
+  const [editingField, setEditingField] = useState<string | null>(null);
+
+  // Raw input values (what user is typing)
+  const [rawInputValues, setRawInputValues] = useState({
+    tarifa_adulto: '',
+    tarifa_nino: ''
+  });
+
+  // Display values for currency inputs (formatted with thousands separators)
+  const [displayValues, setDisplayValues] = useState({
+    tarifa_adulto: '0,00',
+    tarifa_nino: '0,00'
+  });
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
+
+  // Configuración de validación usando el sistema centralizado
+  const validationConfig: FormValidationConfig = {
+    ciudad_salida: {
+      required: true,
+      minLength: 2,
+      maxLength: 50
+    },
+    ciudad_llegada: {
+      required: true,
+      minLength: 2,
+      maxLength: 50
+    },
+    fecha_inicio: {
+      required: true,
+      custom: (value: string) => validateFutureDate(value, "Fecha de inicio")
+    },
+    fecha_regreso: {
+      required: true,
+      custom: (value: string) => validateFutureDate(value, "Fecha de regreso")
+    },
+    tarifa_adulto: {
+      required: true,
+      custom: (value: number) => validateCurrency(value, "Tarifa por adulto", 0)
+    },
+    tarifa_nino: {
+      custom: (value: number) => value > 0 ? validateCurrency(value, "Tarifa por niño", 0) : { isValid: true }
+    }
+  };
+
+  // Initialize display values when form opens
+  useEffect(() => {
+    if (isOpen) {
+      setDisplayValues({
+        tarifa_adulto: formatCurrency(formData.tarifa_adulto),
+        tarifa_nino: formatCurrency(formData.tarifa_nino)
+      });
+      setRawInputValues({
+        tarifa_adulto: formData.tarifa_adulto.toString(),
+        tarifa_nino: formData.tarifa_nino.toString()
+      });
+      setErrors({}); // Limpiar errores al abrir
+    }
+  }, [isOpen, formData.tarifa_adulto, formData.tarifa_nino]);
 
   const updateField = (field: keyof InvoiceFormData, value: any) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }));
+    
+    // Limpiar error del campo cuando se modifica
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+  };
+
+  const handleCurrencyChange = (field: 'tarifa_adulto' | 'tarifa_nino', inputValue: string) => {
+    const cleanedValue = cleanCurrencyInput(inputValue);
+    
+    setRawInputValues(prev => ({
+      ...prev,
+      [field]: cleanedValue
+    }));
+  };
+
+  const handleCurrencyBlur = (field: 'tarifa_adulto' | 'tarifa_nino') => {
+    const rawValue = rawInputValues[field];
+    const numericValue = rawValue === '' ? 0 : parseCurrencyInput(rawValue);
+    const formattedValue = formatCurrency(numericValue);
+    
+    // Update the numeric value in formData
+    setFormData(prev => ({
+      ...prev,
+      [field]: numericValue
+    }));
+    
+    // Update the display value with formatting
+    setDisplayValues(prev => ({
+      ...prev,
+      [field]: formattedValue
+    }));
+    
+    // Mark field as no longer being edited
+    setEditingField(null);
+  };
+
+  const handleCurrencyFocus = (field: 'tarifa_adulto' | 'tarifa_nino') => {
+    // Mark field as being edited
+    setEditingField(field);
+    // Show raw value when focusing for easier editing
+    const currentValue = formData[field];
+    const rawValue = currentValue === 0 ? '' : currentValue.toString();
+    setRawInputValues(prev => ({
+      ...prev,
+      [field]: rawValue
     }));
   };
 
@@ -54,16 +175,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     setIsSubmitting(true);
 
     try {
-      // Validar campos requeridos
-      if (!formData.ciudad_salida || !formData.ciudad_llegada || 
-          !formData.fecha_inicio || !formData.fecha_regreso) {
-        alert('Por favor completa todos los campos requeridos');
-        setIsSubmitting(false);
-        return;
-      }
-
-      if (formData.tarifa_adulto <= 0) {
-        alert('La tarifa por adulto debe ser mayor a 0');
+      // Usar el sistema de validaciones centralizado
+      const validationResult = validateForm(formData, validationConfig);
+      
+      if (!validationResult.isValid) {
+        setErrors(validationResult.errors);
         setIsSubmitting(false);
         return;
       }
@@ -101,8 +217,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 value={formData.ciudad_salida}
                 onChange={(e) => updateField('ciudad_salida', e.target.value)}
                 placeholder="Ciudad de origen"
-                required
+                className={errors.ciudad_salida ? 'border-red-500' : ''}
               />
+              {errors.ciudad_salida && (
+                <span className="text-red-500 text-sm">{errors.ciudad_salida}</span>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -112,8 +231,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 value={formData.ciudad_llegada}
                 onChange={(e) => updateField('ciudad_llegada', e.target.value)}
                 placeholder="Ciudad de destino"
-                required
+                className={errors.ciudad_llegada ? 'border-red-500' : ''}
               />
+              {errors.ciudad_llegada && (
+                <span className="text-red-500 text-sm">{errors.ciudad_llegada}</span>
+              )}
             </div>
           </div>
 
@@ -125,8 +247,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 type="date"
                 value={formData.fecha_inicio}
                 onChange={(e) => updateField('fecha_inicio', e.target.value)}
-                required
+                className={errors.fecha_inicio ? 'border-red-500' : ''}
               />
+              {errors.fecha_inicio && (
+                <span className="text-red-500 text-sm">{errors.fecha_inicio}</span>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -136,8 +261,11 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
                 type="date"
                 value={formData.fecha_regreso}
                 onChange={(e) => updateField('fecha_regreso', e.target.value)}
-                required
+                className={errors.fecha_regreso ? 'border-red-500' : ''}
               />
+              {errors.fecha_regreso && (
+                <span className="text-red-500 text-sm">{errors.fecha_regreso}</span>
+              )}
             </div>
           </div>
 
@@ -146,27 +274,34 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
               <Label htmlFor="tarifa_adulto">Tarifa por adulto *</Label>
               <Input
                 id="tarifa_adulto"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.tarifa_adulto}
-                onChange={(e) => updateField('tarifa_adulto', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
-                required
+                type="text"
+                value={editingField === 'tarifa_adulto' ? rawInputValues.tarifa_adulto : displayValues.tarifa_adulto}
+                onChange={(e) => handleCurrencyChange('tarifa_adulto', e.target.value)}
+                onBlur={() => handleCurrencyBlur('tarifa_adulto')}
+                onFocus={() => handleCurrencyFocus('tarifa_adulto')}
+                placeholder="Ingresa el valor"
+                className={`text-right ${errors.tarifa_adulto ? 'border-red-500' : ''}`}
               />
+              {errors.tarifa_adulto && (
+                <span className="text-red-500 text-sm">{errors.tarifa_adulto}</span>
+              )}
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="tarifa_nino">Tarifa por niño</Label>
               <Input
                 id="tarifa_nino"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.tarifa_nino}
-                onChange={(e) => updateField('tarifa_nino', parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
+                type="text"
+                value={editingField === 'tarifa_nino' ? rawInputValues.tarifa_nino : displayValues.tarifa_nino}
+                onChange={(e) => handleCurrencyChange('tarifa_nino', e.target.value)}
+                onBlur={() => handleCurrencyBlur('tarifa_nino')}
+                onFocus={() => handleCurrencyFocus('tarifa_nino')}
+                placeholder="Ingresa el valor"
+                className={`text-right ${errors.tarifa_nino ? 'border-red-500' : ''}`}
               />
+              {errors.tarifa_nino && (
+                <span className="text-red-500 text-sm">{errors.tarifa_nino}</span>
+              )}
             </div>
           </div>
 
