@@ -23,7 +23,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "../components/ui/tabs";
-import { Badge, Plus, X, Download, Edit, Check } from "lucide-react";
+import { Badge, Plus, X, Download, Edit, Check, RefreshCw } from "lucide-react";
 import EnhancedSalesForm from "../components/forms/EnhancedSalesForm";
 import FlightHotelForm from "../components/forms/FlightHotelForm";
 import CompleteTransactionForm from "../components/forms/CompleteTransactionForm";
@@ -42,7 +42,7 @@ import {
   RoleSpecificDashboard,
   ApprovedSalesView,
 } from "../components/home";
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { formatCurrency } from "@/lib/utils";
 import { mapStatusToStyle } from "@/components/dashboard/TransaccionesClientes";
 import { endpoints } from '@/lib/endpoints';
@@ -113,6 +113,16 @@ const Home = () => {
   // Estados para la vista de ventas aprobadas
   const [currentView, setCurrentView] = useState<'sales' | 'approved'>('sales');
 
+  // ========================================
+  // CONFIGURACIÓN CENTRAL DEL AUTO-REFRESH
+  // ========================================
+  // Cambiar este valor para modificar el intervalo de recarga automática
+  // Valores comunes: 60s (1min), 180s (3min), 300s (5min), 600s (10min)
+  const AUTO_REFRESH_INTERVAL = 300; // 5 minutos en segundos
+  
+  // Estados para auto-refresh
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
   // Enhanced handlers
   const handleAddSaleWrapper = async (formData: FormData) => {
     try {
@@ -140,6 +150,30 @@ const Home = () => {
       // Error is already handled in the hook
     }
   };
+
+  // Auto-refresh logic
+  useEffect(() => {
+    // Función para hacer el refresh
+    const doRefresh = async () => {
+      try {
+        await refreshTransactions();
+      } catch (error) {
+        console.error('Error en auto-refresh:', error);
+      }
+    };
+
+    // Configurar el intervalo de auto-refresh
+    intervalRef.current = setInterval(doRefresh, AUTO_REFRESH_INTERVAL * 1000);
+
+    // Cleanup function
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [refreshTransactions]);
+
+
 
   // If user is an admin, show only the admin dashboard
   if (isAdmin) {
@@ -704,12 +738,21 @@ const Home = () => {
           <CardHeader>
             <div className="flex justify-between items-center">
               <CardTitle>Gestión de Ventas</CardTitle>
-              <Button
-                onClick={openAddSale}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                <Plus className="h-4 w-4 mr-1" /> Agregar Venta
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={refreshTransactions}
+                  variant="outline"
+                  className="bg-gray-100 hover:bg-gray-200 text-gray-700"
+                >
+                  <RefreshCw className="h-4 w-4 mr-1" /> Recargar
+                </Button>
+                <Button
+                  onClick={openAddSale}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="h-4 w-4 mr-1" /> Agregar Venta
+                </Button>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
