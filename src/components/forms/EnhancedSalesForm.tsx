@@ -19,6 +19,11 @@ import { endpoints } from "@/lib/endpoints";
 import { useData } from "@/contexts/DataContext";
 import { useAuth } from "@/contexts/AuthContext";
 import { baseUrl } from "@/lib/endpoints";
+import { 
+  formatCurrency, 
+  parseCurrencyInput,
+  cleanCurrencyInput
+} from "@/utils/validations";
 
 
 interface EnhancedSalesFormProps {
@@ -36,6 +41,21 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
   const { addTransaction, refreshTransactions } = useData();
   const { user } = useAuth();
 
+  // Track which field is currently being edited
+  const [editingField, setEditingField] = useState<string | null>(null);
+
+  // Raw input values (what user is typing)
+  const [rawInputValues, setRawInputValues] = useState({
+    amount: '1000000',
+    paidAmount: '1000000'
+  });
+
+  // Display values for currency inputs (formatted with thousands separators)
+  const [displayValues, setDisplayValues] = useState({
+    amount: '1,000,000.00',
+    paidAmount: '1,000,000.00'
+  });
+
   console.log("📋 EnhancedSalesForm montado");
 
   const [formData, setFormData] = useState<SalesFormData>({
@@ -47,8 +67,8 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
     package: "nacional",
     quotedFlight: "Vuelo 1",
     agencyCost: 10,
-    amount: 120,
-    paidAmount: 120,
+    amount: 1000000,
+    paidAmount: 1000000,
     documentType: "dni",
     transactionType: "venta",
     startDate: new Date().toISOString(),
@@ -81,6 +101,48 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
   const updateField = async (field: keyof SalesFormData, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleCurrencyChange = (field: 'amount' | 'paidAmount', inputValue: string) => {
+    const cleanedValue = cleanCurrencyInput(inputValue);
+    
+    setRawInputValues(prev => ({
+      ...prev,
+      [field]: cleanedValue
+    }));
+  };
+
+  const handleCurrencyBlur = (field: 'amount' | 'paidAmount') => {
+    const rawValue = rawInputValues[field];
+    const numericValue = rawValue === '' ? 0 : parseCurrencyInput(rawValue);
+    const formattedValue = formatCurrency(numericValue);
+    
+    // Update the numeric value in formData
+    setFormData(prev => ({
+      ...prev,
+      [field]: numericValue
+    }));
+    
+    // Update the display value with formatting
+    setDisplayValues(prev => ({
+      ...prev,
+      [field]: formattedValue
+    }));
+    
+    // Mark field as no longer being edited
+    setEditingField(null);
+  };
+
+  const handleCurrencyFocus = (field: 'amount' | 'paidAmount') => {
+    // Mark field as being edited
+    setEditingField(field);
+    // Show raw value when focusing for easier editing
+    const currentValue = formData[field];
+    const rawValue = currentValue === 0 ? '' : currentValue.toString();
+    setRawInputValues(prev => ({
+      ...prev,
+      [field]: rawValue
+    }));
   };
 
   const updateFlightField = (index: number, field: string, value: string) => {
@@ -803,6 +865,9 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
 
       // Refrescar las transacciones para que aparezcan en la lista (DESPUÉS de validar)
       await refreshTransactions();
+
+      // Cerrar el modal solo si todo fue exitoso
+      onCancel();
     } catch (error) {
       console.error("❌ Failed to create sale:", error);
 
@@ -1016,14 +1081,13 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           <div className="space-y-2">
             <Label>Precio total *</Label>
             <Input
-              type="number"
-              value={formData.amount}
-              onChange={(e) =>
-                updateField("amount", parseFloat(e.target.value))
-              }
-              placeholder="Precio total del paquete"
-              min="0"
-              step="0.01"
+              type="text"
+              value={editingField === 'amount' ? rawInputValues.amount : displayValues.amount}
+              onChange={(e) => handleCurrencyChange('amount', e.target.value)}
+              onBlur={() => handleCurrencyBlur('amount')}
+              onFocus={() => handleCurrencyFocus('amount')}
+              placeholder="Ingresa el valor"
+              className="text-right"
               required
             />
           </div>
@@ -1031,14 +1095,13 @@ const EnhancedSalesForm: React.FC<EnhancedSalesFormProps> = ({
           <div className="space-y-2">
             <Label>Valor pagado *</Label>
             <Input
-              type="number"
-              value={formData.paidAmount}
-              onChange={(e) =>
-                updateField("paidAmount", parseFloat(e.target.value))
-              }
-              placeholder="Valor efectivamente pagado"
-              min="0"
-              step="0.01"
+              type="text"
+              value={editingField === 'paidAmount' ? rawInputValues.paidAmount : displayValues.paidAmount}
+              onChange={(e) => handleCurrencyChange('paidAmount', e.target.value)}
+              onBlur={() => handleCurrencyBlur('paidAmount')}
+              onFocus={() => handleCurrencyFocus('paidAmount')}
+              placeholder="Ingresa el valor"
+              className="text-right"
               required
             />
           </div>

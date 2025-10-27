@@ -3,14 +3,14 @@ import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog';
-import { 
-  validateForm, 
-  validateCurrency, 
+import {
+  validateForm,
+  validateCurrency,
   validateFutureDate,
-  formatCurrency, 
+  formatCurrency,
   parseCurrencyInput,
   cleanCurrencyInput,
-  FormValidationConfig 
+  FormValidationConfig
 } from '@/utils/validations';
 
 
@@ -61,7 +61,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errors, setErrors] = useState<{[key: string]: string}>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   // Configuración de validación usando el sistema centralizado
   const validationConfig: FormValidationConfig = {
@@ -112,7 +112,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
       ...prev,
       [field]: value
     }));
-    
+
     // Limpiar error del campo cuando se modifica
     if (errors[field]) {
       setErrors(prev => {
@@ -125,7 +125,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
   const handleCurrencyChange = (field: 'tarifa_adulto' | 'tarifa_nino', inputValue: string) => {
     const cleanedValue = cleanCurrencyInput(inputValue);
-    
+
     setRawInputValues(prev => ({
       ...prev,
       [field]: cleanedValue
@@ -136,19 +136,20 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     const rawValue = rawInputValues[field];
     const numericValue = rawValue === '' ? 0 : parseCurrencyInput(rawValue);
     const formattedValue = formatCurrency(numericValue);
-    
+
+
     // Update the numeric value in formData
     setFormData(prev => ({
       ...prev,
       [field]: numericValue
     }));
-    
+
     // Update the display value with formatting
     setDisplayValues(prev => ({
       ...prev,
       [field]: formattedValue
     }));
-    
+
     // Mark field as no longer being edited
     setEditingField(null);
   };
@@ -167,7 +168,7 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (isSubmitting) {
       return;
     }
@@ -177,12 +178,13 @@ const InvoiceForm: React.FC<InvoiceFormProps> = ({
     try {
       // Usar el sistema de validaciones centralizado
       const validationResult = validateForm(formData, validationConfig);
-      
+
       if (!validationResult.isValid) {
         setErrors(validationResult.errors);
         setIsSubmitting(false);
         return;
       }
+
 
       await onSubmit(formData);
       onClose();
